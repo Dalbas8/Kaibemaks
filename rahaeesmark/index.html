@@ -3,61 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0E3B2E">
+<meta name="theme-color" content="#0A0A0A">
 <title>Eesmärgid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F6F3EC;
-    --surface: #FFFFFF;
-    --rail: #0E3B2E;
-    --rail-text: #A3C4B6;
-    --rail-dim: #6E9686;
-    --rail-line: #1C4D3E;
-    --rail-active: #FFFFFF;
-    --rail-highlight: #F2B544;
-    --ink: #1B2420;
-    --ink-2: #4B5651;
-    --muted: #87908B;
-    --line: #E8E2D5;
-    --line-strong: #D6CEBD;
-    --track: #EFEADF;
-    --accent: #157A52;
-    --accent-hover: #11674A;
-    --accent-soft: #E3F2EA;
-    --accent-ink: #FFFFFF;
-    --warm: #E4573D;
-    --danger: #C8432D;
+    color-scheme: dark;
+    --bg: #0A0A0A;
+    --surface: #131313;
+    --panel-head: #181818;
+    --rail: #B9F5A6;            /* hele roheline külgriba */
+    --rail-text: #1F3A18;
+    --rail-dim: #4E6B45;
+    --rail-line: rgba(0,0,0,.12);
+    --rail-active: #0A0A0A;
+    --rail-highlight: #0A0A0A;
+    --ink: #F3F3EF;
+    --ink-2: #B4B4AE;
+    --muted: #78786F;
+    --line: #242424;
+    --line-strong: #363636;
+    --track: #1E1E1E;
+    --input: #0E0E0E;
+    --accent: #B9F5A6;
+    --accent-hover: #CDF9BF;
+    --accent-soft: rgba(185,245,166,.14);
+    --accent-ink: #0A0A0A;
+    --warm: #FF7A61;
+    --danger: #FF7A61;
 
-    --c1: #1F9D6B; /* roheline */
-    --c2: #E4573D; /* punane */
-    --c3: #3A6FD8; /* sinine */
-    --c4: #F2A93B; /* merevaik */
-    --c5: #8A63D2; /* lilla */
-    --c6: #17A2A4; /* türkiis */
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0F1613;
-      --surface: #16201C;
-      --rail: #0A2A20;
-      --rail-line: #163B2F;
-      --ink: #ECF1EE;
-      --ink-2: #B5C2BC;
-      --muted: #7F8D87;
-      --line: #23302B;
-      --line-strong: #33443D;
-      --track: #1F2A26;
-      --accent: #2BA874;
-      --accent-hover: #34B981;
-      --accent-soft: #173327;
-      --warm: #F0705A;
-      --danger: #F0705A;
-      --panel-head: #1A2520;
-      --c1: #2BB37B; --c2: #F0705A; --c3: #5B8CF0; --c4: #F5B850; --c5: #A283E3; --c6: #2EBFC0;
-    }
+    --c1: #B9F5A6; /* hele roheline */
+    --c2: #FF6B57; /* punane */
+    --c3: #6EA8FF; /* sinine */
+    --c4: #FFC857; /* kollane */
+    --c5: #B79CFF; /* lilla */
+    --c6: #5FE0D4; /* türkiis */
   }
 
   * { box-sizing: border-box; margin: 0; }
@@ -87,7 +69,7 @@
     font-weight: 700; font-size: 15px; letter-spacing: .02em;
     display: flex; align-items: center; gap: 10px;
   }
-  .brand-mark { width: 14px; height: 14px; background: var(--rail-highlight); box-shadow: 6px 6px 0 var(--c2); margin-right: 6px; }
+  .brand-mark { width: 14px; height: 14px; background: #0A0A0A; box-shadow: 6px 6px 0 #FF6B57; margin-right: 6px; }
   .nav-label {
     font-size: 11px; text-transform: uppercase; letter-spacing: .12em;
     padding: 0 22px 8px; color: var(--rail-dim);
@@ -100,8 +82,8 @@
     border-left: 3px solid transparent;
   }
   .nav button svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .nav button:hover { color: var(--rail-active); background: rgba(255,255,255,.05); }
-  .nav button.active { color: var(--rail-active); border-left-color: var(--rail-highlight); background: rgba(255,255,255,.09); }
+  .nav button:hover { color: var(--rail-active); background: rgba(0,0,0,.06); }
+  .nav button.active { color: var(--rail-active); border-left-color: var(--rail-highlight); background: rgba(0,0,0,.1); font-weight: 600; }
   .nav button .count {
     margin-left: auto; font-size: 11px; color: var(--rail); background: var(--rail-highlight); padding: 1px 7px; font-weight: 600;
     font-family: "JetBrains Mono", monospace;
@@ -126,7 +108,7 @@
 
   .panel { background: var(--surface); border: 1px solid var(--line); }
   .panel-head {
-    background: var(--panel-head, #FBF9F4);
+    background: var(--panel-head);
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 20px; border-bottom: 1px solid var(--line);
   }
@@ -165,7 +147,7 @@
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
   .field label { font-size: 12px; font-weight: 500; color: var(--ink-2); }
   input, select {
-    font: inherit; color: var(--ink); background: var(--surface);
+    font: inherit; color: var(--ink); background: var(--input);
     border: 1px solid var(--line-strong); border-radius: 0;
     padding: 11px 12px; width: 100%; outline: none;
   }
