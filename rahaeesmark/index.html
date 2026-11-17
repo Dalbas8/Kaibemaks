@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>Raha eesmärk</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #273449;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #22c55e;
+    --danger: #ef4444;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  .menu-btn {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 12px; font-size: 18px; cursor: pointer;
+  }
+
+  /* Külgmenüü */
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100%; width: 270px; max-width: 85vw;
+    background: var(--card); border-left: 1px solid var(--border);
+    transform: translateX(100%); transition: transform .25s ease; z-index: 20;
+    padding: 20px 16px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer h2 { margin: 0 0 12px; font-size: 16px; color: var(--muted); }
+  .drawer button {
+    text-align: left; background: transparent; color: var(--text);
+    border: none; padding: 12px; border-radius: 10px; font-size: 16px; cursor: pointer;
+  }
+  .drawer button:hover, .drawer button.active { background: var(--card2); }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 15;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px; margin-bottom: 16px;
+  }
+
+  /* Avaleht */
+  .goal-label { color: var(--muted); text-align: center; font-size: 14px; margin-bottom: 4px; }
+  .goal-name { text-align: center; font-size: 18px; margin-bottom: 6px; }
+  .goal-amount {
+    text-align: center; font-size: clamp(56px, 16vw, 96px);
+    font-weight: 800; letter-spacing: -2px; line-height: 1;
+  }
+  .goal-progress-text { text-align: center; color: var(--muted); margin: 12px 0 14px; font-size: 16px; }
+  .goal-progress-text b { color: var(--text); }
+
+  .bar {
+    width: 100%; height: 34px; background: #0b1220; border: 1px solid var(--border);
+    border-radius: 999px; overflow: hidden; display: flex;
+  }
+  .seg { height: 100%; transition: width .5s ease; position: relative; }
+  .seg + .seg { border-left: 2px solid rgba(0,0,0,.35); }
+  .done-msg { text-align: center; margin-top: 12px; color: var(--accent); font-weight: 700; display: none; }
+
+  form.row { display: flex; gap: 8px; flex-wrap: wrap; }
+  form.row > * { flex: 1 1 120px; }
+  input, select {
+    background: #0b1220; color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; font-size: 16px; width: 100%;
+  }
+  .btn {
+    background: var(--accent); color: #052e16; border: none; border-radius: 10px;
+    padding: 12px 16px; font-size: 16px; font-weight: 700; cursor: pointer;
+  }
+  .btn.secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .btn.small { padding: 6px 10px; font-size: 13px; font-weight: 600; }
+  h3 { margin: 0 0 12px; font-size: 16px; }
+
+  ul.list { list-style: none; padding: 0; margin: 0; }
+  ul.list li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  ul.list li:last-child { border-bottom: none; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .grow { flex: 1; min-width: 0; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .del {
+    background: transparent; border: none; color: var(--muted);
+    font-size: 18px; cursor: pointer; padding: 4px 8px;
+  }
+  .del:hover { color: var(--danger); }
+  .empty { color: var(--muted); text-align: center; padding: 10px 0; font-size: 14px; }
+
+  .task-done .grow > div:first-child { text-decoration: line-through; color: var(--muted); }
+  input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--accent); }
+
+  .group-title { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px; }
+  .mini-bar { height: 8px; border-radius: 999px; background: #0b1220; overflow: hidden; margin-top: 6px; }
+  .mini-bar > div { height: 100%; background: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="pageTitle">💰 Avaleht</h1>
+  <button class="menu-btn" id="menuBtn" aria-label="Menüü">☰</button>
+</header>
+
+<div class="overlay" id="overlay"></div>
+<nav class="drawer" id="drawer">
+  <h2>Menüü</h2>
+  <button data-page="home" class="active">💰 Avaleht – raha eesmärk</button>
+  <button data-page="long">🎯 Pikaajalised eesmärgid</button>
+  <button data-page="short">📝 Lühiajalised ülesanded</button>
+</nav>
+
+<main>
+  <!-- AVALEHT -->
+  <section class="page active" id="page-home">
+    <div class="card">
+      <div class="goal-label">Lühiajaline raha eesmärk</div>
+      <div class="goal-name" id="goalName"></div>
+      <div class="goal-amount" id="goalAmount">0 €</div>
+      <div class="goal-progress-text" id="progressText"></div>
+      <div class="bar" id="bar"></div>
+      <div class="done-msg" id="doneMsg">🎉 Eesmärk täidetud!</div>
+    </div>
+
+    <div class="card">
+      <h3>➕ Lisa raha</h3>
+      <form class="row" id="incomeForm">
+        <input type="number" id="incomeAmount" placeholder="Summa €" min="0.01" step="0.01" required>
+        <input type="text" id="incomeNote" placeholder="Kust? (nt töö)">
+        <button class="btn" type="submit">Lisa</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>📜 Sissetulekud</h3>
+      <ul class="list" id="incomeList"></ul>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ Muuda eesmärki</h3>
+      <form class="row" id="goalForm">
+        <input type="text" id="goalNameInput" placeholder="Nimi (nt uus telefon)">
+        <input type="number" id="goalInput" placeholder="Eesmärk €" min="1" step="1" required>
+        <button class="btn secondary" type="submit">Salvesta</button>
+      </form>
+      <div style="margin-top:10px">
+        <button class="btn secondary small" id="resetIncome">Alusta otsast (kustuta sissetulekud)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIKAAJALISED -->
+  <section class="page" id="page-long">
+    <div class="card">
+      <h3>➕ Uus pikaajaline eesmärk</h3>
+      <form class="row" id="longForm">
+        <input type="text" id="longText" placeholder="Eesmärk (nt auto ost)" required style="flex-basis:100%">
+        <input type="number" id="longAmount" placeholder="Summa € (valikuline)" min="0" step="1">
+        <input type="date" id="longDate" title="Tähtaeg">
+        <button class="btn" type="submit">Lisa</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>🎯 Minu pikaajalised eesmärgid</h3>
+      <ul class="list" id="longList"></ul>
+    </div>
+  </section>
+
+  <!-- LÜHIAJALISED -->
+  <section class="page" id="page-short">
+    <div class="card">
+      <h3>➕ Mida pean tegema?</h3>
+      <form class="row" id="shortForm">
+        <input type="text" id="shortText" placeholder="Nt helistada tööandjale" required style="flex-basis:100%">
+        <select id="shortWhen">
+          <option value="0">Täna</option>
+          <option value="1" selected>Homme</option>
+          <option value="2">Ülehomme</option>
+          <option value="custom">Vali kuupäev…</option>
+        </select>
+        <input type="date" id="shortDate" style="display:none">
+        <button class="btn" type="submit">Lisa</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>📝 Lühiajalised ülesanded</h3>
+      <div id="shortList"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ---------- Andmed ----------
+  const KEY = "rahaEesmarkApp_v1";
+  const COLORS = ["#22c55e", "#ef4444", "#3b82f6", "#f59e0b", "#a855f7", "#14b8a6", "#ec4899"];
+
+  const defaults = { goal: 1000, goalName: "", incomes: [], longGoals: [], tasks: [] };
+  let state;
+  try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY)) || {}); }
+  catch (e) { state = { ...defaults }; }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const euro = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 2 }) + " €";
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  function todayStr(offset = 0) {
+    const d = new Date(); d.setDate(d.getDate() + offset);
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function dayLabel(dateStr) {
+    if (dateStr === todayStr(0)) return "Täna";
+    if (dateStr === todayStr(1)) return "Homme";
+    if (dateStr === todayStr(2)) return "Ülehomme";
+    if (dateStr < todayStr(0)) return "Hilinenud (" + fmtDate(dateStr) + ")";
+    return fmtDate(dateStr);
+  }
+  function fmtDate(s) {
+    if (!s) return "";
+    const [y, m, d] = s.split("-");
+    return d + "." + m + "." + y;
+  }
+
+  // ---------- Menüü ----------
+  const drawer = document.getElementById("drawer");
+  const overlay = document.getElementById("overlay");
+  const titles = { home: "💰 Avaleht", long: "🎯 Pikaajalised", short: "📝 Lühiajalised" };
+  function toggleMenu(open) {
+    drawer.classList.toggle("open", open);
+    overlay.classList.toggle("open", open);
+  }
+  document.getElementById("menuBtn").onclick = () => toggleMenu(true);
+  overlay.onclick = () => toggleMenu(false);
+  drawer.querySelectorAll("button[data-page]").forEach(b => {
+    b.onclick = () => {
+      drawer.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById("page-" + b.dataset.page).classList.add("active");
+      document.getElementById("pageTitle").textContent = titles[b.dataset.page];
+      toggleMenu(false);
+    };
+  });
+
+  // ---------- Avaleht ----------
+  function renderHome() {
+    const total = state.incomes.reduce((s, i) => s + i.amount, 0);
+    const goal = state.goal;
+    document.getElementById("goalAmount").textContent = euro(goal);
+    document.getElementById("goalName").textContent = state.goalName;
+    const pct = goal > 0 ? Math.min(100, (total / goal) * 100) : 0;
+    const left = Math.max(0, goal - total);
+    document.getElementById("progressText").innerHTML =
+      `Kogutud <b>${euro(total)}</b> (${pct.toFixed(0)}%) · Puudu <b>${euro(left)}</b>`;
+
+    // Riba: iga sissetulek on oma värvi tükk (roheline, punane, sinine, ...)
+    const bar = document.getElementById("bar");
+    bar.innerHTML = "";
+    let used = 0;
+    state.incomes.forEach((inc, i) => {
+      if (used >= goal) return;
+      const part = Math.min(inc.amount, goal - used);
+      used += part;
+      const seg = document.createElement("div");
+      seg.className = "seg";
+      seg.style.background = COLORS[i % COLORS.length];
+      seg.style.width = "0%";
+      seg.title = (inc.note || "Sissetulek") + ": " + euro(inc.amount);
+      bar.appendChild(seg);
+      requestAnimationFrame(() => seg.style.width = (part / goal * 100) + "%");
+    });
+    document.getElementById("doneMsg").style.display = total >= goal && goal > 0 ? "block" : "none";
+
+    const list = document.getElementById("incomeList");
+    if (!state.incomes.length) {
+      list.innerHTML = `<li class="empty" style="justify-content:center">Veel pole midagi lisatud</li>`;
+    } else {
+      list.innerHTML = state.incomes.map((inc, i) => `
+        <li>
+          <span class="dot" style="background:${COLORS[i % COLORS.length]}"></span>
+          <div class="grow">
+            <div>${esc(inc.note || "Sissetulek")}</div>
+            <div class="sub">${fmtDate(inc.date)}</div>
+          </div>
+          <b>+${euro(inc.amount)}</b>
+          <button class="del" data-del-income="${inc.id}" title="Kustuta">✕</button>
+        </li>`).reverse().join("");
+    }
+    document.getElementById("goalInput").value = state.goal;
+    document.getElementById("goalNameInput").value = state.goalName;
+  }
+
+  document.getElementById("incomeForm").onsubmit = e => {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById("incomeAmount").value);
+    if (!(amount > 0)) return;
+    state.incomes.push({ id: uid(), amount, note: document.getElementById("incomeNote").value.trim(), date: todayStr() });
+    save(); e.target.reset(); renderHome();
+  };
+  document.getElementById("goalForm").onsubmit = e => {
+    e.preventDefault();
+    const g = parseFloat(document.getElementById("goalInput").value);
+    if (!(g > 0)) return;
+    state.goal = g;
+    state.goalName = document.getElementById("goalNameInput").value.trim();
+    save(); renderHome();
+  };
+  document.getElementById("resetIncome").onclick = () => {
+    if (confirm("Kas kustutada kõik sissetulekud ja alustada otsast?")) {
+      state.incomes = []; save(); renderHome();
+    }
+  };
+  document.getElementById("incomeList").onclick = e => {
+    const id = e.target.dataset.delIncome;
+    if (id) { state.incomes = state.incomes.filter(i => i.id !== id); save(); renderHome(); }
+  };
+
+  // ---------- Pikaajalised eesmärgid ----------
+  function renderLong() {
+    const list = document.getElementById("longList");
+    if (!state.longGoals.length) {
+      list.innerHTML = `<li class="empty" style="justify-content:center">Lisa oma esimene pikaajaline eesmärk</li>`;
+      return;
+    }
+    list.innerHTML = state.longGoals.map(g => {
+      const pct = g.amount ? Math.min(100, (g.saved || 0) / g.amount * 100) : 0;
+      return `
+      <li class="${g.done ? "task-done" : ""}">
+        <input type="checkbox" data-long-done="${g.id}" ${g.done ? "checked" : ""}>
+        <div class="grow">
+          <div>${esc(g.text)}</div>
+          <div class="sub">
+            ${g.amount ? euro(g.saved || 0) + " / " + euro(g.amount) : ""}
+            ${g.date ? " · Tähtaeg " + fmtDate(g.date) : ""}
+          </div>
+          ${g.amount ? `<div class="mini-bar"><div style="width:${pct}%"></div></div>` : ""}
+        </div>
+        ${g.amount ? `<button class="btn secondary small" data-long-add="${g.id}">+ €</button>` : ""}
+        <button class="del" data-long-del="${g.id}" title="Kustuta">✕</button>
+      </li>`;
+    }).join("");
+  }
+  document.getElementById("longForm").onsubmit = e => {
+    e.preventDefault();
+    const text = document.getElementById("longText").value.trim();
+    if (!text) return;
+    state.longGoals.push({
+      id: uid(), text,
+      amount: parseFloat(document.getElementById("longAmount").value) || 0,
+      saved: 0,
+      date: document.getElementById("longDate").value,
+      done: false
+    });
+    save(); e.target.reset(); renderLong();
+  };
+  document.getElementById("longList").onclick = e => {
+    const t = e.target;
+    if (t.dataset.longDel) {
+      state.longGoals = state.longGoals.filter(g => g.id !== t.dataset.longDel);
+    } else if (t.dataset.longDone) {
+      const g = state.longGoals.find(g => g.id === t.dataset.longDone); g.done = t.checked;
+    } else if (t.dataset.longAdd) {
+      const g = state.longGoals.find(g => g.id === t.dataset.longAdd);
+      const v = parseFloat(prompt("Kui palju € lisada eesmärgile „" + g.text + "“?"));
+      if (!(v > 0)) return;
+      g.saved = (g.saved || 0) + v;
+    } else return;
+    save(); renderLong();
+  };
+
+  // ---------- Lühiajalised ülesanded ----------
+  const whenSel = document.getElementById("shortWhen");
+  const dateInp = document.getElementById("shortDate");
+  whenSel.onchange = () => { dateInp.style.display = whenSel.value === "custom" ? "block" : "none"; };
+
+  function renderShort() {
+    const wrap = document.getElementById("shortList");
+    if (!state.tasks.length) {
+      wrap.innerHTML = `<div class="empty">Ülesandeid pole – lisa näiteks, mida pead homme tegema</div>`;
+      return;
+    }
+    const sorted = [...state.tasks].sort((a, b) => a.date.localeCompare(b.date) || a.done - b.done);
+    const groups = {};
+    sorted.forEach(t => (groups[t.date] = groups[t.date] || []).push(t));
+    wrap.innerHTML = Object.keys(groups).map(date => `
+      <div class="group-title">${dayLabel(date)}</div>
+      <ul class="list">
+        ${groups[date].map(t => `
+          <li class="${t.done ? "task-done" : ""}">
+            <input type="checkbox" data-task-done="${t.id}" ${t.done ? "checked" : ""}>
+            <div class="grow"><div>${esc(t.text)}</div></div>
+            <button class="del" data-task-del="${t.id}" title="Kustuta">✕</button>
+          </li>`).join("")}
+      </ul>`).join("");
+  }
+  document.getElementById("shortForm").onsubmit = e => {
+    e.preventDefault();
+    const text = document.getElementById("shortText").value.trim();
+    if (!text) return;
+    let date = whenSel.value === "custom" ? dateInp.value : todayStr(parseInt(whenSel.value));
+    if (!date) { alert("Vali kuupäev"); return; }
+    state.tasks.push({ id: uid(), text, date, done: false });
+    save();
+    document.getElementById("shortText").value = "";
+    renderShort();
+  };
+  document.getElementById("shortList").onclick = e => {
+    const t = e.target;
+    if (t.dataset.taskDel) {
+      state.tasks = state.tasks.filter(x => x.id !== t.dataset.taskDel);
+    } else if (t.dataset.taskDone) {
+      state.tasks.find(x => x.id === t.dataset.taskDone).done = t.checked;
+    } else return;
+    save(); renderShort();
+  };
+
+  renderHome(); renderLong(); renderShort();
+</script>
+</body>
+</html>
