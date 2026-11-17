@@ -141,6 +141,15 @@
   .stat .v { font-size: 22px; font-weight: 600; margin-top: 4px; }
   .stat .v.good { color: var(--accent); }
   .stat .v.warm { color: var(--warm); }
+  .forecast {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 32px; border-top: 1px solid var(--line); background: var(--accent-soft);
+  }
+  .forecast svg { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; }
+  .forecast .main { font-size: 15px; }
+  .forecast .main b { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .forecast .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .times { font-size: 12px; color: var(--muted); margin-left: 6px; }
   .complete { display: none; background: var(--accent); color: var(--accent-ink); padding: 10px 32px; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
 
   /* ---------- Vormid ---------- */
@@ -242,6 +251,8 @@
     .stat { padding: 14px 12px; }
     .stat .v { font-size: 16px; }
     .complete { padding: 10px 18px; }
+    .forecast { padding: 14px 18px; gap: 12px; }
+    .forecast svg { display: none; }
     th, td { padding-left: 14px; padding-right: 14px; }
     .item, .goal-card, .group { padding-left: 14px; padding-right: 14px; }
     .panel-head, .panel-body { padding-left: 14px; padding-right: 14px; }
@@ -309,6 +320,13 @@
           <div class="stat"><div class="l">Kogutud</div><div class="v num good" id="sTotal">0 €</div></div>
           <div class="stat"><div class="l">Puudu</div><div class="v num warm" id="sLeft">0 €</div></div>
           <div class="stat"><div class="l">Sissetulekuid</div><div class="v num" id="sCount">0</div></div>
+        </div>
+        <div class="forecast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+          <div>
+            <div class="main" id="forecastMain"></div>
+            <div class="sub num" id="forecastSub"></div>
+          </div>
         </div>
       </div>
 
@@ -447,9 +465,28 @@
   let state;
   try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY)) || {}); }
   catch (e) { state = { ...defaults }; }
+  // Sama nimega sissetulekud liidetakse üheks; iga lisamine jääb kirjesse alles (ennustuse jaoks).
+  const incomeKey = note => (note || "").trim().toLowerCase();
+  function normalizeIncomes(list) {
+    const out = [];
+    (list || []).forEach(inc => {
+      const entries = inc.entries || [{ amount: inc.amount, date: inc.date || dateStr() }];
+      const existing = out.find(o => incomeKey(o.note) === incomeKey(inc.note));
+      if (existing) existing.entries.push(...entries);
+      else out.push({ id: inc.id || uid(), note: inc.note || "", entries: [...entries] });
+    });
+    out.forEach(recalcIncome);
+    return out;
+  }
+  function recalcIncome(inc) {
+    inc.amount = inc.entries.reduce((s, e) => s + e.amount, 0);
+    inc.date = inc.entries.map(e => e.date).sort().pop();
+  }
+  state.incomes = normalizeIncomes(state.incomes);
+
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
 
-  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   const euro = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 2 }) + " €";
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const ICON_X = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>';
@@ -489,7 +526,8 @@
     document.getElementById("pct").textContent = Math.floor(pct) + "%";
     document.getElementById("sTotal").textContent = euro(total);
     document.getElementById("sLeft").textContent = euro(Math.max(0, goal - total));
-    document.getElementById("sCount").textContent = state.incomes.length;
+    document.getElementById("sCount").textContent = state.incomes.reduce((s, i) => s + i.entries.length, 0);
+    renderForecast(total, goal);
     document.getElementById("tickMid").textContent = euro(goal / 2);
     document.getElementById("tickEnd").textContent = euro(goal);
     document.getElementById("complete").style.display = goal > 0 && total >= goal ? "block" : "none";
@@ -518,22 +556,54 @@
     } else {
       const rows = state.incomes.map((inc, i) => `
         <tr>
-          <td><span class="swatch" style="background:${color(i)}"></span>${esc(inc.note || "Sissetulek")}</td>
+          <td><span class="swatch" style="background:${color(i)}"></span>${esc(inc.note || "Sissetulek")}${inc.entries.length > 1 ? `<span class="times num">× ${inc.entries.length}</span>` : ""}</td>
           <td class="date-col num" style="color:var(--muted)">${fmtDate(inc.date)}</td>
           <td class="r num"><b style="font-weight:600">+${euro(inc.amount)}</b></td>
           <td class="r" style="width:40px"><button class="x" data-del="${inc.id}" title="Kustuta">${ICON_X}</button></td>
         </tr>`).reverse().join("");
-      list.innerHTML = `<table><thead><tr><th>Allikas</th><th class="date-col">Kuupäev</th><th class="r">Summa</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+      list.innerHTML = `<table><thead><tr><th>Allikas</th><th class="date-col">Viimati</th><th class="r">Summa</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
     }
     document.getElementById("goalInput").value = state.goal;
     document.getElementById("goalNameInput").value = state.goalName;
+  }
+
+  // Ennustus: senine keskmine kogumiskiirus (€ päevas) alates esimesest sissetulekust kuni tänaseni.
+  const MONTHS_TRANSL = ["jaanuariks", "veebruariks", "märtsiks", "apriliks", "maiks", "juuniks",
+    "juuliks", "augustiks", "septembriks", "oktoobriks", "novembriks", "detsembriks"];
+  const parseDate = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  function renderForecast(total, goal) {
+    const main = document.getElementById("forecastMain");
+    const sub = document.getElementById("forecastSub");
+    const dates = state.incomes.flatMap(i => i.entries.map(e => e.date)).sort();
+    if (!dates.length) {
+      main.textContent = "Lisa esimene sissetulek, et näha, millal eesmärgini jõuad.";
+      sub.textContent = ""; return;
+    }
+    if (total >= goal) {
+      main.innerHTML = "<b>Eesmärk on käes!</b> Võid seada uue eesmärgi.";
+      sub.textContent = ""; return;
+    }
+    const today = parseDate(dateStr());
+    const days = Math.round((today - parseDate(dates[0])) / 86400000) + 1;
+    const perDay = total / days;
+    const daysLeft = Math.ceil((goal - total) / perDay);
+    const target = new Date(today); target.setDate(target.getDate() + daysLeft);
+    const yearPart = target.getFullYear() !== today.getFullYear() ? target.getFullYear() + ". aasta " : "";
+    const when = yearPart + target.getDate() + ". " + MONTHS_TRANSL[target.getMonth()];
+    main.innerHTML = `Kui kogud samas tempos edasi, jõuad eesmärgini umbes <b>${when}</b>.`;
+    sub.textContent = `Keskmiselt ${euro(Math.round(perDay * 100) / 100)} päevas · veel umbes ${daysLeft} ${daysLeft === 1 ? "päev" : "päeva"}` +
+      (days === 1 ? " · ennustus täpsustub, kui lisad sissetulekuid eri päevadel" : "");
   }
 
   document.getElementById("incomeForm").onsubmit = e => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById("incomeAmount").value);
     if (!(amount > 0)) return;
-    state.incomes.push({ id: uid(), amount, note: document.getElementById("incomeNote").value.trim(), date: dateStr() });
+    const note = document.getElementById("incomeNote").value.trim();
+    const entry = { amount, date: dateStr() };
+    const existing = state.incomes.find(i => incomeKey(i.note) === incomeKey(note));
+    if (existing) { existing.entries.push(entry); recalcIncome(existing); }
+    else { const inc = { id: uid(), note, entries: [entry] }; recalcIncome(inc); state.incomes.push(inc); }
     save(); e.target.reset(); renderMoney();
   };
   document.getElementById("goalForm").onsubmit = e => {
