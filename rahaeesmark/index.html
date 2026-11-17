@@ -3,49 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#F4F3EF">
+<meta name="theme-color" content="#0E3B2E">
 <title>Eesmärgid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F4F3EF;
+    --bg: #F6F3EC;
     --surface: #FFFFFF;
-    --rail: #16181D;
-    --rail-text: #9BA1AC;
+    --rail: #0E3B2E;
+    --rail-text: #A3C4B6;
+    --rail-dim: #6E9686;
+    --rail-line: #1C4D3E;
     --rail-active: #FFFFFF;
-    --ink: #16181D;
-    --ink-2: #4A4F59;
-    --muted: #868B94;
-    --line: #E2E0DA;
-    --line-strong: #CFCCC4;
-    --track: #ECEAE4;
-    --accent: #1F6F4A;
+    --rail-highlight: #F2B544;
+    --ink: #1B2420;
+    --ink-2: #4B5651;
+    --muted: #87908B;
+    --line: #E8E2D5;
+    --line-strong: #D6CEBD;
+    --track: #EFEADF;
+    --accent: #157A52;
+    --accent-hover: #11674A;
+    --accent-soft: #E3F2EA;
     --accent-ink: #FFFFFF;
-    --danger: #B23A2B;
+    --warm: #E4573D;
+    --danger: #C8432D;
 
-    --c1: #1F6F4A; /* roheline */
-    --c2: #B23A2B; /* punane */
-    --c3: #2C4F7C; /* sinine */
-    --c4: #B88A2E; /* ooker */
-    --c5: #5D4B7A; /* lilla */
-    --c6: #2F7A78; /* teal */
+    --c1: #1F9D6B; /* roheline */
+    --c2: #E4573D; /* punane */
+    --c3: #3A6FD8; /* sinine */
+    --c4: #F2A93B; /* merevaik */
+    --c5: #8A63D2; /* lilla */
+    --c6: #17A2A4; /* türkiis */
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #111317;
-      --surface: #191C21;
-      --rail: #0B0C0F;
-      --ink: #ECEDEF;
-      --ink-2: #B4B8C0;
-      --muted: #7D828C;
-      --line: #262A31;
-      --line-strong: #353A43;
-      --track: #22262C;
-      --accent: #3E9A6C;
-      --danger: #D2604F;
-      --c1: #3E9A6C; --c2: #D2604F; --c3: #5B82B8; --c4: #D1A548; --c5: #8E7AB0; --c6: #4FA5A2;
+      --bg: #0F1613;
+      --surface: #16201C;
+      --rail: #0A2A20;
+      --rail-line: #163B2F;
+      --ink: #ECF1EE;
+      --ink-2: #B5C2BC;
+      --muted: #7F8D87;
+      --line: #23302B;
+      --line-strong: #33443D;
+      --track: #1F2A26;
+      --accent: #2BA874;
+      --accent-hover: #34B981;
+      --accent-soft: #173327;
+      --warm: #F0705A;
+      --danger: #F0705A;
+      --panel-head: #1A2520;
+      --c1: #2BB37B; --c2: #F0705A; --c3: #5B8CF0; --c4: #F5B850; --c5: #A283E3; --c6: #2EBFC0;
     }
   }
 
@@ -76,10 +87,10 @@
     font-weight: 700; font-size: 15px; letter-spacing: .02em;
     display: flex; align-items: center; gap: 10px;
   }
-  .brand-mark { width: 14px; height: 14px; background: var(--c1); box-shadow: 6px 6px 0 var(--c2); margin-right: 6px; }
+  .brand-mark { width: 14px; height: 14px; background: var(--rail-highlight); box-shadow: 6px 6px 0 var(--c2); margin-right: 6px; }
   .nav-label {
     font-size: 11px; text-transform: uppercase; letter-spacing: .12em;
-    padding: 0 22px 8px; color: #5E636D;
+    padding: 0 22px 8px; color: var(--rail-dim);
   }
   .nav button {
     all: unset; box-sizing: border-box; cursor: pointer;
@@ -89,19 +100,20 @@
     border-left: 3px solid transparent;
   }
   .nav button svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .nav button:hover { color: var(--rail-active); background: rgba(255,255,255,.03); }
-  .nav button.active { color: var(--rail-active); border-left-color: var(--c1); background: rgba(255,255,255,.05); }
+  .nav button:hover { color: var(--rail-active); background: rgba(255,255,255,.05); }
+  .nav button.active { color: var(--rail-active); border-left-color: var(--rail-highlight); background: rgba(255,255,255,.09); }
   .nav button .count {
-    margin-left: auto; font-size: 12px; color: #5E636D;
+    margin-left: auto; font-size: 11px; color: var(--rail); background: var(--rail-highlight); padding: 1px 7px; font-weight: 600;
     font-family: "JetBrains Mono", monospace;
   }
+  .nav button .count:empty { display: none; }
   .rail-foot {
-    margin-top: auto; padding: 18px 22px; border-top: 1px solid #23262C;
+    margin-top: auto; padding: 18px 22px; border-top: 1px solid var(--rail-line);
     font-size: 12px;
   }
   .rail-foot .big { color: var(--rail-active); font-size: 18px; font-weight: 600; margin-top: 2px; }
-  .rail-foot .mini { height: 4px; background: #2A2D33; margin-top: 10px; }
-  .rail-foot .mini div { height: 100%; background: var(--c1); }
+  .rail-foot .mini { height: 4px; background: var(--rail-line); margin-top: 10px; }
+  .rail-foot .mini div { height: 100%; background: var(--rail-highlight); }
 
   main { padding: 36px 44px 60px; max-width: 1080px; width: 100%; }
   .page { display: none; }
@@ -114,6 +126,7 @@
 
   .panel { background: var(--surface); border: 1px solid var(--line); }
   .panel-head {
+    background: var(--panel-head, #FBF9F4);
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 20px; border-bottom: 1px solid var(--line);
   }
@@ -122,13 +135,13 @@
   .grid-2 { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; margin-top: 20px; align-items: start; }
 
   /* ---------- Rahaline eesmärk ---------- */
-  .hero { padding: 32px 32px 28px; }
+  .hero { padding: 32px 32px 28px; border-top: 4px solid var(--accent); }
   .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
   .hero-name { color: var(--ink-2); font-size: 15px; margin-bottom: 4px; min-height: 1.45em; }
   .hero-amount { font-size: clamp(52px, 9vw, 104px); font-weight: 700; letter-spacing: -.035em; line-height: .95; }
   .hero-amount small { font-size: .42em; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-left: 6px; }
   .pct-box { text-align: right; }
-  .pct-box .v { font-size: 40px; font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+  .pct-box .v { font-size: 40px; font-weight: 600; letter-spacing: -.02em; line-height: 1; color: var(--accent); }
   .pct-box .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 6px; }
 
   .bar {
@@ -144,6 +157,8 @@
   .stat + .stat { border-left: 1px solid var(--line); }
   .stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
   .stat .v { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .stat .v.good { color: var(--accent); }
+  .stat .v.warm { color: var(--warm); }
   .complete { display: none; background: var(--accent); color: var(--accent-ink); padding: 10px 32px; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
 
   /* ---------- Vormid ---------- */
@@ -154,18 +169,18 @@
     border: 1px solid var(--line-strong); border-radius: 0;
     padding: 11px 12px; width: 100%; outline: none;
   }
-  input:focus, select:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .row { display: flex; gap: 10px; }
   .row > * { flex: 1; min-width: 0; }
   .btn {
     all: unset; box-sizing: border-box; cursor: pointer; text-align: center;
-    background: var(--ink); color: var(--surface);
+    background: var(--accent); color: var(--accent-ink);
     padding: 12px 18px; font-size: 14px; font-weight: 600; letter-spacing: .01em;
   }
-  .btn:hover { opacity: .88; }
+  .btn:hover { background: var(--accent-hover); }
   .btn.block { width: 100%; }
   .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
-  .btn.ghost:hover { border-color: var(--ink); opacity: 1; }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
   .btn.sm { padding: 7px 12px; font-size: 12px; }
   .link-btn { all: unset; cursor: pointer; font-size: 12px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
   .link-btn:hover { color: var(--danger); }
@@ -176,7 +191,7 @@
     padding: 10px 6px; font-size: 13px; font-weight: 500; color: var(--ink-2);
   }
   .seg-select button + button { border-left: 1px solid var(--line-strong); }
-  .seg-select button.on { background: var(--ink); color: var(--surface); }
+  .seg-select button.on { background: var(--accent); color: var(--accent-ink); }
 
   /* ---------- Loendid ---------- */
   table { width: 100%; border-collapse: collapse; }
@@ -206,9 +221,9 @@
     all: unset; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0;
     border: 1.5px solid var(--line-strong); display: inline-flex; align-items: center; justify-content: center;
   }
-  .check:hover { border-color: var(--ink); }
-  .check.on { background: var(--ink); border-color: var(--ink); }
-  .check svg { width: 12px; height: 12px; color: var(--surface); display: none; }
+  .check:hover { border-color: var(--accent); }
+  .check.on { background: var(--accent); border-color: var(--accent); }
+  .check svg { width: 12px; height: 12px; color: var(--accent-ink); display: none; }
   .check.on svg { display: block; }
 
   .goal-card { padding: 20px; }
@@ -221,7 +236,7 @@
   .goal-card .amt b { font-size: 16px; font-weight: 600; }
   .goal-card .amt span { color: var(--muted); font-size: 13px; }
   .thin { height: 6px; background: var(--track); margin: 14px 0 12px 32px; }
-  .thin div { height: 100%; background: var(--c3); transition: width .5s; }
+  .thin div { height: 100%; background: var(--accent); transition: width .5s; }
   .add-inline { display: flex; gap: 8px; margin-left: 32px; max-width: 320px; }
   .add-inline input { padding: 7px 10px; font-size: 13px; }
 
@@ -309,8 +324,8 @@
         </div>
         <div class="complete" id="complete">Eesmärk on täidetud.</div>
         <div class="stats">
-          <div class="stat"><div class="l">Kogutud</div><div class="v num" id="sTotal">0 €</div></div>
-          <div class="stat"><div class="l">Puudu</div><div class="v num" id="sLeft">0 €</div></div>
+          <div class="stat"><div class="l">Kogutud</div><div class="v num good" id="sTotal">0 €</div></div>
+          <div class="stat"><div class="l">Puudu</div><div class="v num warm" id="sLeft">0 €</div></div>
           <div class="stat"><div class="l">Sissetulekuid</div><div class="v num" id="sCount">0</div></div>
         </div>
       </div>
