@@ -196,14 +196,8 @@
   .res em { font-style: normal; font-size: 11px; color: var(--muted); }
   .res-note { padding: 12px 14px; font-size: 13px; color: var(--muted); }
   .res-note.bad, .inv-msg.bad { color: var(--warm); }
-  .inv-picked { margin-top: 14px; border: 1px solid var(--line-strong); padding: 14px; background: var(--input); }
-  .pk-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; font-size: 15px; }
-  .pk-head b { color: var(--accent); font-weight: 600; }
-  .pk-head span:last-child { color: var(--ink-2); font-size: 13px; }
-  .inv-form { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; }
   .inv-msg { font-size: 13px; color: var(--muted); margin-top: 10px; }
   .inv-msg:empty { display: none; }
-  .inv-table { border-top: 1px solid var(--line); }
   .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 7px; vertical-align: 1px; animation: pulse 2s infinite; }
   .live-dot.off { background: var(--muted); animation: none; }
   .live-label { color: var(--ink); font-weight: 600; }
@@ -213,15 +207,44 @@
   tr.flash-up td { animation: flashUp 1.6s ease-out; }
   tr.flash-down td { animation: flashDown 1.6s ease-out; }
   @media (prefers-reduced-motion: reduce) { .live-dot, tr.flash-up td, tr.flash-down td { animation: none; } }
-  .inv-table .row-date.good { color: var(--accent); }
-  .inv-table .row-date.warm { color: var(--warm); }
-  .inv-table td.r { white-space: nowrap; }
-  .inv-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  /* ---------- Investeeringud ---------- */
+  .head-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .live-status { font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; }
+  .btn.busy svg { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .demo-banner { border: 1px solid rgba(252,211,77,.35); background: rgba(252,211,77,.08); color: var(--ink-2); padding: 12px 16px; font-size: 13px; margin-bottom: 20px; }
+  .demo-banner b { color: #FCD34D; }
+  .demo-banner a { color: var(--accent); }
+  .pf-total { font-size: clamp(44px, 7.5vw, 84px); }
+  .mode-pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border: 1px solid var(--line-strong); color: var(--muted); }
+  .mode-pill.live { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .mode-pill.demo { border-color: rgba(252,211,77,.5); color: #FCD34D; }
+  .key-mask { font-size: 13px; color: var(--ink-2); }
+  .opt { color: var(--muted); font-weight: 400; }
+  .lbl-short { display: none; }
+  .ticker-input { text-transform: uppercase; letter-spacing: .04em; }
+  .ticker-input::placeholder { text-transform: none; letter-spacing: 0; }
+  .pf-table td { vertical-align: top; }
+  .pf-table td.r, .pf-table th.r { white-space: nowrap; }
+  .pf-table .tk { font-weight: 600; font-size: 15px; }
+  .sub-t { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .name-t { margin-left: 20px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sub-t.good { color: var(--accent); } .sub-t.warm { color: var(--warm); }
+  .muted-t { color: var(--muted); }
+  .pf-table td.actions { width: 72px; padding-left: 0; }
+  .edit-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; }
+  .edit-row > b { font-size: 15px; padding-bottom: 10px; color: var(--accent); }
+  .edit-row label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ink-2); flex: 1 1 140px; }
+  .edit-row .edit-actions { display: flex; gap: 8px; }
+  tr.editing td { background: var(--accent-soft); }
+  .inv-mini-body { display: grid; grid-template-columns: auto auto 1fr; gap: 32px; align-items: end; padding: 18px 20px; }
+  .inv-mini-body .l { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+  .inv-mini-body .v { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .mini-note { font-size: 13px; color: var(--muted); text-align: right; }
   .steps { margin: 0 0 16px 18px; padding: 0; font-size: 13px; color: var(--ink-2); line-height: 1.7; }
   .steps a { color: var(--accent); }
   .manual { margin-top: 16px; font-size: 13px; color: var(--muted); }
   .manual summary { cursor: pointer; }
-  .inv-setup .row input { min-width: 0; }
   .times { font-size: 12px; color: var(--muted); margin-left: 6px; }
   .complete { display: none; background: var(--accent); color: var(--accent-ink); padding: 10px 32px; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
 
@@ -308,14 +331,30 @@
   @media (max-width: 860px) {
     .grid-2, .split { grid-template-columns: 1fr; }
     .add-form { grid-template-columns: 1fr; }
-    .inv-form { grid-template-columns: 1fr; }
     .res { grid-template-columns: 70px 1fr; }
+    /* Positsioonid kaartidena */
+    .pf-table thead { display: none; }
+    .pf-table, .pf-table tbody, .pf-table tr, .pf-table td { display: block; width: 100%; }
+    .pf-table tr { position: relative; padding: 14px 14px 10px; border-bottom: 1px solid var(--line); }
+    .pf-table tr:last-child { border-bottom: none; }
+    .pf-table td { border: none; padding: 3px 0; text-align: left !important; display: flex; justify-content: space-between; gap: 12px; }
+    .pf-table td:first-child { display: block; padding-right: 64px; margin-bottom: 6px; }
+    .pf-table td[data-l]:not(:first-child)::before { content: attr(data-l); color: var(--muted); font-size: 12px; }
+    .pf-table .cv { text-align: right; }
+    .pf-table .cv .sub-t { display: inline; margin-left: 6px; }
+    #page-invest .stats { grid-template-columns: 1fr 1fr; }
+    #page-invest .stat:nth-child(3) { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--line); }
+    .pf-hero .pct-box { text-align: left; }
+    .lbl-long { display: none; }
+    .lbl-short { display: inline !important; }
+    .pf-table td.actions { position: absolute; top: 10px; right: 8px; width: auto; padding: 0; display: flex; }
+    .name-t { max-width: none; }
+    .pf-table tr.editing { padding: 14px; }
+    .pf-table tr.editing td { display: block; }
+    .head-actions { width: 100%; justify-content: space-between; }
+    .inv-mini-body { grid-template-columns: 1fr 1fr; gap: 16px; padding: 14px; }
+    .mini-note { grid-column: 1 / -1; text-align: left; }
     .res em { display: none; }
-    .inv-setup .row { flex-wrap: wrap; }
-    .inv-table .times { display: block; margin: 2px 0 0 20px; }
-    .inv-table td:last-child { width: 56px !important; padding-left: 0; }
-    .inv-table .x { width: 22px; }
-    .inv-foot { flex-wrap: wrap; padding: 12px 14px; }
     main { padding: 28px 24px 60px; }
   }
   @media (max-width: 640px) {
@@ -364,6 +403,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V5h12l-2 4 2 4H4"/></svg>
         <span>Tuleviku eesmärgid</span>
         <span class="count num" id="longCount"></span>
+      </button>
+      <button data-page="invest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M15 6h5v5"/></svg>
+        <span class="lbl-long">Investeeringud</span><span class="lbl-short">Portfell</span>
+        <span class="count num" id="investCount"></span>
       </button>
     </nav>
     <div class="rail-foot">
@@ -438,59 +482,12 @@
         </div>
       </div>
 
-      <div class="panel" style="margin-top:20px" id="investPanel">
-        <div class="panel-head"><h2>Investeeringud</h2><span class="head-sum num" id="invSum"></span></div>
-
-        <div class="panel-body inv-setup" id="invSetup" hidden>
-          <p class="note" style="margin-bottom:10px">Aktsiate otsimiseks ja hindade uuendamiseks on vaja <b>tasuta Finnhubi API võtit</b>:</p>
-          <ol class="steps">
-            <li>Mine <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a> ja loo tasuta konto.</li>
-            <li>Kopeeri avalehelt (Dashboard) <b>API Key</b>.</li>
-            <li>Kleebi see siia. Võti salvestub ainult sinu seadmesse.</li>
-          </ol>
-          <form class="row" id="keyForm">
-            <input type="text" id="keyInput" placeholder="Kleebi API võti" autocomplete="off" spellcheck="false">
-            <button class="btn" type="submit" style="flex:0 0 auto">Salvesta</button>
-          </form>
-          <details class="manual">
-            <summary>…või lisa investeering käsitsi (ilma automaatse hinnata)</summary>
-            <form class="row" id="manualForm" style="margin-top:12px">
-              <input type="text" id="manName" placeholder="Nimi, nt Apple" required>
-              <input type="number" id="manValue" class="num" min="0.01" step="0.01" placeholder="Väärtus €" required>
-              <button class="btn ghost" type="submit" style="flex:0 0 auto">Lisa</button>
-            </form>
-          </details>
-        </div>
-
-        <div class="panel-body" id="invAdd" hidden>
-          <div class="inv-search">
-            <input type="search" id="invQuery" placeholder="Otsi aktsiat: nt Apple, Tesla, NVDA" autocomplete="off" aria-label="Otsi aktsiat">
-            <div class="inv-results" id="invResults" hidden></div>
-          </div>
-          <div class="inv-picked" id="invPicked" hidden>
-            <div class="pk-head">
-              <div><b class="num" id="pkSymbol"></b> <span id="pkName"></span></div>
-              <span class="num" id="pkPrice"></span>
-            </div>
-            <form class="inv-form" id="invForm">
-              <div class="type-toggle" id="invMode">
-                <button type="button" data-m="eur" class="on">Summa €</button>
-                <button type="button" data-m="qty">Aktsiaid (tk)</button>
-              </div>
-              <input type="number" id="invAmount" class="num" min="0.0001" step="any" placeholder="Mida omad, €" required aria-label="Kogus">
-              <button class="btn" type="submit">Lisa portfelli</button>
-            </form>
-          </div>
-          <div class="inv-msg" id="invMsg"></div>
-        </div>
-
-        <div id="invList"></div>
-        <div class="inv-foot" id="invFoot">
-          <span class="num" id="invUpdated"></span>
-          <span style="display:flex; gap:16px">
-            <button class="link-btn" type="button" id="invRefresh">Uuenda hindu</button>
-            <button class="link-btn" type="button" id="invKeyEdit">API võti</button>
-          </span>
+      <div class="panel inv-mini" style="margin-top:20px">
+        <div class="panel-head"><h2>Investeeringud</h2><button class="link-btn" type="button" data-goto="invest">Ava portfell →</button></div>
+        <div class="inv-mini-body">
+          <div><div class="l">Portfelli väärtus</div><div class="v num" id="miniValue">0 €</div></div>
+          <div><div class="l">Täna</div><div class="v num" id="miniDay">–</div></div>
+          <div class="mini-note" id="miniNote"></div>
         </div>
       </div>
 
@@ -639,6 +636,119 @@
         </div>
       </div>
     </section>
+
+    <!-- ================= INVESTEERINGUD ================= -->
+    <section class="page" id="page-invest">
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Portfell</div>
+          <h1>Investeeringud</h1>
+        </div>
+        <div class="head-actions">
+          <span class="live-status num" id="pfStatus"></span>
+          <button class="btn ghost sm" type="button" id="pfRefresh">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" width="13" height="13" style="vertical-align:-2px;margin-right:6px"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Uuenda hindu
+          </button>
+        </div>
+      </div>
+
+      <div class="demo-banner" id="demoBanner" hidden>
+        <b>Demorežiim.</b> Hinnad on simuleeritud ega lähe eesmärgi arvestusse.
+        Päris hindade jaoks lisa tasuta API võti <a href="#apiPanel" id="toApi">allpool</a>.
+      </div>
+
+      <!-- Portfelli koguväärtus -->
+      <div class="panel">
+        <div class="hero pf-hero">
+          <div class="hero-top">
+            <div>
+              <div class="hero-name">Portfelli koguväärtus</div>
+              <div class="hero-amount num pf-total" id="pfTotal">0<small>€</small></div>
+            </div>
+            <div class="pct-box">
+              <div class="v num" id="pfDayPct">–</div>
+              <div class="l">Täna</div>
+            </div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="l">Päeva muutus</div><div class="v num" id="pfDay">–</div></div>
+          <div class="stat"><div class="l">Kasum / kahjum</div><div class="v num" id="pfPL">–</div><div class="hint num" id="pfPLHint"></div></div>
+          <div class="stat"><div class="l">Positsioone</div><div class="v num" id="pfCount">0</div></div>
+        </div>
+        <div class="forecast" id="pfGoalLine">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18" opacity=".0"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+          <div><div class="main" id="pfGoalMain"></div><div class="sub" id="pfGoalSub"></div></div>
+        </div>
+      </div>
+
+      <!-- Positsioonid -->
+      <div class="panel" style="margin-top:20px">
+        <div class="panel-head"><h2>Positsioonid</h2><span class="head-note num" id="pfUpdated"></span></div>
+        <div id="pfTable"></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Lisa aktsia -->
+        <div class="panel">
+          <div class="panel-head"><h2>Lisa aktsia</h2></div>
+          <form class="panel-body" id="pfForm" autocomplete="off">
+            <div class="field inv-search">
+              <label for="pfTicker">Sümbol (ticker)</label>
+              <input type="text" id="pfTicker" class="num ticker-input" placeholder="nt AAPL, TSLA, NVDA, VOO" required maxlength="15" spellcheck="false" autocapitalize="characters">
+              <div class="inv-results" id="pfSuggest" hidden></div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="pfShares">Aktsiaid (tk)</label>
+                <input type="number" id="pfShares" class="num" min="0.000001" step="any" placeholder="nt 2,5" required>
+              </div>
+              <div class="field">
+                <label for="pfAvg">Keskm. ostuhind <span class="opt">(valikuline)</span></label>
+                <input type="number" id="pfAvg" class="num" min="0" step="any" placeholder="nt 180">
+              </div>
+            </div>
+            <p class="note" style="margin:-4px 0 14px">Ostuhind sisesta aktsia enda valuutas (USA aktsiatel dollarites). Selle järgi arvutatakse kasum/kahjum.</p>
+            <button class="btn block" type="submit" id="pfAddBtn">Lisa portfelli</button>
+            <div class="inv-msg" id="pfMsg"></div>
+          </form>
+        </div>
+
+        <!-- Andmeallikas / API võti -->
+        <div class="panel" id="apiPanel">
+          <div class="panel-head"><h2>Hinnaandmed</h2><span class="mode-pill" id="modePill"></span></div>
+          <div class="panel-body" id="apiSetup">
+            <p class="note" style="margin-bottom:10px">Päris hinnad tulevad <b>Finnhubist</b>. Selleks on vaja tasuta API võtit:</p>
+            <ol class="steps">
+              <li>Loo tasuta konto: <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a></li>
+              <li>Kopeeri Dashboardist <b>API Key</b>.</li>
+              <li>Kleebi see siia. Võti salvestub ainult sinu seadmesse.</li>
+            </ol>
+            <form class="row" id="keyForm">
+              <input type="text" id="keyInput" placeholder="Kleebi API võti" autocomplete="off" spellcheck="false" aria-label="API võti">
+              <button class="btn" type="submit" style="flex:0 0 auto">Salvesta</button>
+            </form>
+            <p class="note" style="margin:12px 0 0">Ilma võtmeta töötab äpp <b>demorežiimis</b> simuleeritud hindadega, et saaksid kõike kohe proovida.</p>
+          </div>
+          <div class="panel-body" id="apiOk" hidden>
+            <p class="note" style="margin-bottom:14px">Hinnad uuenevad iga minuti tagant, kui leht on lahti. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e. Valuutakursid eurodesse tulevad Euroopa Keskpangast (Frankfurter).</p>
+            <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap">
+              <span class="num key-mask" id="keyMask"></span>
+              <button class="link-btn" type="button" id="keyChange">Muuda võtit</button>
+              <button class="link-btn" type="button" id="keyRemove">Eemalda võti (demorežiim)</button>
+            </div>
+          </div>
+          <details class="manual panel-body" style="border-top:1px solid var(--line)">
+            <summary>Lisa vara käsitsi (nt fond, mille hinda ei saa automaatselt)</summary>
+            <form class="row" id="manualForm" style="margin-top:12px">
+              <input type="text" id="manName" placeholder="Nimi, nt pensionifond" required aria-label="Nimi">
+              <input type="number" id="manValue" class="num" min="0.01" step="0.01" placeholder="Väärtus €" required aria-label="Väärtus eurodes">
+              <button class="btn ghost" type="submit" style="flex:0 0 auto">Lisa</button>
+            </form>
+          </details>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -699,11 +809,13 @@
 
   // ---------- Navigeerimine ----------
   const nav = document.getElementById("nav");
-  nav.querySelectorAll("button").forEach(b => b.onclick = () => {
-    nav.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
-    document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + b.dataset.page));
+  function showPage(name) {
+    nav.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.page === name));
+    document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + name));
     window.scrollTo(0, 0);
-  });
+  }
+  nav.querySelectorAll("button").forEach(b => b.onclick = () => showPage(b.dataset.page));
+  document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) showPage(g.dataset.goto); });
 
   // ---------- Rahaline eesmärk ----------
   const MONTHS = ["jaanuar", "veebruar", "märts", "aprill", "mai", "juuni",
@@ -762,7 +874,7 @@
     const parts = [];
     if (state.carry > 0) parts.push({ amount: state.carry, color: "var(--carry)", title: "Eelmisest eesmärgist" });
     state.incomes.forEach((inc, i) => parts.push({ amount: inc.amount, color: color(i), title: inc.note || "Sissetulek" }));
-    (state.holdings || []).forEach((h, i) => parts.push({ amount: holdingValue(h), color: color(state.incomes.length + i), title: "Investeering: " + (h.symbol || h.name) }));
+    (state.holdings || []).forEach((h, i) => { const v = goalValue(h); if (v > 0) parts.push({ amount: v, color: color(state.incomes.length + i), title: "Investeering: " + (h.symbol || h.name) }); });
     let used = 0;
     parts.forEach(p => {
       if (used >= goal) return;
@@ -972,21 +1084,46 @@
   };
 
   // ---------- Investeeringud ----------
-  // Hinnad: Finnhub (tasuta API võti). Valuutakursid eurodesse: Frankfurter (Euroopa Keskpanga kursid).
+  // Andmeallikad:
+  //  • Päris režiim: Finnhub (tasuta API võti, https://finnhub.io/register) – otsing, hind, ettevõtte nimi ja valuuta.
+  //    Valuutakursid eurodesse: Frankfurter (Euroopa Keskpanga kursid, võtit pole vaja).
+  //  • Demorežiim (kui võtit pole): simuleeritud hinnad, et kasutajaliides töötaks kohe. Demohinnad EI lähe eesmärgi arvestusse.
+  //
+  // Positsioon (state.holdings[]):
+  //  { id, symbol, name, currency, shares, avgPrice|null (aktsia valuutas), price (aktsia valuutas), fx (→EUR),
+  //    priceEur, change (päeva muutus/tk, aktsia valuutas), dayPct, quoteTime, updated, demo }
+  //  Käsitsi lisatud vara: { id, name, manual: true, value, invested }
   const KEY_STORE = "rahaEesmarkApp_finnhub";
   const getKey = () => { try { return localStorage.getItem(KEY_STORE) || ""; } catch (e) { return ""; } };
   const setKey = k => { try { k ? localStorage.setItem(KEY_STORE, k) : localStorage.removeItem(KEY_STORE); } catch (e) {} };
-  const holdingValue = h => h.manual ? h.value : h.shares * h.priceEur;
-  const invTotal = () => (state.holdings || []).reduce((s, h) => s + holdingValue(h), 0);
-  const invMsg = (t, bad) => { const el = document.getElementById("invMsg"); el.textContent = t || ""; el.classList.toggle("bad", !!bad); };
+  const isDemo = () => !getKey();
 
+  const holdingValue = h => h.manual ? (h.value || 0) : (h.shares || 0) * (h.priceEur || 0);
+  // Eesmärgi arvestusse lähevad ainult päris hinnad (ja käsitsi lisatud vara), mitte demohinnad.
+  const goalValue = h => h.manual ? (h.value || 0) : (h.demo || isDemo() ? 0 : holdingValue(h));
+  const invTotal = () => (state.holdings || []).reduce((s, h) => s + goalValue(h), 0);
+  function costEur(h) {
+    if (h.manual) return h.invested ?? h.value;
+    if (!h.priceEur) return null;                       // ilma hinnata pole kasumit võimalik arvutada
+    if (h.avgPrice != null && h.fx) return h.avgPrice * h.shares * h.fx;
+    if (h.invested != null) return h.invested;          // vanemast versioonist pärit andmed
+    return null;
+  }
+  const money = (n, cur) => {
+    try { return Number(n).toLocaleString("et-EE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: 2 }); }
+    catch (e) { return round2(n).toLocaleString("et-EE") + " " + (cur || ""); }
+  };
+  const signed = (n, fmt) => (n > 0.004 ? "+" : n < -0.004 ? "−" : "") + fmt(Math.abs(n));
+  const pctStr = n => signed(n, v => v.toFixed(2).replace(".", ",") + "%");
+  const tone = n => n > 0.004 ? "good" : n < -0.004 ? "warm" : "";
+  const pfMsg = (t, bad) => { const el = document.getElementById("pfMsg"); el.textContent = t || ""; el.classList.toggle("bad", !!bad); };
+
+  // ---- Päris andmed: Finnhub + Frankfurter ----
   async function finnhub(path, params) {
-    const key = getKey();
-    if (!key) throw new Error("Lisa kõigepealt API võti.");
-    const qs = new URLSearchParams({ ...params, token: key });
+    const qs = new URLSearchParams({ ...params, token: getKey() });
     let r;
     try { r = await fetch(`https://finnhub.io/api/v1/${path}?${qs}`); }
-    catch (e) { throw new Error("Ühendus ebaõnnestus. Kontrolli internetiühendust."); }
+    catch (e) { throw new Error("Ühendus hinnaserveriga ebaõnnestus. Kontrolli internetiühendust."); }
     if (r.status === 401) throw new Error("API võti ei kehti. Kontrolli võtit.");
     if (r.status === 429) throw new Error("Liiga palju päringuid. Proovi minuti pärast uuesti.");
     if (r.status === 403) throw new Error("Selle aktsia hind pole tasuta võtmega saadaval.");
@@ -1005,158 +1142,253 @@
       return fxCache[cur] = j.rates.EUR;
     } catch (e) { throw new Error(`Valuutakurssi ${cur} → EUR ei õnnestunud saada.`); }
   }
-  async function priceEur(symbol, currency) {
-    const q = await finnhub("quote", { symbol });
-    if (!q || !q.c) throw new Error(`${symbol}: hinda ei leitud (tasuta võti toetab peamiselt USA aktsiaid).`);
-    const fx = await fxToEur(currency);
-    return { priceEur: q.c * fx, dayPct: q.dp, quoteTime: q.t ? q.t * 1000 : Date.now() };
+
+  // ---- Demoandmed (simuleeritud) ----
+  const DEMO_FX = { USD: 0.92 };
+  const DEMO_LIST = {
+    AAPL: ["Apple Inc", 228], MSFT: ["Microsoft Corp", 420], NVDA: ["NVIDIA Corp", 138], TSLA: ["Tesla Inc", 245],
+    AMZN: ["Amazon.com Inc", 195], GOOGL: ["Alphabet Inc (A)", 170], META: ["Meta Platforms Inc", 560], NFLX: ["Netflix Inc", 700],
+    AMD: ["Advanced Micro Devices", 150], KO: ["Coca-Cola Co", 68], DIS: ["Walt Disney Co", 95], NKE: ["Nike Inc", 78],
+    VOO: ["Vanguard S&P 500 ETF", 525], SPY: ["SPDR S&P 500 ETF Trust", 575], QQQ: ["Invesco QQQ Trust", 490], VT: ["Vanguard Total World Stock ETF", 120]
+  };
+  const demoState = {};
+  function demoQuote(sym) {
+    let s = demoState[sym];
+    if (!s) {
+      let base = DEMO_LIST[sym]?.[1];
+      if (!base) { let h = 0; for (const ch of sym) h = (h * 31 + ch.charCodeAt(0)) >>> 0; base = 20 + (h % 28000) / 100; }
+      const c = base * (1 + (Math.random() - 0.5) * 0.04);
+      s = demoState[sym] = { pc: base, c };
+    } else s.c *= 1 + (Math.random() - 0.5) * 0.008;
+    return { price: s.c, change: s.c - s.pc, dayPct: (s.c - s.pc) / s.pc * 100, time: Date.now() };
   }
 
-  function renderInvest() {
-    const hasKey = !!getKey();
-    const list = state.holdings || [];
-    document.getElementById("invSetup").hidden = hasKey;
-    document.getElementById("invAdd").hidden = !hasKey;
-    document.getElementById("invFoot").style.display = hasKey || list.length ? "flex" : "none";
-    document.getElementById("invRefresh").style.display = list.some(h => !h.manual) && hasKey ? "" : "none";
-    const total = invTotal(), invested = list.reduce((s, h) => s + h.invested, 0), gain = total - invested;
-    document.getElementById("invSum").innerHTML = list.length
-      ? `${euro(round2(total))} <span class="${gain >= 0 ? "good" : "warm"}" style="font-weight:500;font-size:13px">${gain >= 0 ? "+" : "−"}${euro(round2(Math.abs(gain)))}</span>` : "";
-    const last = list.filter(h => h.updated).map(h => h.updated).sort().pop();
-    const live = hasKey && list.some(h => !h.manual);
-    const lastQuote = list.filter(h => h.quoteTime).map(h => h.quoteTime).sort().pop();
-    const closed = lastQuote && Date.now() - lastQuote > 20 * 60 * 1000;
-    document.getElementById("invUpdated").innerHTML = !last ? "" :
-      (live ? `<span class="live-dot ${closed ? "off" : ""}"></span><b class="live-label">${closed ? "Börs suletud" : "Reaalajas"}</b> · ` : "") +
-      "uuendatud " + new Date(last).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
-      (live ? (closed ? " · näidatakse viimast hinda" : " · uueneb iga minut") : "");
-    const offset = state.incomes.length;
-    document.getElementById("invList").innerHTML = !list.length ? "" : `<table class="inv-table"><tbody>${list.map((h, i) => {
-      const v = holdingValue(h), g = v - h.invested, gp = h.invested ? g / h.invested * 100 : 0;
-      const cls = g > 0.004 ? "good" : g < -0.004 ? "warm" : "";
-      const move = lastMoves[h.id] ? "flash-" + lastMoves[h.id] : "";
-      const day = typeof h.dayPct === "number" && !h.manual
-        ? ` · <span class="${h.dayPct >= 0 ? "good" : "warm"}">täna ${h.dayPct >= 0 ? "+" : "−"}${Math.abs(h.dayPct).toFixed(2).replace(".", ",")}%</span>` : "";
-      return `<tr class="${move}">
-        <td><span class="swatch" style="background:${color(offset + i)}"></span><b style="font-weight:600">${esc(h.symbol || h.name)}</b>
-          ${h.symbol ? `<span class="times">${esc(h.name)}</span>` : ""}
-          <div class="row-date num">${h.manual ? "Käsitsi lisatud" : (Math.round(h.shares * 10000) / 10000).toLocaleString("et-EE") + " tk · " + euro(round2(h.priceEur)) + "/tk" + day}</div></td>
-        <td class="r num"><b style="font-weight:600">${euro(round2(v))}</b>
-          <div class="row-date num ${cls}" style="margin-left:0">${g >= 0 ? "+" : "−"}${euro(round2(Math.abs(g)))} (${g >= 0 ? "+" : "−"}${Math.abs(gp).toFixed(1).replace(".", ",")}%)</div></td>
-        <td class="r" style="width:72px; white-space:nowrap">
-          ${h.manual ? `<button class="x" data-inv-edit="${h.id}" title="Muuda väärtust">${ICON_EDIT}</button>` : ""}
-          <button class="x" data-inv-del="${h.id}" title="Eemalda">${ICON_X}</button></td>
-      </tr>`; }).join("")}</tbody></table>`;
-    lastMoves = {};
+  // ---- Ühtne liides mõlemale režiimile ----
+  const provider = {
+    async search(q) {
+      if (isDemo()) {
+        const Q = q.toUpperCase();
+        return Object.entries(DEMO_LIST).filter(([s, [n]]) => s.startsWith(Q) || n.toUpperCase().includes(Q))
+          .slice(0, 8).map(([symbol, [name]]) => ({ symbol, name, type: "Demo" }));
+      }
+      const j = await finnhub("search", { q });
+      return (j.result || []).filter(r => r.symbol && !r.symbol.includes(":")).slice(0, 8)
+        .map(r => ({ symbol: r.symbol, name: r.description, type: r.type }));
+    },
+    async profile(sym) {
+      if (isDemo()) return { name: DEMO_LIST[sym]?.[0] || sym, currency: "USD" };
+      const p = await finnhub("stock/profile2", { symbol: sym }).catch(() => ({}));
+      return { name: p.name || "", currency: p.currency || "USD" };
+    },
+    async quote(sym, currency) {
+      if (isDemo()) { const q = demoQuote(sym); return { ...q, fx: DEMO_FX[currency] || 1 }; }
+      const q = await finnhub("quote", { symbol: sym });
+      if (!q || !q.c) throw new Error(`${sym}: hinda ei leitud. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e.`);
+      const fx = await fxToEur(currency);
+      return { price: q.c, change: q.d || 0, dayPct: q.dp || 0, time: q.t ? q.t * 1000 : Date.now(), fx };
+    }
+  };
+
+  function applyQuote(h, q) {
+    if (h.priceEur && Math.abs(q.price * q.fx - h.priceEur) > 1e-9) lastMoves[h.id] = q.price * q.fx > h.priceEur ? "up" : "down";
+    Object.assign(h, { price: q.price, fx: q.fx, priceEur: q.price * q.fx, change: q.change, dayPct: q.dayPct,
+                       quoteTime: q.time, updated: new Date().toISOString(), demo: isDemo() });
   }
 
-  // Otsing
-  let picked = null, invMode = "eur", searchTimer = null, searchSeq = 0;
-  const qInput = document.getElementById("invQuery"), resBox = document.getElementById("invResults");
-  qInput.addEventListener("input", () => {
-    clearTimeout(searchTimer);
-    const q = qInput.value.trim();
-    if (!q) { resBox.hidden = true; return; }
-    searchTimer = setTimeout(async () => {
-      const seq = ++searchSeq;
-      resBox.hidden = false; resBox.innerHTML = `<div class="res-note">Otsin…</div>`;
-      try {
-        const j = await finnhub("search", { q });
-        if (seq !== searchSeq) return;
-        const items = (j.result || []).filter(r => r.symbol && !r.symbol.includes(":")).slice(0, 8);
-        resBox.innerHTML = items.length ? items.map(r => `
-          <button type="button" class="res" data-sym="${esc(r.symbol)}" data-name="${esc(r.description)}">
-            <b class="num">${esc(r.displaySymbol || r.symbol)}</b><span>${esc(r.description)}</span><em>${esc(r.type || "")}</em>
-          </button>`).join("") : `<div class="res-note">Midagi ei leitud. Proovi ingliskeelset nime või sümbolit (nt AAPL).</div>`;
-      } catch (e) { if (seq === searchSeq) resBox.innerHTML = `<div class="res-note bad">${esc(e.message)}</div>`; }
-    }, 350);
-  });
-  resBox.addEventListener("click", async e => {
-    const b = e.target.closest(".res"); if (!b) return;
-    picked = { symbol: b.dataset.sym, name: b.dataset.name, currency: "USD" };
-    resBox.hidden = true; qInput.value = "";
-    document.getElementById("invPicked").hidden = false;
-    document.getElementById("pkSymbol").textContent = picked.symbol;
-    document.getElementById("pkName").textContent = picked.name;
-    document.getElementById("pkPrice").textContent = "Laen hinda…";
-    invMsg("");
-    try {
-      const prof = await finnhub("stock/profile2", { symbol: picked.symbol }).catch(() => ({}));
-      if (prof && prof.currency) picked.currency = prof.currency;
-      const p = await priceEur(picked.symbol, picked.currency);
-      picked.priceEur = p.priceEur;
-      const day = typeof p.dayPct === "number" ? ` · täna ${p.dayPct >= 0 ? "+" : ""}${p.dayPct.toFixed(2).replace(".", ",")}%` : "";
-      document.getElementById("pkPrice").textContent = euro(round2(p.priceEur)) + " / tk" + day;
-      document.getElementById("invAmount").focus();
-    } catch (err) {
-      picked.priceEur = null;
-      document.getElementById("pkPrice").textContent = "";
-      invMsg(err.message + " Saad selle siiski lisada käsitsi väärtusega.", true);
-    }
-  });
-  document.getElementById("invMode").onclick = e => {
-    const b = e.target.closest("button"); if (!b) return;
-    invMode = b.dataset.m;
-    document.querySelectorAll("#invMode button").forEach(x => x.classList.toggle("on", x === b));
-    document.getElementById("invAmount").placeholder = invMode === "eur" ? "Mida omad, €" : "Mitu aktsiat omad";
-  };
-  document.getElementById("invForm").onsubmit = e => {
-    e.preventDefault();
-    if (!picked) return;
-    const n = parseFloat(document.getElementById("invAmount").value);
-    if (!(n > 0)) return;
-    let h;
-    if (picked.priceEur) {
-      const shares = invMode === "eur" ? n / picked.priceEur : n;
-      h = { id: uid(), symbol: picked.symbol, name: picked.name, currency: picked.currency, shares, priceEur: picked.priceEur,
-            invested: round2(shares * picked.priceEur), added: dateStr(), updated: new Date().toISOString() };
-    } else {
-      if (invMode !== "eur") { invMsg("Hinda pole, seega sisesta summa eurodes.", true); return; }
-      h = { id: uid(), symbol: picked.symbol, name: picked.name, manual: true, value: n, invested: n, added: dateStr() };
-    }
-    state.holdings.push(h);
-    save(); picked = null;
-    document.getElementById("invPicked").hidden = true;
-    document.getElementById("invAmount").value = "";
-    invMsg("");
-    renderMoney();
-  };
+  // Režiimi vahetusel (demo ↔ päris) visatakse vanad hinnad ära, et simuleeritud hind ei jääks kunagi päris hinnaks.
+  function clearPrices() {
+    (state.holdings || []).filter(h => !h.manual).forEach(h => {
+      ["price", "priceEur", "fx", "change", "dayPct", "quoteTime", "updated"].forEach(k => delete h[k]);
+      h.demo = isDemo();
+    });
+    save();
+  }
+  if (!isDemo() && (state.holdings || []).some(h => !h.manual && h.demo)) clearPrices();
 
-  // Hindade uuendamine – kui hind tõuseb, tõuseb ka kogutud summa.
+  // ---- Hindade uuendamine ----
   let refreshing = false, lastMoves = {};
   async function refreshPrices(silent) {
     const list = (state.holdings || []).filter(h => !h.manual);
-    if (!list.length || !getKey() || refreshing) return;
+    if (!list.length || refreshing) return;
     refreshing = true;
-    if (!silent) invMsg("Uuendan hindu…");
+    const btn = document.getElementById("pfRefresh"); btn.classList.add("busy");
+    if (!silent) pfMsg("");
     const errors = [];
     for (const h of list) {
-      try {
-        const p = await priceEur(h.symbol, h.currency);
-        if (h.priceEur && Math.abs(p.priceEur - h.priceEur) > 1e-9) lastMoves[h.id] = p.priceEur > h.priceEur ? "up" : "down";
-        h.priceEur = p.priceEur; h.dayPct = p.dayPct; h.quoteTime = p.quoteTime; h.updated = new Date().toISOString();
-      } catch (e) { errors.push(e.message); }
+      try { applyQuote(h, await provider.quote(h.symbol, h.currency || "USD")); }
+      catch (e) { errors.push(e.message); }
     }
-    refreshing = false;
+    refreshing = false; btn.classList.remove("busy");
     save(); renderMoney();
-    invMsg(errors.length ? errors[0] : (silent ? "" : "Hinnad on uuendatud."), !!errors.length);
+    if (errors.length) pfMsg(errors[0], true);
   }
-  document.getElementById("invRefresh").onclick = () => refreshPrices(false);
 
-  // Võti ja käsitsi lisamine
-  document.getElementById("keyForm").onsubmit = e => {
+  // ---- Joonistamine ----
+  function renderInvest() {
+    const list = state.holdings || [];
+    const demo = isDemo();
+    const total = list.reduce((s, h) => s + holdingValue(h), 0);
+    const dayEur = list.reduce((s, h) => s + (h.manual ? 0 : (h.change || 0) * (h.fx || 0) * h.shares), 0);
+    const dayBase = total - dayEur;
+    const withCost = list.filter(h => costEur(h) != null);
+    const cost = withCost.reduce((s, h) => s + costEur(h), 0);
+    const pl = withCost.reduce((s, h) => s + holdingValue(h), 0) - cost;
+
+    // Koguväärtuse kaart
+    document.getElementById("pfTotal").innerHTML = round2(total).toLocaleString("et-EE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "<small>€</small>";
+    const dp = document.getElementById("pfDayPct");
+    dp.textContent = dayBase > 0 ? pctStr(dayEur / dayBase * 100) : "–"; dp.className = "v num " + tone(dayEur);
+    const dEl = document.getElementById("pfDay");
+    dEl.textContent = list.some(h => !h.manual) ? signed(dayEur, v => euro(round2(v))) : "–"; dEl.className = "v num " + tone(dayEur);
+    const plEl = document.getElementById("pfPL");
+    plEl.textContent = withCost.length ? signed(pl, v => euro(round2(v))) : "–"; plEl.className = "v num " + tone(pl);
+    document.getElementById("pfPLHint").textContent = withCost.length
+      ? (cost > 0 ? pctStr(pl / cost * 100) + " · " : "") + (withCost.length < list.length ? `${withCost.length}/${list.length} positsiooni põhjal` : "kõigi positsioonide põhjal")
+      : (list.length ? "lisa ostuhind, et näha kasumit" : "");
+    document.getElementById("pfCount").textContent = list.length;
+
+    // Seos rahalise eesmärgiga
+    const counted = invTotal();
+    document.getElementById("pfGoalMain").innerHTML = !list.length
+      ? "Lisa esimene aktsia allpool. Portfelli väärtus läheb sinu rahalise eesmärgi arvestusse."
+      : demo && counted === 0
+        ? "Demohinnad ei lähe rahalise eesmärgi arvestusse."
+        : `Eesmärgi arvestusse läheb <b>${euro(round2(counted))}</b>` + (state.goal > 0 ? ` – see on <b>${Math.round(counted / state.goal * 100)}%</b> eesmärgist „${esc(state.goalName || euro(state.goal))}“.` : ".");
+    document.getElementById("pfGoalSub").textContent = list.length && demo ? "Lisa API võti, et kasutada päris hindu." : "";
+
+    // Režiim, staatus
+    document.getElementById("demoBanner").hidden = !demo;
+    document.getElementById("apiSetup").hidden = !demo;
+    document.getElementById("apiOk").hidden = demo;
+    const pill = document.getElementById("modePill");
+    pill.textContent = demo ? "Demo" : "Päris hinnad"; pill.className = "mode-pill " + (demo ? "demo" : "live");
+    if (!demo) { const k = getKey(); document.getElementById("keyMask").textContent = "Võti: " + k.slice(0, 4) + "••••" + k.slice(-3); }
+    const priced = list.filter(h => !h.manual);
+    const last = priced.map(h => h.updated).filter(Boolean).sort().pop();
+    const lastQuote = priced.map(h => h.quoteTime).filter(Boolean).sort().pop();
+    const closed = !demo && lastQuote && Date.now() - lastQuote > 20 * 60 * 1000;
+    document.getElementById("pfStatus").innerHTML = !priced.length ? "" :
+      `<span class="live-dot ${closed ? "off" : ""}"></span>${closed ? "Börs suletud" : demo ? "Demo · uueneb iga minut" : "Reaalajas · uueneb iga minut"}`;
+    document.getElementById("pfUpdated").textContent = last
+      ? "Uuendatud " + new Date(last).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + (closed ? " · viimane börsihind" : "") : "";
+
+    // Positsioonide tabel
+    const table = document.getElementById("pfTable");
+    if (!list.length) {
+      table.innerHTML = `<div class="empty">Portfell on tühi. Lisa aktsia sümboli ja kogusega, nt <b class="num">AAPL</b> · <b class="num">2</b> tk.</div>`;
+    } else {
+      const sorted = list.map((h, i) => ({ h, i })).sort((a, b) => holdingValue(b.h) - holdingValue(a.h));
+      table.innerHTML = `<table class="pf-table">
+        <thead><tr><th>Sümbol</th><th class="r">Aktsiaid</th><th class="r">Hind</th><th class="r">Väärtus</th><th class="r">24h</th><th class="r">Kasum</th><th></th></tr></thead>
+        <tbody>${sorted.map(({ h, i }) => rowHtml(h, state.incomes.length + i, total)).join("")}</tbody></table>`;
+    }
+    lastMoves = {};
+
+    // Kokkuvõte rahalise eesmärgi lehel
+    document.getElementById("miniValue").textContent = euro(round2(total));
+    const md = document.getElementById("miniDay");
+    md.textContent = list.some(h => !h.manual) ? signed(dayEur, v => euro(round2(v))) : "–"; md.className = "v num " + tone(dayEur);
+    document.getElementById("miniNote").textContent = !list.length ? "Portfell on tühi."
+      : demo && counted === 0 ? "Demorežiim – ei lähe eesmärgi arvestusse." : `Eesmärgi arvestuses: ${euro(round2(counted))}`;
+    const cnt = document.getElementById("investCount"); if (cnt) cnt.textContent = list.length || "";
+  }
+
+  function rowHtml(h, colorIdx, total) {
+    const v = holdingValue(h), c = costEur(h), pl = c != null ? v - c : null;
+    const share = total > 0 ? v / total * 100 : 0;
+    const move = lastMoves[h.id] ? "flash-" + lastMoves[h.id] : "";
+    if (editingId === h.id) {
+      return `<tr class="editing"><td colspan="7">
+        <form class="edit-row" data-edit-form="${h.id}">
+          <b class="num">${esc(h.symbol || h.name)}</b>
+          ${h.manual
+            ? `<label>Väärtus € <input type="number" class="num" name="value" min="0" step="any" value="${round2(h.value)}" required></label>`
+            : `<label>Aktsiaid <input type="number" class="num" name="shares" min="0.000001" step="any" value="${h.shares}" required></label>
+               <label>Keskm. ostuhind (${esc(h.currency || "USD")}) <input type="number" class="num" name="avg" min="0" step="any" value="${h.avgPrice ?? ""}" placeholder="valikuline"></label>`}
+          <span class="edit-actions"><button class="btn sm" type="submit">Salvesta</button><button class="btn ghost sm" type="button" data-cancel>Tühista</button></span>
+        </form></td></tr>`;
+    }
+    const sharesTxt = h.manual ? "–" : Number(h.shares).toLocaleString("et-EE", { maximumFractionDigits: 6 });
+    const priceTxt = h.manual ? "–" : h.price ? money(h.price, h.currency) : (refreshing ? "…" : `<span class="muted-t">hind puudub</span>`);
+    const priceSub = !h.manual && h.currency && h.currency !== "EUR" && h.priceEur ? `<div class="sub-t">≈ ${euro(round2(h.priceEur))}</div>` : "";
+    const day = h.manual || typeof h.dayPct !== "number" ? "–" : `<span class="${tone(h.dayPct)}">${pctStr(h.dayPct)}</span>`;
+    const plTxt = pl == null ? `<span class="muted-t">–</span>` : `<span class="${tone(pl)}">${signed(pl, x => euro(round2(x)))}</span>${c > 0 ? `<div class="sub-t ${tone(pl)}">${pctStr(pl / c * 100)}</div>` : ""}`;
+    return `<tr class="${move}">
+      <td data-l="Sümbol"><span class="swatch" style="background:${color(colorIdx)}"></span><b class="num tk">${esc(h.symbol || h.name)}</b>
+        <div class="sub-t name-t">${esc(h.manual ? "Käsitsi lisatud" : (h.name || ""))}</div></td>
+      <td class="r num" data-l="Aktsiaid"><span class="cv">${sharesTxt}</span></td>
+      <td class="r num" data-l="Hind"><span class="cv">${priceTxt}${priceSub}</span></td>
+      <td class="r num" data-l="Väärtus"><span class="cv"><b style="font-weight:600">${euro(round2(v))}</b><div class="sub-t">${share.toFixed(0)}% portfellist</div></span></td>
+      <td class="r num" data-l="24h"><span class="cv">${day}</span></td>
+      <td class="r num" data-l="Kasum"><span class="cv">${plTxt}</span></td>
+      <td class="r actions">
+        <button class="x" data-pf-edit="${h.id}" title="Muuda" aria-label="Muuda">${ICON_EDIT}</button>
+        <button class="x" data-pf-del="${h.id}" title="Eemalda" aria-label="Eemalda">${ICON_X}</button></td>
+    </tr>`;
+  }
+
+  // ---- Lisamine ----
+  const tInput = document.getElementById("pfTicker"), sugBox = document.getElementById("pfSuggest");
+  let sugTimer = null, sugSeq = 0;
+  tInput.addEventListener("input", () => {
+    tInput.value = tInput.value.toUpperCase().replace(/\s/g, "");
+    clearTimeout(sugTimer);
+    const q = tInput.value.trim();
+    if (!q) { sugBox.hidden = true; return; }
+    sugTimer = setTimeout(async () => {
+      const seq = ++sugSeq;
+      try {
+        const items = await provider.search(q);
+        if (seq !== sugSeq) return;
+        sugBox.hidden = !items.length;
+        sugBox.innerHTML = items.map(r => `<button type="button" class="res" data-sym="${esc(r.symbol)}">
+          <b class="num">${esc(r.symbol)}</b><span>${esc(r.name)}</span><em>${esc(r.type || "")}</em></button>`).join("");
+      } catch (e) { if (seq === sugSeq) sugBox.hidden = true; }
+    }, 300);
+  });
+  sugBox.addEventListener("click", e => {
+    const b = e.target.closest(".res"); if (!b) return;
+    tInput.value = b.dataset.sym; sugBox.hidden = true;
+    document.getElementById("pfShares").focus();
+  });
+  document.addEventListener("click", e => { if (!e.target.closest(".inv-search")) sugBox.hidden = true; });
+  tInput.addEventListener("keydown", e => { if (e.key === "Escape") sugBox.hidden = true; });
+
+  document.getElementById("pfForm").onsubmit = async e => {
     e.preventDefault();
-    const k = document.getElementById("keyInput").value.trim();
-    if (!k) return;
-    setKey(k); document.getElementById("keyInput").value = "";
-    renderMoney(); refreshPrices(true);
-    document.getElementById("invQuery").focus();
+    const symbol = tInput.value.trim().toUpperCase();
+    const shares = parseFloat(document.getElementById("pfShares").value);
+    const avgRaw = document.getElementById("pfAvg").value;
+    const avg = avgRaw === "" ? null : parseFloat(avgRaw);
+    if (!/^[A-Z0-9.\-]{1,15}$/.test(symbol)) return pfMsg("Sisesta korrektne sümbol, nt AAPL.", true);
+    if (!(shares > 0)) return pfMsg("Aktsiate arv peab olema suurem kui 0.", true);
+    if (avg != null && !(avg >= 0)) return pfMsg("Ostuhind ei saa olla negatiivne.", true);
+    const btn = document.getElementById("pfAddBtn"); btn.disabled = true; btn.textContent = "Laen hinda…"; pfMsg("");
+    try {
+      const existing = state.holdings.find(h => !h.manual && h.symbol === symbol);
+      if (existing) {
+        // Sama aktsia: liida kogus ja arvuta kaalutud keskmine ostuhind.
+        // Kui ühel osal ostuhind puudub, pole koondostuhinda võimalik teada.
+        existing.avgPrice = avg != null && existing.avgPrice != null
+          ? (existing.avgPrice * existing.shares + avg * shares) / (existing.shares + shares) : null;
+        existing.shares += shares;
+        delete existing.invested;
+        applyQuote(existing, await provider.quote(symbol, existing.currency || "USD"));
+        pfMsg(`${symbol}: lisatud olemasolevale positsioonile (kokku ${Number(existing.shares).toLocaleString("et-EE", { maximumFractionDigits: 6 })} tk).`);
+      } else {
+        const prof = await provider.profile(symbol);
+        const q = await provider.quote(symbol, prof.currency);
+        const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: avg, added: dateStr() };
+        applyQuote(h, q);
+        state.holdings.push(h);
+        pfMsg(`${symbol} lisatud${isDemo() ? " (demohind)" : ""}.`);
+      }
+      save(); e.target.reset(); renderMoney();
+    } catch (err) {
+      pfMsg(err.message, true);
+    } finally { btn.disabled = false; btn.textContent = "Lisa portfelli"; }
   };
-  document.getElementById("invKeyEdit").onclick = () => {
-    const k = prompt("Finnhubi API võti (tühjaks jättes võti eemaldatakse):", getKey());
-    if (k === null) return;
-    setKey(k.trim()); renderMoney();
-  };
+
   document.getElementById("manualForm").onsubmit = e => {
     e.preventDefault();
     const v = parseFloat(document.getElementById("manValue").value);
@@ -1165,19 +1397,57 @@
     state.holdings.push({ id: uid(), symbol: "", name, manual: true, value: v, invested: v, added: dateStr() });
     save(); e.target.reset(); renderMoney();
   };
-  document.getElementById("invList").addEventListener("click", e => {
-    const d = e.target.closest("[data-inv-del]"), ed = e.target.closest("[data-inv-edit]");
-    if (d) {
-      if (!confirm("Eemaldada see investeering?")) return;
-      state.holdings = state.holdings.filter(h => h.id !== d.dataset.invDel);
-    } else if (ed) {
-      const h = state.holdings.find(x => x.id === ed.dataset.invEdit);
-      const v = parseFloat(String(prompt(`Mis on „${h.symbol || h.name}“ praegune väärtus eurodes?`, round2(h.value)) || "").replace(",", "."));
-      if (!(v >= 0)) return;
-      h.value = v;
-    } else return;
-    save(); renderMoney();
+
+  // ---- Muutmine ja kustutamine ----
+  let editingId = null;
+  const pfTable = document.getElementById("pfTable");
+  pfTable.addEventListener("click", e => {
+    const ed = e.target.closest("[data-pf-edit]"), del = e.target.closest("[data-pf-del]"), cancel = e.target.closest("[data-cancel]");
+    if (ed) { editingId = ed.dataset.pfEdit; renderInvest(); pfTable.querySelector(".edit-row input")?.focus(); }
+    else if (cancel) { editingId = null; renderInvest(); }
+    else if (del) {
+      const h = state.holdings.find(x => x.id === del.dataset.pfDel);
+      if (!confirm(`Eemaldada ${h.symbol || h.name} portfellist?`)) return;
+      state.holdings = state.holdings.filter(x => x !== h); save(); renderMoney();
+    }
   });
+  pfTable.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = e.target.closest("[data-edit-form]"); if (!f) return;
+    const h = state.holdings.find(x => x.id === f.dataset.editForm);
+    if (h.manual) {
+      const v = parseFloat(f.value.value); if (!(v >= 0)) return;
+      h.value = v;
+    } else {
+      const s = parseFloat(f.shares.value); if (!(s > 0)) return;
+      const a = f.avg.value === "" ? null : parseFloat(f.avg.value);
+      if (a != null && !(a >= 0)) return;
+      if (h.invested != null && a == null) h.invested = h.invested / h.shares * s;
+      h.shares = s; h.avgPrice = a;
+      if (a != null) delete h.invested;
+    }
+    editingId = null; save(); renderMoney();
+  });
+
+  // ---- Võti ----
+  document.getElementById("keyForm").onsubmit = e => {
+    e.preventDefault();
+    const k = document.getElementById("keyInput").value.trim();
+    if (!k) return;
+    setKey(k); document.getElementById("keyInput").value = "";
+    clearPrices(); renderMoney(); refreshPrices(false);
+  };
+  document.getElementById("keyChange").onclick = () => {
+    const k = prompt("Uus Finnhubi API võti:", "");
+    if (k && k.trim()) { setKey(k.trim()); clearPrices(); renderMoney(); refreshPrices(false); }
+  };
+  document.getElementById("keyRemove").onclick = () => {
+    if (!confirm("Eemaldada API võti? Äpp läheb demorežiimi ja investeeringud ei lähe enam eesmärgi arvestusse.")) return;
+    setKey(""); clearPrices(); renderMoney(); refreshPrices(true);
+  };
+  document.getElementById("pfRefresh").onclick = () => refreshPrices(false);
+  document.getElementById("toApi").onclick = e => { e.preventDefault(); document.getElementById("apiPanel").scrollIntoView({ behavior: "smooth" }); document.getElementById("keyInput").focus({ preventScroll: true }); };
+
 
   // ---------- Lühiaja eesmärgid ----------
   let when = "1";
