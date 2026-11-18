@@ -233,6 +233,36 @@
   .mode-pill.demo { border-color: rgba(252,211,77,.5); color: #FCD34D; }
   .key-mask { font-size: 13px; color: var(--ink-2); }
   .opt { color: var(--muted); font-weight: 400; }
+  .count-h { color: var(--muted); font-weight: 500; }
+  .chart-top { flex-wrap: wrap; gap: 10px; }
+  .range-sel { display: inline-flex; border: 1px solid var(--line-strong); }
+  .range-sel button { all: unset; box-sizing: border-box; cursor: pointer; padding: 6px 11px; font-size: 12px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .range-sel button + button { border-left: 1px solid var(--line-strong); }
+  .range-sel button:hover { color: var(--ink); background: var(--accent-soft); }
+  .range-sel button.on { background: var(--accent); color: var(--accent-ink); }
+  .range-sel button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 16px 20px 4px; }
+  .chart-change { font-size: 24px; font-weight: 600; }
+  .ch-legend { display: flex; gap: 16px; font-size: 12px; color: var(--ink-2); }
+  .ch-legend span, .ch-tip .tr { display: inline-flex; align-items: center; gap: 6px; }
+  .lk { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
+  .chart-wrap { position: relative; padding: 8px 12px 6px 8px; min-height: 120px; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; touch-action: pan-y; outline: none; }
+  .chart-wrap svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chart-wrap .grid line { stroke: var(--line); stroke-width: 1; }
+  .chart-wrap .ylab text, .chart-wrap .xlab text { fill: var(--muted); font-size: 11px; font-family: inherit; font-variant-numeric: tabular-nums; }
+  .chart-wrap .cross { stroke: var(--ink-2); stroke-width: 1; }
+  .ch-tip { position: absolute; top: 8px; pointer-events: none; background: var(--panel-head); border: 1px solid var(--line-strong); padding: 8px 10px; font-size: 12px; min-width: 150px; z-index: 3; }
+  .ch-tip .th { color: var(--muted); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .ch-tip .tr { display: flex; gap: 8px; margin-top: 2px; }
+  .ch-tip .tr b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ch-tip .tr span { color: var(--muted); }
+  .ch-empty[hidden], .ch-tip[hidden] { display: none; }
+  .ch-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px 28px; color: var(--muted); font-size: 13px; }
+  .ch-table { border-top: 1px solid var(--line); padding: 10px 20px; font-size: 13px; color: var(--muted); }
+  .ch-table summary { cursor: pointer; }
+  .ch-table table { margin-top: 10px; }
+  .ch-table td, .ch-table th { padding: 7px 8px; }
   .qty-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
   .qty-pair .or { font-size: 13px; color: var(--muted); padding-bottom: 26px; }
   .lbl-short { display: none; }
@@ -362,6 +392,10 @@
     .lbl-long { display: none; }
     .lbl-short { display: inline !important; }
     .pf-table td.trend { width: 100%; }
+    .chart-head { padding: 14px 14px 4px; }
+    .chart-wrap { padding: 6px 4px 4px 0; }
+    .range-sel button { padding: 6px 8px; }
+    .ch-table { padding: 10px 14px; }
     .pf-table td.actions { position: absolute; top: 10px; right: 8px; width: auto; padding: 0; display: flex; }
     .name-t { max-width: none; }
     .pf-table tr.editing { padding: 14px; }
@@ -682,15 +716,15 @@
               <div class="hero-amount num pf-total" id="pfTotal">0<small>€</small></div>
             </div>
             <div class="pct-box">
-              <div class="v num" id="pfDayPct">–</div>
-              <div class="l">Täna</div>
+              <div class="v num" id="pfTotPct">–</div>
+              <div class="l">Kokku</div>
             </div>
           </div>
         </div>
         <div class="stats">
-          <div class="stat"><div class="l">Päeva muutus</div><div class="v num" id="pfDay">–</div></div>
-          <div class="stat"><div class="l">Kasum / kahjum</div><div class="v num" id="pfPL">–</div><div class="hint num" id="pfPLHint"></div></div>
-          <div class="stat"><div class="l">Positsioone</div><div class="v num" id="pfCount">0</div></div>
+          <div class="stat"><div class="l">Investeeritud kokku</div><div class="v num" id="pfInvested">–</div><div class="hint num" id="pfInvHint"></div></div>
+          <div class="stat"><div class="l">Muutus kokku</div><div class="v num" id="pfPL">–</div><div class="hint num" id="pfPLHint"></div></div>
+          <div class="stat"><div class="l">Täna</div><div class="v num" id="pfDay">–</div><div class="hint num" id="pfDayHint"></div></div>
         </div>
         <div class="forecast" id="pfGoalLine">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18" opacity=".0"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
@@ -698,9 +732,38 @@
         </div>
       </div>
 
+      <!-- Portfelli areng (graafik) -->
+      <div class="panel" style="margin-top:20px" id="chartPanel">
+        <div class="panel-head chart-top">
+          <h2>Portfelli areng</h2>
+          <div class="range-sel" id="rangeSel" role="group" aria-label="Ajavahemik">
+            <button type="button" data-r="1P">1P</button><button type="button" data-r="5P">5P</button><button type="button" data-r="1K">1K</button><button type="button" data-r="6K">6K</button><button type="button" data-r="1A">1A</button><button type="button" data-r="K">Kõik</button>
+          </div>
+        </div>
+        <div class="chart-head">
+          <div>
+            <div class="chart-change num" id="chChange">–</div>
+            <div class="sub-t" id="chSub"></div>
+          </div>
+          <div class="ch-legend">
+            <span><i class="lk" style="background:#22A85A"></i>Väärtus</span>
+            <span><i class="lk" style="background:#5B8CD6"></i>Investeeritud</span>
+          </div>
+        </div>
+        <div class="chart-wrap" id="chartWrap">
+          <svg id="chart" role="img" aria-label="Portfelli väärtuse ja investeeritud summa graafik" tabindex="0"></svg>
+          <div class="ch-tip" id="chTip" hidden></div>
+          <div class="ch-empty" id="chEmpty" hidden></div>
+        </div>
+        <details class="ch-table">
+          <summary>Näita tabelina</summary>
+          <div id="chTable"></div>
+        </details>
+      </div>
+
       <!-- Positsioonid -->
       <div class="panel" style="margin-top:20px">
-        <div class="panel-head"><h2>Positsioonid</h2><span class="head-note num" id="pfUpdated"></span></div>
+        <div class="panel-head"><h2>Positsioonid <span class="num count-h" id="pfCount"></span></h2><span class="head-note num" id="pfUpdated"></span></div>
         <div id="pfTable"></div>
       </div>
 
@@ -730,7 +793,7 @@
               <label for="pfAvg">Keskm. ostuhind <span class="opt">(valikuline, aktsia valuutas, nt $)</span></label>
               <input type="number" id="pfAvg" class="num" min="0" step="any" placeholder="nt 180">
             </div>
-            <p class="note" style="margin:-4px 0 14px">Ostuhinna järgi arvutatakse kasum/kahjum. Kui sisestad summa ja jätad ostuhinna tühjaks, näed kasumit alates tänasest.</p>
+            <p class="note" style="margin:-4px 0 14px">Ostuhinna järgi arvutatakse muutus. Kui jätad selle tühjaks, arvestatakse tänast hinda ja näed muutust alates lisamisest.</p>
             <button class="btn block" type="submit" id="pfAddBtn">Lisa portfelli</button>
             <div class="inv-msg" id="pfMsg"></div>
           </form>
@@ -782,7 +845,7 @@
   const COLOR_VARS = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
   const color = i => `var(${COLOR_VARS[i % COLOR_VARS.length]})`;
 
-  const defaults = { goal: 1000, goalName: "", carry: 0, incomes: [], expenses: [], holdings: [], pastGoals: [], longGoals: [], tasks: [] };
+  const defaults = { goal: 1000, goalName: "", carry: 0, incomes: [], expenses: [], holdings: [], pfHistory: [], pastGoals: [], longGoals: [], tasks: [] };
   let state;
   try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY)) || {}); }
   catch (e) { state = { ...defaults }; }
@@ -1264,6 +1327,7 @@
     Object.assign(h, { price: q.price, fx: q.fx, priceEur: q.price * q.fx, change: q.change, dayPct: q.dayPct,
                        prevClose: q.price - (q.change || 0), quoteTime: q.time, updated: new Date().toISOString(), demo: isDemo() });
     pushHist(h.symbol, q.price);
+    if (h.avgPrice == null && h.invested == null) { h.avgPrice = q.price; h.costAssumed = true; }
   }
 
   // Režiimi vahetusel (demo ↔ päris) visatakse vanad hinnad ära, et simuleeritud hind ei jääks kunagi päris hinnaks.
@@ -1381,6 +1445,207 @@
     if (errors.length) pfMsg(errors[0], true);
   }
 
+  // ---------- Portfelli ajalugu ja graafik ----------
+  // Finnhubi tasuta võti ajaloolisi hindu ei anna, seega salvestab äpp ise portfelli väärtuse ja investeeritud summa
+  // (kuni iga 5 minuti järel, kui leht on lahti). Vanemad punktid tihendatakse: üle 2 päeva → 1 punkt tunnis,
+  // üle 30 päeva → 1 punkt päevas. Demorežiimis näidatakse simuleeritud ajalugu (seda ei salvestata).
+  const CH = { v: "#22A85A", c: "#5B8CD6" };             // valideeritud tumeda pinna jaoks (dataviz validator)
+  const RANGES = { "1P": 864e5, "5P": 5 * 864e5, "1K": 30 * 864e5, "6K": 182 * 864e5, "1A": 365 * 864e5, "K": Infinity };
+  const RANGE_LABEL = { "1P": "viimane päev", "5P": "viimased 5 päeva", "1K": "viimane kuu", "6K": "viimased 6 kuud", "1A": "viimane aasta", "K": "kogu aeg" };
+  let chRange = (() => { try { return localStorage.getItem("rahaEesmarkApp_range") || "1K"; } catch (e) { return "1K"; } })();
+  if (!RANGES[chRange]) chRange = "1K";
+  if (!Array.isArray(state.pfHistory)) state.pfHistory = [];
+
+  function portfolioNow() {
+    const list = state.holdings || [];
+    if (!list.length || list.some(h => !h.manual && !h.priceEur)) return null;
+    const v = list.reduce((s, h) => s + holdingValue(h), 0);
+    const c = list.reduce((s, h) => { const x = costEur(h); return s + (x ?? holdingValue(h)); }, 0);
+    return { v, c };
+  }
+  const dayKey = t => { const d = new Date(t); return d.getFullYear() * 1e4 + d.getMonth() * 100 + d.getDate(); };
+  function compactHistory() {
+    const now = Date.now(), out = [];
+    let lastKey = null;
+    for (const p of state.pfHistory) {
+      const age = now - p.t;
+      const key = age > 30 * 864e5 ? "d" + dayKey(p.t) : age > 2 * 864e5 ? "h" + Math.floor(p.t / 3600e3) : "m" + p.t;
+      if (key === lastKey) out[out.length - 1] = p; else out.push(p);
+      lastKey = key;
+    }
+    state.pfHistory = out.slice(-3000);
+  }
+  function recordSnapshot() {
+    if (isDemo()) return;
+    const H = state.pfHistory, t = Date.now(), last = H[H.length - 1];
+    const now = portfolioNow();
+    if (!now) { if (!(state.holdings || []).length && last && last.v !== 0) { H.push({ t, v: 0, c: 0 }); save(); } return; }
+    // Uus punkt iga 5 minuti järel või kohe, kui investeeritud summa muutub (raha lisati/eemaldati).
+    // Hetkeväärtust ei salvestata – see lisatakse graafikule otse (seriesAll).
+    const p = { t, v: round2(now.v), c: round2(now.c) };
+    if (last && Math.abs(last.c - p.c) >= 0.01) {
+      // Raha lisati/eemaldati: salvesta hetk enne muutust, et graafikul oleks aste, mitte kaldjoon.
+      H.push({ t: t - 1, v: round2(Math.max(0, now.v - (p.c - last.c))), c: last.c });
+    }
+    if (!last || t - last.t >= 3e5 || Math.abs(last.c - p.c) >= 0.01) { H.push(p); compactHistory(); save(); }
+  }
+
+  let demoHist = null;
+  function demoHistory(now) {
+    const sig = (state.holdings || []).map(h => (h.symbol || h.name) + ":" + (h.shares || h.value)).join(",");
+    if (!demoHist || demoHist.sig !== sig) {
+      let seed = 7; for (const ch of sig) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const T = Date.now(), pts = [];
+      let r = 1;
+      for (let i = 1; i <= 5 * 24 * 4; i++) { r /= 1 + 0.00002 + (rnd() - 0.5) * 0.003; pts.push({ t: T - i * 9e5, r }); }   // 15 min
+      for (let d = 6; d <= 365; d++) { r /= 1 + 0.0006 + (rnd() - 0.5) * 0.026; pts.push({ t: T - d * 864e5, r }); }     // päev
+      demoHist = { sig, pts: pts.reverse() };
+    }
+    return demoHist.pts.map(p => ({ t: p.t, v: now.v * p.r, c: now.c }));
+  }
+  function seriesAll() {
+    const now = portfolioNow();
+    const cur = now ? [{ t: Date.now(), v: now.v, c: now.c }] : [];
+    if (isDemo()) return now ? demoHistory(now).concat(cur) : [];
+    return state.pfHistory.concat(cur);
+  }
+
+  function niceTicks(min, max, n) {
+    const span = max - min || Math.abs(max) || 1, raw = span / n, mag = 10 ** Math.floor(Math.log10(raw));
+    const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
+    const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, out = [];
+    for (let v = lo; v <= hi + step / 2; v += step) out.push(round2(v));
+    return out;
+  }
+  const fmtAxisEur = v => (Math.abs(v) >= 10000 ? (v / 1000).toLocaleString("et-EE", { maximumFractionDigits: 1 }) + " t" : v.toLocaleString("et-EE", { maximumFractionDigits: 0 })) + " €";
+  function fmtX(t, r) {
+    const d = new Date(t);
+    if (r === "1P") return d.toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit" });
+    if (r === "5P") return d.toLocaleDateString("et-EE", { weekday: "short", day: "numeric" });
+    if (r === "1K" || r === "6K") return d.toLocaleDateString("et-EE", { day: "numeric", month: "short" });
+    return d.toLocaleDateString("et-EE", { month: "short", year: "2-digit" });
+  }
+  const fmtFull = t => new Date(t).toLocaleString("et-EE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  let chPts = [], chGeo = null, chHoverX = null;
+  function renderChart() {
+    const wrap = document.getElementById("chartWrap"), svg = document.getElementById("chart");
+    const empty = document.getElementById("chEmpty"), tip = document.getElementById("chTip");
+    document.querySelectorAll("#rangeSel button").forEach(b => b.classList.toggle("on", b.dataset.r === chRange));
+    const all = seriesAll(), T = Date.now();
+    const from = RANGES[chRange] === Infinity ? (all[0] ? all[0].t : T) : T - RANGES[chRange];
+    const pts = all.filter(p => p.t >= from);
+    const before = all.filter(p => p.t < from).pop();
+    if (before) pts.unshift({ ...before, t: from });
+    chPts = pts;
+    const chg = document.getElementById("chChange"), sub = document.getElementById("chSub");
+    if (pts.length < 2) {
+      svg.innerHTML = ""; tip.hidden = true; chGeo = null; empty.hidden = false;
+      const since = state.pfHistory[0];
+      empty.textContent = !(state.holdings || []).length ? "Lisa aktsia, et näha portfelli arengut."
+        : `Graafik täitub aja jooksul: äpp salvestab portfelli väärtuse iga 5 minuti järel, kui leht on lahti.${since ? " Ajalugu alates " + fmtFull(since.t) + "." : ""}`;
+      chg.textContent = "–"; chg.className = "chart-change num"; sub.textContent = RANGE_LABEL[chRange];
+      document.getElementById("chTable").innerHTML = "";
+      return;
+    }
+    empty.hidden = true;
+    const a = pts[0], b = pts[pts.length - 1];
+    // Muutus perioodil = väärtuse muutus miinus juurde lisatud raha (et uus sissemakse ei paistaks kasumina).
+    const added = b.c - a.c, change = (b.v - a.v) - added, base = a.v + Math.max(0, added);
+    chg.textContent = signed(change, x => euro(round2(x))) + (base > 0 ? " (" + pctStr(change / base * 100) + ")" : "");
+    chg.className = "chart-change num " + tone(change);
+    sub.textContent = RANGE_LABEL[chRange] + (Math.abs(added) >= 0.01 ? ` · perioodil lisatud ${signed(added, x => euro(round2(x)))} (pole arvestatud kasumina)` : "")
+      + (isDemo() ? " · demoajalugu on simuleeritud" : "");
+
+    // Geomeetria
+    const W = Math.max(280, wrap.clientWidth), H = W < 520 ? 190 : 240;
+    const padL = W < 520 ? 46 : 58, padR = W < 520 ? 10 : 16, padT = 14, padB = 26;
+    const vals = pts.flatMap(p => [p.v, p.c]);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = (hi - lo) * 0.08 || Math.max(1, hi * 0.02); lo -= pad; hi += pad;
+    const yt = niceTicks(lo, hi, 4); const y0 = yt[0], y1 = yt[yt.length - 1];
+    const t0 = a.t, t1 = b.t || t0 + 1;
+    const X = t => padL + (t - t0) / (t1 - t0 || 1) * (W - padL - padR);
+    const Y = v => padT + (1 - (v - y0) / (y1 - y0 || 1)) * (H - padT - padB);
+    chGeo = { X, Y, W, H, padL, padR, padT, padB };
+    const line = k => pts.map((p, i) => (i ? "L" : "M") + X(p.t).toFixed(1) + "," + Y(p[k]).toFixed(1)).join("");
+    const area = line("v") + `L${X(b.t).toFixed(1)},${(H - padB).toFixed(1)}L${X(a.t).toFixed(1)},${(H - padB).toFixed(1)}Z`;
+    const nX = W < 520 ? 3 : 5, xt = Array.from({ length: nX }, (_, i) => t0 + (t1 - t0) * i / (nX - 1));
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", W); svg.setAttribute("height", H);
+    svg.innerHTML = `
+      <g class="grid">${yt.map(v => `<line x1="${padL}" x2="${W - padR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/>`).join("")}</g>
+      <g class="ylab">${yt.map(v => `<text x="${padL - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${fmtAxisEur(v)}</text>`).join("")}</g>
+      <g class="xlab">${xt.map((t, i) => `<text x="${X(t).toFixed(1)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === nX - 1 ? "end" : "middle"}">${esc(fmtX(t, chRange))}</text>`).join("")}</g>
+      <path d="${area}" fill="${CH.v}" fill-opacity=".10"/>
+      <path d="${line("c")}" fill="none" stroke="${CH.c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${line("v")}" fill="none" stroke="${CH.v}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${X(b.t).toFixed(1)}" cy="${Y(b.v).toFixed(1)}" r="4" fill="${CH.v}" stroke="var(--surface)" stroke-width="2"/>
+      <g id="chHover" visibility="hidden">
+        <line id="chX" y1="${padT}" y2="${H - padB}" class="cross"/>
+        <circle id="chDc" r="4" fill="${CH.c}" stroke="var(--surface)" stroke-width="2"/>
+        <circle id="chDv" r="4" fill="${CH.v}" stroke="var(--surface)" stroke-width="2"/>
+      </g>
+      <rect x="${padL}" y="0" width="${W - padL - padR}" height="${H}" fill="transparent" id="chHit"/>`;
+    if (chHoverX != null) showHover(chHoverX);
+
+    // Tabelivaade (kuni 40 rida, ühtlaselt valitud)
+    const stepN = Math.max(1, Math.ceil(pts.length / 40));
+    const rows = pts.filter((_, i) => i % stepN === 0 || i === pts.length - 1).reverse();
+    document.getElementById("chTable").innerHTML = `<table><thead><tr><th>Aeg</th><th class="r">Väärtus</th><th class="r">Investeeritud</th><th class="r">Muutus</th></tr></thead><tbody>${
+      rows.map(p => `<tr><td class="num">${esc(fmtFull(p.t))}</td><td class="r num">${euro(round2(p.v))}</td><td class="r num">${euro(round2(p.c))}</td><td class="r num ${tone(p.v - p.c)}">${signed(p.v - p.c, x => euro(round2(x)))}</td></tr>`).join("")}</tbody></table>`;
+  }
+
+  function showHover(px) {
+    if (!chGeo || chPts.length < 2) return;
+    const { X, Y, W, padL, padR } = chGeo;
+    px = Math.max(padL, Math.min(W - padR, px));
+    let best = 0, bd = Infinity;
+    chPts.forEach((p, i) => { const d = Math.abs(X(p.t) - px); if (d < bd) { bd = d; best = i; } });
+    const p = chPts[best], x = X(p.t);
+    const g = document.getElementById("chHover"); if (!g) return;
+    g.setAttribute("visibility", "visible");
+    const cx = document.getElementById("chX"); cx.setAttribute("x1", x); cx.setAttribute("x2", x);
+    const dv = document.getElementById("chDv"), dc = document.getElementById("chDc");
+    dv.setAttribute("cx", x); dv.setAttribute("cy", Y(p.v)); dc.setAttribute("cx", x); dc.setAttribute("cy", Y(p.c));
+    const tip = document.getElementById("chTip");
+    tip.replaceChildren();
+    const row = (val, label, col) => { const r = document.createElement("div"); r.className = "tr";
+      if (col) { const k = document.createElement("i"); k.className = "lk"; k.style.background = col; r.append(k); }
+      const bEl = document.createElement("b"); bEl.textContent = val; const s = document.createElement("span"); s.textContent = label; r.append(bEl, s); return r; };
+    const head = document.createElement("div"); head.className = "th"; head.textContent = fmtFull(p.t);
+    const gain = p.v - p.c;
+    tip.append(head, row(euro(round2(p.v)), "Väärtus", CH.v), row(euro(round2(p.c)), "Investeeritud", CH.c),
+      row(signed(gain, z => euro(round2(z))), "Kasum/kahjum"));
+    tip.hidden = false;
+    const wrapW = document.getElementById("chartWrap").clientWidth, tw = tip.offsetWidth;
+    tip.style.left = Math.min(wrapW - tw - 4, Math.max(4, x + 12 > wrapW - tw - 4 ? x - tw - 12 : x + 12)) + "px";
+  }
+  function hideHover() {
+    chHoverX = null;
+    const g = document.getElementById("chHover"); if (g) g.setAttribute("visibility", "hidden");
+    document.getElementById("chTip").hidden = true;
+  }
+  const chSvg = document.getElementById("chart");
+  chSvg.addEventListener("pointermove", e => { const r = chSvg.getBoundingClientRect(); chHoverX = (e.clientX - r.left) * (chGeo ? chGeo.W / r.width : 1); showHover(chHoverX); });
+  chSvg.addEventListener("pointerleave", hideHover);
+  chSvg.addEventListener("blur", hideHover);
+  chSvg.addEventListener("keydown", e => {
+    if (!chGeo || chPts.length < 2 || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault();
+    const xs = chPts.map(p => chGeo.X(p.t));
+    let i = chHoverX == null ? xs.length - 1 : xs.reduce((bi, x, k) => Math.abs(x - chHoverX) < Math.abs(xs[bi] - chHoverX) ? k : bi, 0);
+    i = e.key === "Home" ? 0 : e.key === "End" ? xs.length - 1 : Math.max(0, Math.min(xs.length - 1, i + (e.key === "ArrowLeft" ? -1 : 1)));
+    chHoverX = xs[i]; showHover(chHoverX);
+  });
+  document.getElementById("rangeSel").addEventListener("click", e => {
+    const b = e.target.closest("button[data-r]"); if (!b) return;
+    chRange = b.dataset.r; try { localStorage.setItem("rahaEesmarkApp_range", chRange); } catch (_) {}
+    hideHover(); renderChart();
+  });
+  let chResize = null;
+  window.addEventListener("resize", () => { clearTimeout(chResize); chResize = setTimeout(renderChart, 120); });
+
   // ---- Joonistamine ----
   function renderInvest() {
     const list = state.holdings || [];
@@ -1391,6 +1656,7 @@
     const withCost = list.filter(h => costEur(h) != null);
     const cost = withCost.reduce((s, h) => s + costEur(h), 0);
     const pl = withCost.reduce((s, h) => s + holdingValue(h), 0) - cost;
+    const assumed = list.filter(h => h.costAssumed).length;
 
     // Koguväärtuse kaart
     const totEl = document.getElementById("pfTotal");
@@ -1400,16 +1666,22 @@
       totEl.classList.add(total > prevPfTotal ? "tick-up" : "tick-down");
     }
     prevPfTotal = total;
-    const dp = document.getElementById("pfDayPct");
-    dp.textContent = dayBase > 0 ? pctStr(dayEur / dayBase * 100) : "–"; dp.className = "v num " + tone(dayEur);
-    const dEl = document.getElementById("pfDay");
-    dEl.textContent = list.some(h => !h.manual) ? signed(dayEur, v => euro(round2(v))) : "–"; dEl.className = "v num " + tone(dayEur);
+    // Kokkuvõte: investeeritud → praegune väärtus → muutus kokku; eraldi tänane muutus.
+    const totPct = document.getElementById("pfTotPct");
+    totPct.textContent = withCost.length && cost > 0 ? pctStr(pl / cost * 100) : "–"; totPct.className = "v num " + tone(pl);
+    document.getElementById("pfInvested").textContent = withCost.length ? euro(round2(cost)) : "–";
+    document.getElementById("pfInvHint").textContent = !list.length ? "" : withCost.length
+      ? `praegu ${euro(round2(withCost.reduce((s, h) => s + holdingValue(h), 0)))}` + (withCost.length < list.length ? ` · ${withCost.length}/${list.length} positsiooni` : "") : "";
     const plEl = document.getElementById("pfPL");
     plEl.textContent = withCost.length ? signed(pl, v => euro(round2(v))) : "–"; plEl.className = "v num " + tone(pl);
-    document.getElementById("pfPLHint").textContent = withCost.length
-      ? (cost > 0 ? pctStr(pl / cost * 100) + " · " : "") + (withCost.length < list.length ? `${withCost.length}/${list.length} positsiooni põhjal` : "kõigi positsioonide põhjal")
-      : (list.length ? "lisa ostuhind, et näha kasumit" : "");
-    document.getElementById("pfCount").textContent = list.length;
+    document.getElementById("pfPLHint").textContent = withCost.length && cost > 0
+      ? pctStr(pl / cost * 100) + (assumed ? ` · ${assumed} pos. lisamise hinnast` : "") : "";
+    const dEl = document.getElementById("pfDay");
+    dEl.textContent = list.some(h => !h.manual) ? signed(dayEur, v => euro(round2(v))) : "–"; dEl.className = "v num " + tone(dayEur);
+    document.getElementById("pfDayHint").textContent = dayBase > 0 && list.some(h => !h.manual) ? pctStr(dayEur / dayBase * 100) : "";
+    document.getElementById("pfCount").textContent = list.length ? "· " + list.length : "";
+    recordSnapshot();
+    renderChart();
 
     // Seos rahalise eesmärgiga
     const counted = invTotal();
@@ -1531,8 +1803,8 @@
       const q = await provider.quote(symbol, prof.currency);
       // Summa → aktsiate arv praeguse hinna järgi.
       const shares = sharesIn != null ? sharesIn : amountEur / (q.price * q.fx);
-      // Selle osa ostuhind: sisestatud, või summa puhul tänane hind (kasum alates tänasest), muidu teadmata.
-      const lotAvg = avg != null ? avg : (sharesIn == null ? q.price : null);
+      // Selle osa ostuhind: sisestatud või (kui tühi) tänane hind – siis näidatakse muutust alates lisamisest.
+      const lotAvg = avg != null ? avg : q.price;
       const sharesTxt = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 4 });
       if (existing) {
         // Sama aktsia: liida kogus ja arvuta kaalutud keskmine ostuhind (kui mõlema osa ostuhind on teada).
@@ -1540,11 +1812,12 @@
         existing.avgPrice = lotAvg != null && oldAvg != null
           ? (oldAvg * existing.shares + lotAvg * shares) / (existing.shares + shares) : null;
         existing.shares += shares;
+        existing.costAssumed = !!existing.costAssumed || avg == null;
         delete existing.invested;
         applyQuote(existing, q);
         pfMsg(`${symbol}: lisatud ${sharesTxt(shares)} tk olemasolevale positsioonile (kokku ${sharesTxt(existing.shares)} tk).`);
       } else {
-        const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: lotAvg, added: dateStr() };
+        const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: lotAvg, costAssumed: avg == null, added: dateStr() };
         applyQuote(h, q);
         state.holdings.push(h);
         streamSync();
@@ -1594,9 +1867,12 @@
       const s = parseFloat(f.shares.value); if (!(s > 0)) return;
       const a = f.avg.value === "" ? null : parseFloat(f.avg.value);
       if (a != null && !(a >= 0)) return;
-      if (h.invested != null && a == null) h.invested = h.invested / h.shares * s;
-      h.shares = s; h.avgPrice = a;
-      if (a != null) delete h.invested;
+      if (h.invested != null && a == null) { h.invested = h.invested / h.shares * s; h.shares = s; }
+      else {
+        h.shares = s; delete h.invested;
+        if (a != null) { h.avgPrice = a; h.costAssumed = false; }
+        else if (h.avgPrice == null && h.price) { h.avgPrice = h.price; h.costAssumed = true; }
+      }
     }
     editingId = null; save(); renderMoney();
   });
