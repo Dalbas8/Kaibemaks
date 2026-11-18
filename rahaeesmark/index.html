@@ -667,6 +667,7 @@
         </div>
       </div>
 
+      <div class="demo-banner" id="fxNote" hidden></div>
       <div class="demo-banner" id="demoBanner" hidden>
         <b>Demorežiim.</b> Hinnad on simuleeritud ega lähe eesmärgi arvestusse.
         Päris hindade jaoks lisa tasuta API võti <a href="#apiPanel" id="toApi">allpool</a>.
@@ -752,7 +753,8 @@
             <p class="note" style="margin:12px 0 0">Ilma võtmeta töötab äpp <b>demorežiimis</b> simuleeritud hindadega, et saaksid kõike kohe proovida.</p>
           </div>
           <div class="panel-body" id="apiOk" hidden>
-            <p class="note" style="margin-bottom:14px">Hinnad uuenevad iga minuti tagant, kui leht on lahti. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e. Valuutakursid eurodesse tulevad Euroopa Keskpangast (Frankfurter).</p>
+            <p class="note" style="margin-bottom:14px">Hinnad uuenevad iga minuti tagant, kui leht on lahti. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e. Kõik summad näidatakse eurodes.</p>
+            <p class="note num" id="fxLine" style="margin:-6px 0 14px"></p>
             <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap">
               <span class="num key-mask" id="keyMask"></span>
               <button class="link-btn" type="button" id="keyChange">Muuda võtit</button>
@@ -1151,17 +1153,64 @@
     if (!r.ok) throw new Error("Hinnaserver vastas veaga (" + r.status + ").");
     return r.json();
   }
-  let fxCache = { EUR: 1 };
-  setInterval(() => { fxCache = { EUR: 1 }; }, 60 * 60 * 1000); // valuutakursid värskendatakse kord tunnis
+  // ---- Valuutakursid → EUR ----
+  // Proovitakse mitut tasuta allikat järjest. Õnnestunud kurss salvestatakse seadmesse;
+  // kui ükski allikas ei vasta, kasutatakse viimati salvestatud kurssi, viimase abinõuna ligikaudset kurssi.
+  const FX_STORE = "rahaEesmarkApp_fx";
+  const FX_APPROX = { USD: 0.92, GBP: 1.18, CHF: 1.06, CAD: 0.66, AUD: 0.60, SEK: 0.087, NOK: 0.085, DKK: 0.134, JPY: 0.0061, HKD: 0.118 };
+  const FX_SOURCES = [
+    ["Frankfurter (EKP)", c => getJson(`https://api.frankfurter.dev/v1/latest?base=${c}&symbols=EUR`).then(j => j.rates.EUR)],
+    ["ExchangeRate-API", c => getJson(`https://open.er-api.com/v6/latest/${c}`).then(j => j.rates.EUR)],
+    ["Currency API", c => getJson(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${c.toLowerCase()}.json`).then(j => j[c.toLowerCase()].eur)],
+    ["Currency API", c => getJson(`https://latest.currency-api.pages.dev/v1/currencies/${c.toLowerCase()}.json`).then(j => j[c.toLowerCase()].eur)],
+    ["Frankfurter (EKP)", c => getJson(`https://api.frankfurter.app/latest?from=${c}&to=EUR`).then(j => j.rates.EUR)],
+  ];
+  async function getJson(url) {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6000);
+    try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok) throw new Error(r.status); return await r.json(); }
+    finally { clearTimeout(timer); }
+  }
+  const fxSaved = () => { try { return JSON.parse(localStorage.getItem(FX_STORE)) || {}; } catch (e) { return {}; } };
+  const fxInfo = { EUR: { rate: 1, status: "live" } };   // valuuta → { rate, status: live|saved|approx, source, time }
+  const fxPending = {};
+  let fxFresh = {};                                       // mälus: millal iga valuuta viimati edukalt laaditi
+  setInterval(() => { fxFresh = {}; }, 60 * 60 * 1000);   // värskenda kord tunnis
   async function fxToEur(cur) {
     cur = (cur || "USD").toUpperCase();
-    if (fxCache[cur]) return fxCache[cur];
-    try {
-      const r = await fetch(`https://api.frankfurter.app/latest?from=${cur}&to=EUR`);
-      const j = await r.json();
-      if (!j.rates || !j.rates.EUR) throw 0;
-      return fxCache[cur] = j.rates.EUR;
-    } catch (e) { throw new Error(`Valuutakurssi ${cur} → EUR ei õnnestunud saada.`); }
+    if (cur === "EUR") return 1;
+    if (fxFresh[cur] && fxInfo[cur]) return fxInfo[cur].rate;
+    if (fxPending[cur]) return fxPending[cur];
+    return fxPending[cur] = (async () => {
+      for (const [source, get] of FX_SOURCES) {
+        try {
+          const rate = Number(await get(cur));
+          if (rate > 0 && isFinite(rate)) {
+            fxInfo[cur] = { rate, status: "live", source, time: Date.now() };
+            fxFresh[cur] = true;
+            try { const all = fxSaved(); all[cur] = { rate, time: Date.now(), source }; localStorage.setItem(FX_STORE, JSON.stringify(all)); } catch (e) {}
+            return rate;
+          }
+        } catch (e) { /* proovi järgmist allikat */ }
+      }
+      const saved = fxSaved()[cur];
+      if (saved && saved.rate > 0) { fxInfo[cur] = { rate: saved.rate, status: "saved", source: saved.source, time: saved.time }; return saved.rate; }
+      if (FX_APPROX[cur]) { fxInfo[cur] = { rate: FX_APPROX[cur], status: "approx" }; return FX_APPROX[cur]; }
+      throw new Error(`Valuuta ${cur} kurssi eurodesse ei õnnestunud saada.`);
+    })().finally(() => { delete fxPending[cur]; });
+  }
+  function renderFxInfo() {
+    const curs = [...new Set((state.holdings || []).filter(h => !h.manual && h.currency && h.currency !== "EUR").map(h => h.currency))];
+    const fmt = (c, i) => `1 ${c} = ${i.rate.toLocaleString("et-EE", { maximumFractionDigits: 4 })} €`;
+    const when = t => t ? new Date(t).toLocaleString("et-EE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+    const known = curs.filter(c => fxInfo[c]);
+    document.getElementById("fxLine").textContent = isDemo() || !known.length ? "" :
+      "Kurss: " + known.map(c => fmt(c, fxInfo[c]) + (fxInfo[c].status === "live" ? ` (${fxInfo[c].source})` : "")).join(" · ");
+    const bad = isDemo() ? [] : known.filter(c => fxInfo[c].status !== "live");
+    const note = document.getElementById("fxNote");
+    note.hidden = !bad.length;
+    note.innerHTML = bad.map(c => fxInfo[c].status === "saved"
+      ? `<b>Valuutakurssi ei saanud uuendada.</b> Kasutan viimati salvestatud kurssi ${fmt(c, fxInfo[c])} (${when(fxInfo[c].time)}).`
+      : `<b>Valuutakurssi ei saanud laadida.</b> Kasutan ligikaudset kurssi ${fmt(c, fxInfo[c])} – eurosummad on umbkaudsed.`).join("<br>");
   }
 
   // ---- Demoandmed (simuleeritud) ----
@@ -1379,6 +1428,7 @@
     pill.textContent = demo ? "Demo" : "Päris hinnad"; pill.className = "mode-pill " + (demo ? "demo" : "live");
     if (!demo) { const k = getKey(); document.getElementById("keyMask").textContent = "Võti: " + k.slice(0, 4) + "••••" + k.slice(-3); }
     renderPfStatus();
+    renderFxInfo();
 
     // Positsioonide tabel
     const table = document.getElementById("pfTable");
@@ -1417,8 +1467,8 @@
         </form></td></tr>`;
     }
     const sharesTxt = h.manual ? "–" : Number(h.shares).toLocaleString("et-EE", { maximumFractionDigits: 6 });
-    const priceTxt = h.manual ? "–" : h.price ? money(h.price, h.currency) : (refreshing ? "…" : `<span class="muted-t">hind puudub</span>`);
-    const priceSub = !h.manual && h.currency && h.currency !== "EUR" && h.priceEur ? `<div class="sub-t">≈ ${euro(round2(h.priceEur))}</div>` : "";
+    const priceTxt = h.manual ? "–" : h.priceEur ? money(h.priceEur, "EUR") : (refreshing ? "…" : `<span class="muted-t">hind puudub</span>`);
+    const priceSub = !h.manual && h.currency && h.currency !== "EUR" && h.price ? `<div class="sub-t">${money(h.price, h.currency)}</div>` : "";
     const day = h.manual || typeof h.dayPct !== "number" ? "–" : `<span class="${tone(h.dayPct)}">${pctStr(h.dayPct)}</span>`;
     const plTxt = pl == null ? `<span class="muted-t">–</span>` : `<span class="${tone(pl)}">${signed(pl, x => euro(round2(x)))}</span>${c > 0 ? `<div class="sub-t ${tone(pl)}">${pctStr(pl / c * 100)}</div>` : ""}`;
     return `<tr class="${move}">
