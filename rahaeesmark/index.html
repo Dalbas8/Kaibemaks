@@ -233,6 +233,8 @@
   .mode-pill.demo { border-color: rgba(252,211,77,.5); color: #FCD34D; }
   .key-mask { font-size: 13px; color: var(--ink-2); }
   .opt { color: var(--muted); font-weight: 400; }
+  .qty-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+  .qty-pair .or { font-size: 13px; color: var(--muted); padding-bottom: 26px; }
   .lbl-short { display: none; }
   .ticker-input { text-transform: uppercase; letter-spacing: .04em; }
   .ticker-input::placeholder { text-transform: none; letter-spacing: 0; }
@@ -711,17 +713,23 @@
               <input type="text" id="pfTicker" class="num ticker-input" placeholder="nt AAPL, TSLA, NVDA, VOO" required maxlength="15" spellcheck="false" autocapitalize="characters">
               <div class="inv-results" id="pfSuggest" hidden></div>
             </div>
-            <div class="row">
+            <div class="qty-pair">
               <div class="field">
                 <label for="pfShares">Aktsiaid (tk)</label>
-                <input type="number" id="pfShares" class="num" min="0.000001" step="any" placeholder="nt 2,5" required>
+                <input type="number" id="pfShares" class="num" min="0.000001" step="any" placeholder="nt 2,5">
               </div>
+              <span class="or">või</span>
               <div class="field">
-                <label for="pfAvg">Keskm. ostuhind <span class="opt">(valikuline)</span></label>
-                <input type="number" id="pfAvg" class="num" min="0" step="any" placeholder="nt 180">
+                <label for="pfAmount">Summa (€)</label>
+                <input type="number" id="pfAmount" class="num" min="0.01" step="any" placeholder="nt 500">
               </div>
             </div>
-            <p class="note" style="margin:-4px 0 14px">Ostuhind sisesta aktsia enda valuutas (USA aktsiatel dollarites). Selle järgi arvutatakse kasum/kahjum.</p>
+            <p class="note" id="pfQtyHint" style="margin:-4px 0 14px">Täida üks: kas mitu aktsiat sul on või kui palju raha sul selles aktsias on. Teise arvutab äpp ise.</p>
+            <div class="field">
+              <label for="pfAvg">Keskm. ostuhind <span class="opt">(valikuline, aktsia valuutas, nt $)</span></label>
+              <input type="number" id="pfAvg" class="num" min="0" step="any" placeholder="nt 180">
+            </div>
+            <p class="note" style="margin:-4px 0 14px">Ostuhinna järgi arvutatakse kasum/kahjum. Kui sisestad summa ja jätad ostuhinna tühjaks, näed kasumit alates tänasest.</p>
             <button class="btn block" type="submit" id="pfAddBtn">Lisa portfelli</button>
             <div class="inv-msg" id="pfMsg"></div>
           </form>
@@ -1458,39 +1466,50 @@
   document.getElementById("pfForm").onsubmit = async e => {
     e.preventDefault();
     const symbol = tInput.value.trim().toUpperCase();
-    const shares = parseFloat(document.getElementById("pfShares").value);
-    const avgRaw = document.getElementById("pfAvg").value;
-    const avg = avgRaw === "" ? null : parseFloat(avgRaw);
+    const num = id => { const v = document.getElementById(id).value; return v === "" ? null : parseFloat(v); };
+    const sharesIn = num("pfShares"), amountEur = num("pfAmount"), avg = num("pfAvg");
     if (!/^[A-Z0-9.\-]{1,15}$/.test(symbol)) return pfMsg("Sisesta korrektne sümbol, nt AAPL.", true);
-    if (!(shares > 0)) return pfMsg("Aktsiate arv peab olema suurem kui 0.", true);
+    if (sharesIn == null && amountEur == null) return pfMsg("Sisesta kas aktsiate arv või summa eurodes.", true);
+    if (sharesIn != null && !(sharesIn > 0)) return pfMsg("Aktsiate arv peab olema suurem kui 0.", true);
+    if (sharesIn == null && !(amountEur > 0)) return pfMsg("Summa peab olema suurem kui 0.", true);
     if (avg != null && !(avg >= 0)) return pfMsg("Ostuhind ei saa olla negatiivne.", true);
     const btn = document.getElementById("pfAddBtn"); btn.disabled = true; btn.textContent = "Laen hinda…"; pfMsg("");
     clearTimeout(sugTimer); sugSeq++; sugBox.hidden = true;
     try {
       const existing = state.holdings.find(h => !h.manual && h.symbol === symbol);
+      const prof = existing ? { name: existing.name, currency: existing.currency || "USD" } : await provider.profile(symbol);
+      const q = await provider.quote(symbol, prof.currency);
+      // Summa → aktsiate arv praeguse hinna järgi.
+      const shares = sharesIn != null ? sharesIn : amountEur / (q.price * q.fx);
+      // Selle osa ostuhind: sisestatud, või summa puhul tänane hind (kasum alates tänasest), muidu teadmata.
+      const lotAvg = avg != null ? avg : (sharesIn == null ? q.price : null);
+      const sharesTxt = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 4 });
       if (existing) {
-        // Sama aktsia: liida kogus ja arvuta kaalutud keskmine ostuhind.
-        // Kui ühel osal ostuhind puudub, pole koondostuhinda võimalik teada.
-        existing.avgPrice = avg != null && existing.avgPrice != null
-          ? (existing.avgPrice * existing.shares + avg * shares) / (existing.shares + shares) : null;
+        // Sama aktsia: liida kogus ja arvuta kaalutud keskmine ostuhind (kui mõlema osa ostuhind on teada).
+        const oldAvg = existing.avgPrice ?? (existing.invested != null && existing.fx ? existing.invested / existing.fx / existing.shares : null);
+        existing.avgPrice = lotAvg != null && oldAvg != null
+          ? (oldAvg * existing.shares + lotAvg * shares) / (existing.shares + shares) : null;
         existing.shares += shares;
         delete existing.invested;
-        applyQuote(existing, await provider.quote(symbol, existing.currency || "USD"));
-        pfMsg(`${symbol}: lisatud olemasolevale positsioonile (kokku ${Number(existing.shares).toLocaleString("et-EE", { maximumFractionDigits: 6 })} tk).`);
+        applyQuote(existing, q);
+        pfMsg(`${symbol}: lisatud ${sharesTxt(shares)} tk olemasolevale positsioonile (kokku ${sharesTxt(existing.shares)} tk).`);
       } else {
-        const prof = await provider.profile(symbol);
-        const q = await provider.quote(symbol, prof.currency);
-        const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: avg, added: dateStr() };
+        const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: lotAvg, added: dateStr() };
         applyQuote(h, q);
         state.holdings.push(h);
         streamSync();
-        pfMsg(`${symbol} lisatud${isDemo() ? " (demohind)" : ""}.`);
+        pfMsg(`${symbol} lisatud: ${sharesTxt(shares)} tk ≈ ${euro(round2(shares * q.price * q.fx))}${isDemo() ? " (demohind)" : ""}.`);
       }
       save(); e.target.reset(); renderMoney();
     } catch (err) {
       pfMsg(err.message, true);
     } finally { btn.disabled = false; btn.textContent = "Lisa portfelli"; }
   };
+
+  // Aktsiate arv ja summa välistavad teineteist: ühe täitmine tühjendab teise.
+  const pfSharesEl = document.getElementById("pfShares"), pfAmountEl = document.getElementById("pfAmount");
+  pfSharesEl.addEventListener("input", () => { if (pfSharesEl.value !== "") pfAmountEl.value = ""; });
+  pfAmountEl.addEventListener("input", () => { if (pfAmountEl.value !== "") pfSharesEl.value = ""; });
 
   document.getElementById("manualForm").onsubmit = e => {
     e.preventDefault();
