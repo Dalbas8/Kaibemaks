@@ -204,6 +204,15 @@
   .inv-msg { font-size: 13px; color: var(--muted); margin-top: 10px; }
   .inv-msg:empty { display: none; }
   .inv-table { border-top: 1px solid var(--line); }
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 7px; vertical-align: 1px; animation: pulse 2s infinite; }
+  .live-dot.off { background: var(--muted); animation: none; }
+  .live-label { color: var(--ink); font-weight: 600; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74,222,128,.55); } 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+  @keyframes flashUp { from { background: rgba(74,222,128,.22); } to { background: transparent; } }
+  @keyframes flashDown { from { background: rgba(248,113,113,.22); } to { background: transparent; } }
+  tr.flash-up td { animation: flashUp 1.6s ease-out; }
+  tr.flash-down td { animation: flashDown 1.6s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .live-dot, tr.flash-up td, tr.flash-down td { animation: none; } }
   .inv-table .row-date.good { color: var(--accent); }
   .inv-table .row-date.warm { color: var(--warm); }
   .inv-table td.r { white-space: nowrap; }
@@ -984,7 +993,8 @@
     if (!r.ok) throw new Error("Hinnaserver vastas veaga (" + r.status + ").");
     return r.json();
   }
-  const fxCache = { EUR: 1 };
+  let fxCache = { EUR: 1 };
+  setInterval(() => { fxCache = { EUR: 1 }; }, 60 * 60 * 1000); // valuutakursid värskendatakse kord tunnis
   async function fxToEur(cur) {
     cur = (cur || "USD").toUpperCase();
     if (fxCache[cur]) return fxCache[cur];
@@ -999,7 +1009,7 @@
     const q = await finnhub("quote", { symbol });
     if (!q || !q.c) throw new Error(`${symbol}: hinda ei leitud (tasuta võti toetab peamiselt USA aktsiaid).`);
     const fx = await fxToEur(currency);
-    return { priceEur: q.c * fx, dayPct: q.dp };
+    return { priceEur: q.c * fx, dayPct: q.dp, quoteTime: q.t ? q.t * 1000 : Date.now() };
   }
 
   function renderInvest() {
@@ -1013,21 +1023,31 @@
     document.getElementById("invSum").innerHTML = list.length
       ? `${euro(round2(total))} <span class="${gain >= 0 ? "good" : "warm"}" style="font-weight:500;font-size:13px">${gain >= 0 ? "+" : "−"}${euro(round2(Math.abs(gain)))}</span>` : "";
     const last = list.filter(h => h.updated).map(h => h.updated).sort().pop();
-    document.getElementById("invUpdated").textContent = last ? "Hinnad uuendatud " + new Date(last).toLocaleString("et-EE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+    const live = hasKey && list.some(h => !h.manual);
+    const lastQuote = list.filter(h => h.quoteTime).map(h => h.quoteTime).sort().pop();
+    const closed = lastQuote && Date.now() - lastQuote > 20 * 60 * 1000;
+    document.getElementById("invUpdated").innerHTML = !last ? "" :
+      (live ? `<span class="live-dot ${closed ? "off" : ""}"></span><b class="live-label">${closed ? "Börs suletud" : "Reaalajas"}</b> · ` : "") +
+      "uuendatud " + new Date(last).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
+      (live ? (closed ? " · näidatakse viimast hinda" : " · uueneb iga minut") : "");
     const offset = state.incomes.length;
     document.getElementById("invList").innerHTML = !list.length ? "" : `<table class="inv-table"><tbody>${list.map((h, i) => {
       const v = holdingValue(h), g = v - h.invested, gp = h.invested ? g / h.invested * 100 : 0;
       const cls = g > 0.004 ? "good" : g < -0.004 ? "warm" : "";
-      return `<tr>
+      const move = lastMoves[h.id] ? "flash-" + lastMoves[h.id] : "";
+      const day = typeof h.dayPct === "number" && !h.manual
+        ? ` · <span class="${h.dayPct >= 0 ? "good" : "warm"}">täna ${h.dayPct >= 0 ? "+" : "−"}${Math.abs(h.dayPct).toFixed(2).replace(".", ",")}%</span>` : "";
+      return `<tr class="${move}">
         <td><span class="swatch" style="background:${color(offset + i)}"></span><b style="font-weight:600">${esc(h.symbol || h.name)}</b>
           ${h.symbol ? `<span class="times">${esc(h.name)}</span>` : ""}
-          <div class="row-date num">${h.manual ? "Käsitsi lisatud" : (Math.round(h.shares * 10000) / 10000).toLocaleString("et-EE") + " tk · " + euro(round2(h.priceEur)) + "/tk"}</div></td>
+          <div class="row-date num">${h.manual ? "Käsitsi lisatud" : (Math.round(h.shares * 10000) / 10000).toLocaleString("et-EE") + " tk · " + euro(round2(h.priceEur)) + "/tk" + day}</div></td>
         <td class="r num"><b style="font-weight:600">${euro(round2(v))}</b>
           <div class="row-date num ${cls}" style="margin-left:0">${g >= 0 ? "+" : "−"}${euro(round2(Math.abs(g)))} (${g >= 0 ? "+" : "−"}${Math.abs(gp).toFixed(1).replace(".", ",")}%)</div></td>
         <td class="r" style="width:72px; white-space:nowrap">
           ${h.manual ? `<button class="x" data-inv-edit="${h.id}" title="Muuda väärtust">${ICON_EDIT}</button>` : ""}
           <button class="x" data-inv-del="${h.id}" title="Eemalda">${ICON_X}</button></td>
       </tr>`; }).join("")}</tbody></table>`;
+    lastMoves = {};
   }
 
   // Otsing
@@ -1103,15 +1123,21 @@
   };
 
   // Hindade uuendamine – kui hind tõuseb, tõuseb ka kogutud summa.
+  let refreshing = false, lastMoves = {};
   async function refreshPrices(silent) {
     const list = (state.holdings || []).filter(h => !h.manual);
-    if (!list.length || !getKey()) return;
+    if (!list.length || !getKey() || refreshing) return;
+    refreshing = true;
     if (!silent) invMsg("Uuendan hindu…");
     const errors = [];
     for (const h of list) {
-      try { const p = await priceEur(h.symbol, h.currency); h.priceEur = p.priceEur; h.updated = new Date().toISOString(); }
-      catch (e) { errors.push(e.message); }
+      try {
+        const p = await priceEur(h.symbol, h.currency);
+        if (h.priceEur && Math.abs(p.priceEur - h.priceEur) > 1e-9) lastMoves[h.id] = p.priceEur > h.priceEur ? "up" : "down";
+        h.priceEur = p.priceEur; h.dayPct = p.dayPct; h.quoteTime = p.quoteTime; h.updated = new Date().toISOString();
+      } catch (e) { errors.push(e.message); }
     }
+    refreshing = false;
     save(); renderMoney();
     invMsg(errors.length ? errors[0] : (silent ? "" : "Hinnad on uuendatud."), !!errors.length);
   }
@@ -1265,11 +1291,15 @@
   };
 
   renderMoney(); renderShort(); renderLong();
-  // Uuenda aktsiahindu automaatselt, kui viimasest uuendusest on möödas üle 15 minuti.
-  (() => {
-    const last = (state.holdings || []).filter(h => !h.manual && h.updated).map(h => h.updated).sort()[0];
-    if (last && Date.now() - new Date(last) > 15 * 60 * 1000) refreshPrices(true);
-  })();
+  // Reaalajas hinnad: uuenda kohe avamisel ja seejärel iga minuti tagant, kui leht on lahti.
+  // (Taustal olevat vahelehte ei uuendata, et API päringuid kokku hoida; tagasi tulles uuendatakse kohe.)
+  const LIVE_MS = 60 * 1000;
+  const lastUpdate = () => Math.max(0, ...(state.holdings || []).filter(h => !h.manual && h.updated).map(h => +new Date(h.updated)));
+  refreshPrices(true);
+  setInterval(() => { if (!document.hidden) refreshPrices(true); }, LIVE_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && Date.now() - lastUpdate() > LIVE_MS - 2000) refreshPrices(true);
+  });
 </script>
 </body>
 </html>
