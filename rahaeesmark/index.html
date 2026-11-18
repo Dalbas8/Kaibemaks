@@ -36,11 +36,12 @@
 
     /* Riba värvid: sama heleduse ja küllastusega toonid, mis sobivad rohelisega kokku */
     --c1: #4ADE80; /* roheline */
-    --c2: #F87171; /* punane */
-    --c3: #2DD4BF; /* türkiis */
-    --c4: #FCD34D; /* mesikollane */
-    --c5: #7DD3FC; /* taevasinine */
-    --c6: #FB923C; /* oranž */
+    --c2: #7DD3FC; /* taevasinine */
+    --c3: #FCD34D; /* mesikollane */
+    --c4: #2DD4BF; /* türkiis */
+    --c5: #FB923C; /* oranž */
+    --c6: #C4B5FD; /* lavendel */
+    /* Punane (--warm) on ainult väljaminekute jaoks */
     --carry: #BBF7D0; /* ülekantud raha – hele roheline */
   }
 
@@ -184,6 +185,34 @@
   .carry b { color: var(--accent); font-weight: 600; }
   .badge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border: 1px solid var(--line-strong); color: var(--muted); white-space: nowrap; }
   .badge.ok { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .inv-search { position: relative; }
+  .inv-search input { padding-left: 38px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378786F' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-size: 16px; background-position: 12px center; }
+  .inv-results { position: absolute; left: 0; right: 0; top: 100%; z-index: 5; background: var(--surface); border: 1px solid var(--line-strong); border-top: none; max-height: 320px; overflow-y: auto; }
+  .res { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 90px 1fr auto; gap: 12px; align-items: center; width: 100%; padding: 11px 14px; font-size: 14px; }
+  .res + .res { border-top: 1px solid var(--line); }
+  .res:hover, .res:focus-visible { background: var(--accent-soft); }
+  .res b { color: var(--accent); font-weight: 600; }
+  .res span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .res em { font-style: normal; font-size: 11px; color: var(--muted); }
+  .res-note { padding: 12px 14px; font-size: 13px; color: var(--muted); }
+  .res-note.bad, .inv-msg.bad { color: var(--warm); }
+  .inv-picked { margin-top: 14px; border: 1px solid var(--line-strong); padding: 14px; background: var(--input); }
+  .pk-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; font-size: 15px; }
+  .pk-head b { color: var(--accent); font-weight: 600; }
+  .pk-head span:last-child { color: var(--ink-2); font-size: 13px; }
+  .inv-form { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; }
+  .inv-msg { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .inv-msg:empty { display: none; }
+  .inv-table { border-top: 1px solid var(--line); }
+  .inv-table .row-date.good { color: var(--accent); }
+  .inv-table .row-date.warm { color: var(--warm); }
+  .inv-table td.r { white-space: nowrap; }
+  .inv-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .steps { margin: 0 0 16px 18px; padding: 0; font-size: 13px; color: var(--ink-2); line-height: 1.7; }
+  .steps a { color: var(--accent); }
+  .manual { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .manual summary { cursor: pointer; }
+  .inv-setup .row input { min-width: 0; }
   .times { font-size: 12px; color: var(--muted); margin-left: 6px; }
   .complete { display: none; background: var(--accent); color: var(--accent-ink); padding: 10px 32px; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
 
@@ -270,6 +299,14 @@
   @media (max-width: 860px) {
     .grid-2, .split { grid-template-columns: 1fr; }
     .add-form { grid-template-columns: 1fr; }
+    .inv-form { grid-template-columns: 1fr; }
+    .res { grid-template-columns: 70px 1fr; }
+    .res em { display: none; }
+    .inv-setup .row { flex-wrap: wrap; }
+    .inv-table .times { display: block; margin: 2px 0 0 20px; }
+    .inv-table td:last-child { width: 56px !important; padding-left: 0; }
+    .inv-table .x { width: 22px; }
+    .inv-foot { flex-wrap: wrap; padding: 12px 14px; }
     main { padding: 28px 24px 60px; }
   }
   @media (max-width: 640px) {
@@ -389,6 +426,62 @@
         <div class="panel">
           <div class="panel-head"><h2>Miinused</h2><span class="head-sum num warm" id="outSum"></span></div>
           <div id="expenseList"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px" id="investPanel">
+        <div class="panel-head"><h2>Investeeringud</h2><span class="head-sum num" id="invSum"></span></div>
+
+        <div class="panel-body inv-setup" id="invSetup" hidden>
+          <p class="note" style="margin-bottom:10px">Aktsiate otsimiseks ja hindade uuendamiseks on vaja <b>tasuta Finnhubi API võtit</b>:</p>
+          <ol class="steps">
+            <li>Mine <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a> ja loo tasuta konto.</li>
+            <li>Kopeeri avalehelt (Dashboard) <b>API Key</b>.</li>
+            <li>Kleebi see siia. Võti salvestub ainult sinu seadmesse.</li>
+          </ol>
+          <form class="row" id="keyForm">
+            <input type="text" id="keyInput" placeholder="Kleebi API võti" autocomplete="off" spellcheck="false">
+            <button class="btn" type="submit" style="flex:0 0 auto">Salvesta</button>
+          </form>
+          <details class="manual">
+            <summary>…või lisa investeering käsitsi (ilma automaatse hinnata)</summary>
+            <form class="row" id="manualForm" style="margin-top:12px">
+              <input type="text" id="manName" placeholder="Nimi, nt Apple" required>
+              <input type="number" id="manValue" class="num" min="0.01" step="0.01" placeholder="Väärtus €" required>
+              <button class="btn ghost" type="submit" style="flex:0 0 auto">Lisa</button>
+            </form>
+          </details>
+        </div>
+
+        <div class="panel-body" id="invAdd" hidden>
+          <div class="inv-search">
+            <input type="search" id="invQuery" placeholder="Otsi aktsiat: nt Apple, Tesla, NVDA" autocomplete="off" aria-label="Otsi aktsiat">
+            <div class="inv-results" id="invResults" hidden></div>
+          </div>
+          <div class="inv-picked" id="invPicked" hidden>
+            <div class="pk-head">
+              <div><b class="num" id="pkSymbol"></b> <span id="pkName"></span></div>
+              <span class="num" id="pkPrice"></span>
+            </div>
+            <form class="inv-form" id="invForm">
+              <div class="type-toggle" id="invMode">
+                <button type="button" data-m="eur" class="on">Summa €</button>
+                <button type="button" data-m="qty">Aktsiaid (tk)</button>
+              </div>
+              <input type="number" id="invAmount" class="num" min="0.0001" step="any" placeholder="Mida omad, €" required aria-label="Kogus">
+              <button class="btn" type="submit">Lisa portfelli</button>
+            </form>
+          </div>
+          <div class="inv-msg" id="invMsg"></div>
+        </div>
+
+        <div id="invList"></div>
+        <div class="inv-foot" id="invFoot">
+          <span class="num" id="invUpdated"></span>
+          <span style="display:flex; gap:16px">
+            <button class="link-btn" type="button" id="invRefresh">Uuenda hindu</button>
+            <button class="link-btn" type="button" id="invKeyEdit">API võti</button>
+          </span>
         </div>
       </div>
 
@@ -547,7 +640,7 @@
   const COLOR_VARS = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
   const color = i => `var(${COLOR_VARS[i % COLOR_VARS.length]})`;
 
-  const defaults = { goal: 1000, goalName: "", carry: 0, incomes: [], expenses: [], pastGoals: [], longGoals: [], tasks: [] };
+  const defaults = { goal: 1000, goalName: "", carry: 0, incomes: [], expenses: [], holdings: [], pastGoals: [], longGoals: [], tasks: [] };
   let state;
   try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY)) || {}); }
   catch (e) { state = { ...defaults }; }
@@ -577,6 +670,7 @@
   const euro = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 2 }) + " €";
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const ICON_X = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>';
+  const ICON_EDIT = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>';
   const ICON_CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 
   function dateStr(offset = 0) {
@@ -613,12 +707,13 @@
 
   function totals() {
     const inSum = sumOf(state.incomes), outSum = sumOf(state.expenses);
-    const net = (state.carry || 0) + inSum - outSum;
-    return { inSum, outSum, net };
+    const inv = invTotal();
+    const net = (state.carry || 0) + inSum + inv - outSum;
+    return { inSum, outSum, inv, net };
   }
 
   function renderMoney() {
-    const { inSum, outSum, net } = totals();
+    const { inSum, outSum, inv, net } = totals();
     const goal = state.goal;
     const pct = goal > 0 ? Math.max(0, Math.min(100, net / goal * 100)) : 0;
 
@@ -641,11 +736,14 @@
     renderForecast(net, goal);
     renderMonths(goal);
     renderHistory();
+    renderInvest();
 
     document.getElementById("goalInput").value = state.goal;
     document.getElementById("goalNameInput").value = state.goalName;
-    document.getElementById("carryAmt").textContent = euro(round2(Math.max(0, net)));
-    document.getElementById("carryRow").style.display = net > 0 ? "flex" : "none";
+    // Investeeringud jäävad uue eesmärgi juurde alles, seega üle kantakse ainult ülejäänud raha.
+    const carryable = Math.max(0, net - inv);
+    document.getElementById("carryAmt").textContent = euro(round2(carryable));
+    document.getElementById("carryRow").style.display = carryable > 0 ? "flex" : "none";
   }
 
   // Riba: iga sissetuleku allikas on oma värvi lõik. Väljaminekud võetakse lõpust maha (triibuline osa).
@@ -655,6 +753,7 @@
     const parts = [];
     if (state.carry > 0) parts.push({ amount: state.carry, color: "var(--carry)", title: "Eelmisest eesmärgist" });
     state.incomes.forEach((inc, i) => parts.push({ amount: inc.amount, color: color(i), title: inc.note || "Sissetulek" }));
+    (state.holdings || []).forEach((h, i) => parts.push({ amount: holdingValue(h), color: color(state.incomes.length + i), title: "Investeering: " + (h.symbol || h.name) }));
     let used = 0;
     parts.forEach(p => {
       if (used >= goal) return;
@@ -851,8 +950,8 @@
     e.preventDefault();
     const amount = parseFloat(document.getElementById("newGoalAmount").value);
     if (!(amount > 0)) return;
-    const { net } = totals();
-    const carry = document.getElementById("carryOver").checked ? Math.max(0, round2(net)) : 0;
+    const { net, inv } = totals();
+    const carry = document.getElementById("carryOver").checked ? Math.max(0, round2(net - inv)) : 0;
     if (state.incomes.length || state.expenses.length || state.carry) {
       state.pastGoals.push({ id: uid(), name: state.goalName, goal: state.goal, collected: net, reached: net >= state.goal, end: dateStr() });
     }
@@ -862,6 +961,197 @@
     save(); e.target.reset(); renderMoney();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // ---------- Investeeringud ----------
+  // Hinnad: Finnhub (tasuta API võti). Valuutakursid eurodesse: Frankfurter (Euroopa Keskpanga kursid).
+  const KEY_STORE = "rahaEesmarkApp_finnhub";
+  const getKey = () => { try { return localStorage.getItem(KEY_STORE) || ""; } catch (e) { return ""; } };
+  const setKey = k => { try { k ? localStorage.setItem(KEY_STORE, k) : localStorage.removeItem(KEY_STORE); } catch (e) {} };
+  const holdingValue = h => h.manual ? h.value : h.shares * h.priceEur;
+  const invTotal = () => (state.holdings || []).reduce((s, h) => s + holdingValue(h), 0);
+  const invMsg = (t, bad) => { const el = document.getElementById("invMsg"); el.textContent = t || ""; el.classList.toggle("bad", !!bad); };
+
+  async function finnhub(path, params) {
+    const key = getKey();
+    if (!key) throw new Error("Lisa kõigepealt API võti.");
+    const qs = new URLSearchParams({ ...params, token: key });
+    let r;
+    try { r = await fetch(`https://finnhub.io/api/v1/${path}?${qs}`); }
+    catch (e) { throw new Error("Ühendus ebaõnnestus. Kontrolli internetiühendust."); }
+    if (r.status === 401) throw new Error("API võti ei kehti. Kontrolli võtit.");
+    if (r.status === 429) throw new Error("Liiga palju päringuid. Proovi minuti pärast uuesti.");
+    if (r.status === 403) throw new Error("Selle aktsia hind pole tasuta võtmega saadaval.");
+    if (!r.ok) throw new Error("Hinnaserver vastas veaga (" + r.status + ").");
+    return r.json();
+  }
+  const fxCache = { EUR: 1 };
+  async function fxToEur(cur) {
+    cur = (cur || "USD").toUpperCase();
+    if (fxCache[cur]) return fxCache[cur];
+    try {
+      const r = await fetch(`https://api.frankfurter.app/latest?from=${cur}&to=EUR`);
+      const j = await r.json();
+      if (!j.rates || !j.rates.EUR) throw 0;
+      return fxCache[cur] = j.rates.EUR;
+    } catch (e) { throw new Error(`Valuutakurssi ${cur} → EUR ei õnnestunud saada.`); }
+  }
+  async function priceEur(symbol, currency) {
+    const q = await finnhub("quote", { symbol });
+    if (!q || !q.c) throw new Error(`${symbol}: hinda ei leitud (tasuta võti toetab peamiselt USA aktsiaid).`);
+    const fx = await fxToEur(currency);
+    return { priceEur: q.c * fx, dayPct: q.dp };
+  }
+
+  function renderInvest() {
+    const hasKey = !!getKey();
+    const list = state.holdings || [];
+    document.getElementById("invSetup").hidden = hasKey;
+    document.getElementById("invAdd").hidden = !hasKey;
+    document.getElementById("invFoot").style.display = hasKey || list.length ? "flex" : "none";
+    document.getElementById("invRefresh").style.display = list.some(h => !h.manual) && hasKey ? "" : "none";
+    const total = invTotal(), invested = list.reduce((s, h) => s + h.invested, 0), gain = total - invested;
+    document.getElementById("invSum").innerHTML = list.length
+      ? `${euro(round2(total))} <span class="${gain >= 0 ? "good" : "warm"}" style="font-weight:500;font-size:13px">${gain >= 0 ? "+" : "−"}${euro(round2(Math.abs(gain)))}</span>` : "";
+    const last = list.filter(h => h.updated).map(h => h.updated).sort().pop();
+    document.getElementById("invUpdated").textContent = last ? "Hinnad uuendatud " + new Date(last).toLocaleString("et-EE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+    const offset = state.incomes.length;
+    document.getElementById("invList").innerHTML = !list.length ? "" : `<table class="inv-table"><tbody>${list.map((h, i) => {
+      const v = holdingValue(h), g = v - h.invested, gp = h.invested ? g / h.invested * 100 : 0;
+      const cls = g > 0.004 ? "good" : g < -0.004 ? "warm" : "";
+      return `<tr>
+        <td><span class="swatch" style="background:${color(offset + i)}"></span><b style="font-weight:600">${esc(h.symbol || h.name)}</b>
+          ${h.symbol ? `<span class="times">${esc(h.name)}</span>` : ""}
+          <div class="row-date num">${h.manual ? "Käsitsi lisatud" : (Math.round(h.shares * 10000) / 10000).toLocaleString("et-EE") + " tk · " + euro(round2(h.priceEur)) + "/tk"}</div></td>
+        <td class="r num"><b style="font-weight:600">${euro(round2(v))}</b>
+          <div class="row-date num ${cls}" style="margin-left:0">${g >= 0 ? "+" : "−"}${euro(round2(Math.abs(g)))} (${g >= 0 ? "+" : "−"}${Math.abs(gp).toFixed(1).replace(".", ",")}%)</div></td>
+        <td class="r" style="width:72px; white-space:nowrap">
+          ${h.manual ? `<button class="x" data-inv-edit="${h.id}" title="Muuda väärtust">${ICON_EDIT}</button>` : ""}
+          <button class="x" data-inv-del="${h.id}" title="Eemalda">${ICON_X}</button></td>
+      </tr>`; }).join("")}</tbody></table>`;
+  }
+
+  // Otsing
+  let picked = null, invMode = "eur", searchTimer = null, searchSeq = 0;
+  const qInput = document.getElementById("invQuery"), resBox = document.getElementById("invResults");
+  qInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const q = qInput.value.trim();
+    if (!q) { resBox.hidden = true; return; }
+    searchTimer = setTimeout(async () => {
+      const seq = ++searchSeq;
+      resBox.hidden = false; resBox.innerHTML = `<div class="res-note">Otsin…</div>`;
+      try {
+        const j = await finnhub("search", { q });
+        if (seq !== searchSeq) return;
+        const items = (j.result || []).filter(r => r.symbol && !r.symbol.includes(":")).slice(0, 8);
+        resBox.innerHTML = items.length ? items.map(r => `
+          <button type="button" class="res" data-sym="${esc(r.symbol)}" data-name="${esc(r.description)}">
+            <b class="num">${esc(r.displaySymbol || r.symbol)}</b><span>${esc(r.description)}</span><em>${esc(r.type || "")}</em>
+          </button>`).join("") : `<div class="res-note">Midagi ei leitud. Proovi ingliskeelset nime või sümbolit (nt AAPL).</div>`;
+      } catch (e) { if (seq === searchSeq) resBox.innerHTML = `<div class="res-note bad">${esc(e.message)}</div>`; }
+    }, 350);
+  });
+  resBox.addEventListener("click", async e => {
+    const b = e.target.closest(".res"); if (!b) return;
+    picked = { symbol: b.dataset.sym, name: b.dataset.name, currency: "USD" };
+    resBox.hidden = true; qInput.value = "";
+    document.getElementById("invPicked").hidden = false;
+    document.getElementById("pkSymbol").textContent = picked.symbol;
+    document.getElementById("pkName").textContent = picked.name;
+    document.getElementById("pkPrice").textContent = "Laen hinda…";
+    invMsg("");
+    try {
+      const prof = await finnhub("stock/profile2", { symbol: picked.symbol }).catch(() => ({}));
+      if (prof && prof.currency) picked.currency = prof.currency;
+      const p = await priceEur(picked.symbol, picked.currency);
+      picked.priceEur = p.priceEur;
+      const day = typeof p.dayPct === "number" ? ` · täna ${p.dayPct >= 0 ? "+" : ""}${p.dayPct.toFixed(2).replace(".", ",")}%` : "";
+      document.getElementById("pkPrice").textContent = euro(round2(p.priceEur)) + " / tk" + day;
+      document.getElementById("invAmount").focus();
+    } catch (err) {
+      picked.priceEur = null;
+      document.getElementById("pkPrice").textContent = "";
+      invMsg(err.message + " Saad selle siiski lisada käsitsi väärtusega.", true);
+    }
+  });
+  document.getElementById("invMode").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    invMode = b.dataset.m;
+    document.querySelectorAll("#invMode button").forEach(x => x.classList.toggle("on", x === b));
+    document.getElementById("invAmount").placeholder = invMode === "eur" ? "Mida omad, €" : "Mitu aktsiat omad";
+  };
+  document.getElementById("invForm").onsubmit = e => {
+    e.preventDefault();
+    if (!picked) return;
+    const n = parseFloat(document.getElementById("invAmount").value);
+    if (!(n > 0)) return;
+    let h;
+    if (picked.priceEur) {
+      const shares = invMode === "eur" ? n / picked.priceEur : n;
+      h = { id: uid(), symbol: picked.symbol, name: picked.name, currency: picked.currency, shares, priceEur: picked.priceEur,
+            invested: round2(shares * picked.priceEur), added: dateStr(), updated: new Date().toISOString() };
+    } else {
+      if (invMode !== "eur") { invMsg("Hinda pole, seega sisesta summa eurodes.", true); return; }
+      h = { id: uid(), symbol: picked.symbol, name: picked.name, manual: true, value: n, invested: n, added: dateStr() };
+    }
+    state.holdings.push(h);
+    save(); picked = null;
+    document.getElementById("invPicked").hidden = true;
+    document.getElementById("invAmount").value = "";
+    invMsg("");
+    renderMoney();
+  };
+
+  // Hindade uuendamine – kui hind tõuseb, tõuseb ka kogutud summa.
+  async function refreshPrices(silent) {
+    const list = (state.holdings || []).filter(h => !h.manual);
+    if (!list.length || !getKey()) return;
+    if (!silent) invMsg("Uuendan hindu…");
+    const errors = [];
+    for (const h of list) {
+      try { const p = await priceEur(h.symbol, h.currency); h.priceEur = p.priceEur; h.updated = new Date().toISOString(); }
+      catch (e) { errors.push(e.message); }
+    }
+    save(); renderMoney();
+    invMsg(errors.length ? errors[0] : (silent ? "" : "Hinnad on uuendatud."), !!errors.length);
+  }
+  document.getElementById("invRefresh").onclick = () => refreshPrices(false);
+
+  // Võti ja käsitsi lisamine
+  document.getElementById("keyForm").onsubmit = e => {
+    e.preventDefault();
+    const k = document.getElementById("keyInput").value.trim();
+    if (!k) return;
+    setKey(k); document.getElementById("keyInput").value = "";
+    renderMoney(); refreshPrices(true);
+    document.getElementById("invQuery").focus();
+  };
+  document.getElementById("invKeyEdit").onclick = () => {
+    const k = prompt("Finnhubi API võti (tühjaks jättes võti eemaldatakse):", getKey());
+    if (k === null) return;
+    setKey(k.trim()); renderMoney();
+  };
+  document.getElementById("manualForm").onsubmit = e => {
+    e.preventDefault();
+    const v = parseFloat(document.getElementById("manValue").value);
+    const name = document.getElementById("manName").value.trim();
+    if (!(v > 0) || !name) return;
+    state.holdings.push({ id: uid(), symbol: "", name, manual: true, value: v, invested: v, added: dateStr() });
+    save(); e.target.reset(); renderMoney();
+  };
+  document.getElementById("invList").addEventListener("click", e => {
+    const d = e.target.closest("[data-inv-del]"), ed = e.target.closest("[data-inv-edit]");
+    if (d) {
+      if (!confirm("Eemaldada see investeering?")) return;
+      state.holdings = state.holdings.filter(h => h.id !== d.dataset.invDel);
+    } else if (ed) {
+      const h = state.holdings.find(x => x.id === ed.dataset.invEdit);
+      const v = parseFloat(String(prompt(`Mis on „${h.symbol || h.name}“ praegune väärtus eurodes?`, round2(h.value)) || "").replace(",", "."));
+      if (!(v >= 0)) return;
+      h.value = v;
+    } else return;
+    save(); renderMoney();
+  });
 
   // ---------- Lühiaja eesmärgid ----------
   let when = "1";
@@ -975,6 +1265,11 @@
   };
 
   renderMoney(); renderShort(); renderLong();
+  // Uuenda aktsiahindu automaatselt, kui viimasest uuendusest on möödas üle 15 minuti.
+  (() => {
+    const last = (state.holdings || []).filter(h => !h.manual && h.updated).map(h => h.updated).sort()[0];
+    if (last && Date.now() - new Date(last) > 15 * 60 * 1000) refreshPrices(true);
+  })();
 </script>
 </body>
 </html>
