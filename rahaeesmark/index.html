@@ -216,6 +216,37 @@
   .spark { display: block; margin-left: auto; }
   .pf-table td.trend { width: 100px; vertical-align: middle; }
   @media (prefers-reduced-motion: reduce) { .live-dot, tr.flash-up td, tr.flash-down td, .pf-table tr td.pc, .pf-total { animation: none !important; } }
+
+  /* ---------- Seaded, lohistamine, teated ---------- */
+  .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .switch-row:last-of-type { border-bottom: none; }
+  .switch-row b { display: block; font-weight: 600; font-size: 14px; }
+  .switch-row .note { display: block; margin: 2px 0 0; }
+  .switch-row .note[hidden] { display: none; }
+  input.switch { appearance: none; -webkit-appearance: none; width: 42px; height: 24px; flex-shrink: 0; padding: 0; border: 1px solid var(--line-strong); background: var(--input); position: relative; cursor: pointer; transition: background .15s; }
+  input.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: var(--muted); transition: transform .15s, background .15s; }
+  input.switch:checked { background: var(--accent); border-color: var(--accent); }
+  input.switch:checked::after { transform: translateX(18px); background: var(--accent-ink); }
+  input.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
+  .seg-select.tabs2 { grid-template-columns: 1fr 1fr; }
+  .field[hidden] { display: none; }
+  .toast { position: fixed; right: 20px; bottom: 20px; z-index: 50; max-width: 380px; background: var(--panel-head); color: var(--ink); border: 1px solid var(--accent); border-left-width: 4px; padding: 12px 16px; font-size: 14px; white-space: pre-line; box-shadow: 0 8px 30px rgba(0,0,0,.45); opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .2s; }
+  .toast.show { opacity: 1; transform: none; }
+  .toast[hidden] { display: none; }
+  .grip { all: unset; box-sizing: border-box; cursor: grab; color: var(--muted); width: 22px; height: 28px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: none; margin-left: -6px; }
+  .grip svg { width: 14px; height: 14px; }
+  .grip:hover { color: var(--ink); }
+  .grip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .item.drag-src { opacity: .35; }
+  .drag-ghost { position: fixed; z-index: 60; pointer-events: none; background: var(--panel-head); border: 1px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,.5); cursor: grabbing; }
+  body:has(.drag-ghost) { cursor: grabbing; user-select: none; }
+  .acct-row { display: flex; align-items: center; gap: 14px; }
+  .avatar { width: 40px; height: 40px; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+  .acct-mail { font-weight: 600; word-break: break-all; }
+  .sync-status { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .sync-status.error { color: var(--warm); }
+  .sync-status.ok::before { content: "● "; color: var(--accent); }
+  @media (max-width: 640px) { .toast { left: 92px; right: 12px; bottom: 12px; } }
   /* ---------- Investeeringud ---------- */
   .head-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .live-status { font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; }
@@ -233,6 +264,7 @@
   .mode-pill.demo { border-color: rgba(252,211,77,.5); color: #FCD34D; }
   .key-mask { font-size: 13px; color: var(--ink-2); }
   .opt { color: var(--muted); font-weight: 400; }
+  .mode-pill[hidden] { display: none; }
   .count-h { color: var(--muted); font-weight: 500; }
   .chart-top { flex-wrap: wrap; gap: 10px; }
   .range-sel { display: inline-flex; border: 1px solid var(--line-strong); }
@@ -458,10 +490,15 @@
         <span class="lbl-long">Investeeringud</span><span class="lbl-short">Portfell</span>
         <span class="count num" id="investCount"></span>
       </button>
+      <button data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/></svg>
+        <span>Seaded</span>
+        <span class="count num" id="acctDot"></span>
+      </button>
     </nav>
     <div class="rail-foot">
       <div>Rahaline eesmärk</div>
-      <div class="big num" id="footTotal">0 €</div>
+      <div class="big num" id="footTotal">0</div>
       <div class="mini"><div id="footBar" style="width:0"></div></div>
     </div>
   </aside>
@@ -481,7 +518,7 @@
           <div class="hero-top">
             <div>
               <div class="hero-name" id="goalName"></div>
-              <div class="hero-amount num" id="goalAmount">0<small>€</small></div>
+              <div class="hero-amount num" id="goalAmount">0<small class="cs">€</small></div>
             </div>
             <div class="pct-box">
               <div class="v num" id="pct">0%</div>
@@ -494,8 +531,8 @@
         </div>
         <div class="complete" id="complete">Eesmärk on täidetud! Allpool saad seda nihutada või uue eesmärgi seada.</div>
         <div class="stats">
-          <div class="stat"><div class="l">Kogutud</div><div class="v num good" id="sTotal">0 €</div></div>
-          <div class="stat"><div class="l">Puudu</div><div class="v num warm" id="sLeft">0 €</div></div>
+          <div class="stat"><div class="l">Kogutud</div><div class="v num good" id="sTotal">0</div></div>
+          <div class="stat"><div class="l">Puudu</div><div class="v num warm" id="sLeft">0</div></div>
           <div class="stat"><div class="l">Kuu keskmine</div><div class="v num" id="sAvg">–</div></div>
         </div>
         <div class="forecast">
@@ -514,7 +551,7 @@
             <button type="button" data-t="in" class="on">+ Sissetulek</button>
             <button type="button" data-t="out">− Väljaminek</button>
           </div>
-          <input type="number" id="txAmount" class="num" min="0.01" step="0.01" placeholder="Summa €" required aria-label="Summa">
+          <input type="number" id="txAmount" class="num" min="0.01" step="0.01" placeholder="Summa" required aria-label="Summa">
           <input type="text" id="txNote" placeholder="Allikas, nt töö, müük" aria-label="Kirjeldus">
           <button class="btn" type="submit" id="txBtn">Lisa</button>
         </form>
@@ -534,7 +571,7 @@
       <div class="panel inv-mini" style="margin-top:20px">
         <div class="panel-head"><h2>Investeeringud</h2><button class="link-btn" type="button" data-goto="invest">Ava portfell →</button></div>
         <div class="inv-mini-body">
-          <div><div class="l">Portfelli väärtus</div><div class="v num" id="miniValue">0 €</div></div>
+          <div><div class="l">Portfelli väärtus</div><div class="v num" id="miniValue">0</div></div>
           <div><div class="l">Täna</div><div class="v num" id="miniDay">–</div></div>
           <div class="mini-note" id="miniNote"></div>
         </div>
@@ -557,10 +594,10 @@
           <div class="panel-body">
             <p class="note">Kogutud raha jääb alles, muutub ainult eesmärgi summa.</p>
             <div class="quick" id="quickRaise">
-              <button type="button" class="btn ghost sm" data-add="100">+100 €</button>
-              <button type="button" class="btn ghost sm" data-add="250">+250 €</button>
-              <button type="button" class="btn ghost sm" data-add="500">+500 €</button>
-              <button type="button" class="btn ghost sm" data-add="1000">+1000 €</button>
+              <button type="button" class="btn ghost sm" data-add="100">+100 <span class="cs">€</span></button>
+              <button type="button" class="btn ghost sm" data-add="250">+250 <span class="cs">€</span></button>
+              <button type="button" class="btn ghost sm" data-add="500">+500 <span class="cs">€</span></button>
+              <button type="button" class="btn ghost sm" data-add="1000">+1000 <span class="cs">€</span></button>
             </div>
             <form id="goalForm">
               <div class="row">
@@ -569,7 +606,7 @@
                   <input type="text" id="goalNameInput" placeholder="Nt uus telefon">
                 </div>
                 <div class="field">
-                  <label for="goalInput">Summa (€)</label>
+                  <label for="goalInput">Summa (<span class="cs">€</span>)</label>
                   <input type="number" id="goalInput" class="num" min="1" step="1" required>
                 </div>
               </div>
@@ -591,7 +628,7 @@
                 <input type="text" id="newGoalName" placeholder="Nt sülearvuti">
               </div>
               <div class="field">
-                <label for="newGoalAmount">Summa (€)</label>
+                <label for="newGoalAmount">Summa (<span class="cs">€</span>)</label>
                 <input type="number" id="newGoalAmount" class="num" min="1" step="1" placeholder="1500" required>
               </div>
             </div>
@@ -637,6 +674,10 @@
               <label for="shortDate">Kuupäev</label>
               <input type="date" id="shortDate">
             </div>
+            <div class="field">
+              <label for="shortTime">Meeldetuletus kell <span class="opt">(valikuline)</span></label>
+              <input type="time" id="shortTime" style="max-width:160px">
+            </div>
             <button class="btn block" type="submit">Lisa ülesanne</button>
           </form>
         </div>
@@ -667,7 +708,7 @@
             </div>
             <div class="row">
               <div class="field">
-                <label for="longAmount">Summa (€)</label>
+                <label for="longAmount">Summa (<span class="cs">€</span>)</label>
                 <input type="number" id="longAmount" class="num" min="0" step="1" placeholder="Valikuline">
               </div>
               <div class="field">
@@ -713,7 +754,7 @@
           <div class="hero-top">
             <div>
               <div class="hero-name">Portfelli koguväärtus</div>
-              <div class="hero-amount num pf-total" id="pfTotal">0<small>€</small></div>
+              <div class="hero-amount num pf-total" id="pfTotal">0<small class="cs">€</small></div>
             </div>
             <div class="pct-box">
               <div class="v num" id="pfTotPct">–</div>
@@ -784,7 +825,7 @@
               </div>
               <span class="or">või</span>
               <div class="field">
-                <label for="pfAmount">Summa (€)</label>
+                <label for="pfAmount">Summa (<span class="cs">€</span>)</label>
                 <input type="number" id="pfAmount" class="num" min="0.01" step="any" placeholder="nt 500">
               </div>
             </div>
@@ -816,7 +857,7 @@
             <p class="note" style="margin:12px 0 0">Ilma võtmeta töötab äpp <b>demorežiimis</b> simuleeritud hindadega, et saaksid kõike kohe proovida.</p>
           </div>
           <div class="panel-body" id="apiOk" hidden>
-            <p class="note" style="margin-bottom:14px">Hinnad uuenevad iga minuti tagant, kui leht on lahti. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e. Kõik summad näidatakse eurodes.</p>
+            <p class="note" style="margin-bottom:14px">Hinnad uuenevad iga minuti tagant, kui leht on lahti. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e. Kõik summad näidatakse valitud valuutas.</p>
             <p class="note num" id="fxLine" style="margin:-6px 0 14px"></p>
             <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap">
               <span class="num key-mask" id="keyMask"></span>
@@ -828,16 +869,82 @@
             <summary>Lisa vara käsitsi (nt fond, mille hinda ei saa automaatselt)</summary>
             <form class="row" id="manualForm" style="margin-top:12px">
               <input type="text" id="manName" placeholder="Nimi, nt pensionifond" required aria-label="Nimi">
-              <input type="number" id="manValue" class="num" min="0.01" step="0.01" placeholder="Väärtus €" required aria-label="Väärtus eurodes">
+              <input type="number" id="manValue" class="num" min="0.01" step="0.01" placeholder="Väärtus" required aria-label="Väärtus">
               <button class="btn ghost" type="submit" style="flex:0 0 auto">Lisa</button>
             </form>
           </details>
         </div>
       </div>
     </section>
+
+    <!-- ================= SEADED ================= -->
+    <section class="page" id="page-settings">
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Eelistused</div>
+          <h1>Seaded</h1>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:0">
+        <div class="panel">
+          <div class="panel-head"><h2>Keel ja valuuta</h2></div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Keel</label>
+              <div class="seg-select tabs2" id="langSel" data-no-tr>
+                <button type="button" data-lang="et">Eesti</button>
+                <button type="button" data-lang="en">English</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="curSel">Valuuta</label>
+              <select id="curSel"></select>
+            </div>
+            <p class="note" style="margin:0">Valuuta muutmine ei teisenda juba sisestatud summasid. Aktsiahinnad arvutatakse valitud valuutasse.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>Heli ja vibratsioon</h2></div>
+          <div class="panel-body">
+            <label class="switch-row"><span><b>Heli</b><span class="note">Mündikõlin, kui lisad raha, ja plõks, kui märgid ülesande tehtuks.</span></span>
+              <input type="checkbox" class="switch" id="setSound"></label>
+            <label class="switch-row"><span><b>Vibratsioon</b><span class="note" id="vibNote">See seade ei toeta vibratsiooni (nt iPhone).</span></span>
+              <input type="checkbox" class="switch" id="setVibrate"></label>
+            <div style="display:flex; gap:10px; margin-top:6px; flex-wrap:wrap">
+              <button class="btn ghost sm" type="button" id="testCoin">Proovi: raha</button>
+              <button class="btn ghost sm" type="button" id="testDone">Proovi: tehtud</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>Meeldetuletused</h2></div>
+          <div class="panel-body">
+            <label class="switch-row"><span><b>Brauseri teavitused</b><span class="note">Näiteks „Täna on 2 ülesannet tegemata“ ja teavitus ülesande kellaajal.</span></span>
+              <input type="checkbox" class="switch" id="setRemind"></label>
+            <div class="field" id="remindTimeRow">
+              <label for="remindTime">Päeva kokkuvõte kell</label>
+              <input type="time" id="remindTime" value="09:00" style="max-width:160px">
+            </div>
+            <p class="note" id="notifStatus"></p>
+            <p class="note">Teavitused töötavad siis, kui äpp on brauseris lahti (võib olla ka taustal oleval vahelehel).</p>
+            <button class="btn ghost sm" type="button" id="testNotif">Saada proovi-teavitus</button>
+          </div>
+        </div>
+
+        <div class="panel" id="accountPanel">
+          <div class="panel-head"><h2>Konto</h2><span class="mode-pill" id="acctPill"></span></div>
+          <div class="panel-body" id="accountBody"></div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="config.js"></script>
 <script>
   // ---------- Andmed ----------
   const KEY = "rahaEesmarkApp_v1";
@@ -869,10 +976,248 @@
   state.incomes = normalizeIncomes(state.incomes);
   state.expenses = normalizeIncomes(state.expenses);
 
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+  const localSave = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+  const save = () => { localSave(); if (window.__schedulePush) window.__schedulePush(); };
+  // ---------- Seaded, keel ja valuuta ----------
+  // Keel: olemasolevatel kasutajatel (andmed juba olemas) eesti keel nagu varem; uutel brauseri keele järgi.
+  const hadDataBefore = (() => { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } })();
+  state.settings = Object.assign({
+    lang: hadDataBefore || /^et\b/i.test(navigator.language || "et") ? "et" : "en",
+    currency: "EUR", sound: true, vibrate: true, remind: false, remindTime: "09:00"
+  }, state.settings || {});
+  const S = state.settings;
+  let LOC = S.lang === "en" ? "en-GB" : "et-EE";
+  const EN = {};                                          // eesti → inglise; täidetakse allpool (I18N_EN)
+  // t("Tekst {x}", { x }) – tõlgib (kui keel on inglise) ja asendab muutujad.
+  const t = (s, v) => {
+    let out = S.lang === "en" && EN[s] != null ? EN[s] : s;
+    if (typeof out === "function") return out(v || {});
+    return v ? out.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? "") : out;
+  };
+  const tn = (n, one, many, v) => t(n === 1 ? one : many, { n, ...(v || {}) });
+  const curFmt = (opts) => new Intl.NumberFormat(LOC, { style: "currency", currency: S.currency, ...opts });
+  const curSym = () => { try { return curFmt().formatToParts(0).find(p => p.type === "currency").value; } catch (e) { return S.currency; } };
+
+  // Staatilise HTML-i ja ka renderdatud teksti tõlkimine: iga tekstisõlm ja atribuut, mis on sõnastikus täpselt olemas.
+  // Algne eesti tekst jäetakse sõlme külge meelde, et keelt saaks tagasi vahetada.
+  const TR_ATTRS = ["placeholder", "title", "aria-label", "data-l"];
+  function translateDOM(root) {
+    const en = S.lang === "en";
+    const w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => n.parentElement && !n.parentElement.closest("script,style,[data-no-tr]") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+    });
+    for (let n; (n = w.nextNode());) {
+      const raw = n.nodeValue, key = n.__et ?? raw.trim().replace(/\s+/g, " ");
+      if (!key) continue;
+      if (en && typeof EN[key] === "string") { n.__et = key; const lead = raw.match(/^\s*/)[0], trail = raw.match(/\s*$/)[0]; n.nodeValue = lead + EN[key] + trail; }
+      else if (!en && n.__et) { const lead = raw.match(/^\s*/)[0], trail = raw.match(/\s*$/)[0]; n.nodeValue = lead + n.__et + trail; delete n.__et; }
+    }
+    (root || document.body).querySelectorAll("[placeholder],[title],[aria-label],[data-l]").forEach(el => {
+      el.__etA = el.__etA || {};
+      TR_ATTRS.forEach(a => {
+        if (!el.hasAttribute(a)) return;
+        const key = el.__etA[a] ?? el.getAttribute(a);
+        if (en && typeof EN[key] === "string") { el.__etA[a] = key; el.setAttribute(a, EN[key]); }
+        else if (!en && el.__etA[a]) { el.setAttribute(a, el.__etA[a]); delete el.__etA[a]; }
+      });
+    });
+  }
+  function applyCurrencySymbols() { document.querySelectorAll(".cs").forEach(el => el.textContent = curSym()); }
+
+  // ---------- Inglise keel (I18N_EN) ----------
+  // Võti = eestikeelne tekst täpselt nii, nagu see lehel on; {x} on muutuja.
+  Object.assign(EN, {
+    // Menüü ja üldine
+    "Eesmärgid": "Goals", "Vaated": "Views", "Rahaline eesmärk": "Money goal", "Lühiaja eesmärgid": "Short-term goals",
+    "Tuleviku eesmärgid": "Future goals", "Investeeringud": "Investments", "Portfell": "Portfolio", "Seaded": "Settings",
+    "Lisa": "Add", "Salvesta": "Save", "Tühista": "Cancel", "Muuda": "Edit", "Eemalda": "Remove", "Kustuta": "Delete",
+    "Kokku": "Total", "Täna": "Today", "Homme": "Tomorrow", "Ülehomme": "Day after tomorrow", "Hilinenud": "Overdue",
+    "Kuupäev": "Date", "Summa": "Amount", "Nimetus": "Name", "Nimi": "Name", "Valikuline": "Optional", "valikuline": "optional",
+    "(valikuline)": "(optional)", "või": "or", "Demo": "Demo", "Kirjeldus": "Description",
+
+    // Rahaline eesmärk
+    "Ülevaade": "Overview", "Täidetud": "Completed", "Pooleli": "In progress",
+    "Eesmärk on täidetud! Allpool saad seda nihutada või uue eesmärgi seada.": "Goal reached! Below you can raise it or set a new goal.",
+    "Kogutud": "Saved", "Puudu": "Remaining", "Kuu keskmine": "Monthly average",
+    "Lisa esimene sissetulek, et näha, millal eesmärgini jõuad.": "Add your first income to see when you'll reach your goal.",
+    "Eesmärk on käes!": "Goal reached!", "Nihuta eesmärki või sea uus allpool.": "Raise it or set a new goal below.",
+    "Praeguses tempos eesmärgini ei jõua: väljaminekud on sissetulekutest suuremad.": "At this pace you won't reach your goal: expenses are higher than income.",
+    "Kui kogud samas tempos edasi, jõuad eesmärgini umbes {d}.": "At your current pace you'll reach your goal around {d}.",
+    "Keskmiselt {x} päevas (pärast väljaminekuid)": "On average {x} per day (after expenses)",
+    "veel umbes {n} päev": "about {n} day to go", "veel umbes {n} päeva": "about {n} days to go",
+    "ennustus täpsustub, kui lisad tehinguid eri päevadel": "the forecast gets more accurate as you add transactions on different days",
+    "Lisa tehing": "Add transaction", "+ Sissetulek": "+ Income", "− Väljaminek": "− Expense",
+    "Allikas, nt töö, müük": "Source, e.g. job, sale", "Mille peale, nt söök, kino": "Spent on, e.g. food, cinema",
+    "Plussid": "Income", "Miinused": "Expenses", "Sissetulek": "Income", "Väljaminek": "Expense", "Väljaminekud": "Expenses",
+    "Sissetulekuid pole veel lisatud.": "No income added yet.", "Väljaminekuid pole. Hea töö!": "No expenses. Nice work!",
+    "Eelmisest eesmärgist": "From previous goal", "Investeering": "Investment",
+    "Väljaminekud võetud maha: {x}": "Expenses deducted: {x}",
+    "Ava portfell →": "Open portfolio →", "Portfelli väärtus": "Portfolio value", "Portfell on tühi.": "Portfolio is empty.",
+    "Demorežiim – ei lähe eesmärgi arvestusse.": "Demo mode – not counted toward the goal.", "Eesmärgi arvestuses: {x}": "Counted toward goal: {x}",
+    "Kuu ülevaade": "Monthly overview", "Sissetulek kuus": "Income per month", "Väljaminek kuus": "Expenses per month",
+    "Eesmärgist kuus": "Of goal per month", "Kuu ülevaade tekib pärast esimest tehingut.": "The monthly overview appears after your first transaction.",
+    "pärast väljaminekuid {p}": "after expenses {p}", "{n} kuu põhjal": v => `based on ${v.n} month${v.n === 1 ? "" : "s"}`,
+    "Kuu": "Month", "Eesmärgist": "Of goal", "jooksev": "current",
+    "Mis edasi?": "What's next?", "Nihuta eesmärki": "Adjust goal", "Kogutud raha jääb alles, muutub ainult eesmärgi summa.": "Your savings stay; only the goal amount changes.",
+    "Summa (": "Amount (", "Salvesta muudatus": "Save changes", "Kustuta kõik tehingud": "Delete all transactions",
+    "Kustutada kõik sissetulekud ja väljaminekud ning alustada otsast?": "Delete all income and expenses and start over?",
+    "Sea uus eesmärk": "Set a new goal", "Praegune eesmärk läheb ajalukku ja uus algab nullist.": "The current goal moves to history and the new one starts from zero.",
+    "Kanna kogutud": "Carry over", "uude eesmärki": "to the new goal", "Alusta uut eesmärki": "Start new goal",
+    "Varasemad eesmärgid": "Previous goals", "Eesmärk": "Goal", "Kogutud {x} · lõpetatud {d}": "Saved {x} · finished {d}",
+    "Nt uus telefon": "E.g. new phone", "Nt sülearvuti": "E.g. laptop",
+
+    // Lühiaja eesmärgid
+    "Lähipäevad": "Next few days", "Uus ülesanne": "New task", "Mida pead tegema?": "What do you need to do?",
+    "Nt helistada tööandjale": "E.g. call my employer", "Millal": "When", "Meeldetuletus kell": "Reminder at",
+    "Lisa ülesanne": "Add task", "Ülesanded": "Tasks", "Eemalda tehtud": "Remove completed",
+    "Ülesandeid pole. Lisa, mida pead homme tegema.": "No tasks. Add something you need to do tomorrow.",
+    "Märgi tehtuks": "Mark as done", "Lohista järjekorra muutmiseks": "Drag to reorder",
+    "Lülita seadetes meeldetuletused sisse, et saada teavitus.": "Turn on reminders in Settings to get a notification.",
+
+    // Tuleviku eesmärgid
+    "Pikk vaade": "Long view", "Uus eesmärk": "New goal", "Nt oma auto": "E.g. my own car", "Tähtaeg": "Deadline",
+    "Lisa eesmärk": "Add goal", "Minu eesmärgid": "My goals", "Lisa oma esimene tuleviku eesmärk.": "Add your first future goal.",
+    "Tähtaeg {d}": "Deadline {d}", "Tähtajata": "No deadline", "Lisa summa": "Add amount", "Märgi täidetuks": "Mark as completed",
+
+    // Investeeringud
+    "Uuenda hindu": "Refresh prices", "Demorežiim.": "Demo mode.",
+    "Hinnad on simuleeritud ega lähe eesmärgi arvestusse. Päris hindade jaoks lisa tasuta API võti": "Prices are simulated and don't count toward your goal. For real prices add a free API key",
+    "allpool": "below", "Portfelli koguväärtus": "Total portfolio value", "Investeeritud kokku": "Total invested",
+    "Muutus kokku": "Total change", "praegu {x}": "now {x}", "{a}/{b} positsiooni": "{a}/{b} positions",
+    "{n} pos. lisamise hinnast": "{n} pos. from price when added",
+    "Lisa esimene aktsia allpool. Portfelli väärtus läheb sinu rahalise eesmärgi arvestusse.": "Add your first stock below. The portfolio value counts toward your money goal.",
+    "Demohinnad ei lähe rahalise eesmärgi arvestusse.": "Demo prices don't count toward your money goal.",
+    "Lisa API võti, et kasutada päris hindu.": "Add an API key to use real prices.",
+    "Eesmärgi arvestusse läheb {x} – see on {p} eesmärgist „{g}“.": "{x} counts toward your goal – that's {p} of “{g}”.",
+    "Eesmärgi arvestusse läheb {x}.": "{x} counts toward your goal.",
+    "Portfelli areng": "Portfolio performance", "Kõik": "All", "1P": "1D", "5P": "5D", "1K": "1M", "6K": "6M", "1A": "1Y",
+    "viimane päev": "last day", "viimased 5 päeva": "last 5 days", "viimane kuu": "last month", "viimased 6 kuud": "last 6 months",
+    "viimane aasta": "last year", "kogu aeg": "all time", "Väärtus": "Value", "Investeeritud": "Invested", "Kasum/kahjum": "Profit/loss",
+    "Muutus": "Change", "Aeg": "Time", "Ajavahemik": "Time range",
+    "Portfelli väärtuse ja investeeritud summa graafik": "Chart of portfolio value and amount invested",
+    "Lisa aktsia, et näha portfelli arengut.": "Add a stock to see your portfolio performance.",
+    "Graafik täitub aja jooksul: äpp salvestab portfelli väärtuse iga 5 minuti järel, kui leht on lahti.": "The chart fills in over time: the app records your portfolio value every 5 minutes while the page is open.",
+    "Ajalugu alates {d}.": "History since {d}.", "perioodil lisatud {x} (pole arvestatud kasumina)": "{x} added in this period (not counted as profit)",
+    "demoajalugu on simuleeritud": "demo history is simulated", "Näita tabelina": "Show as table",
+    "Positsioonid": "Positions", "Portfell on tühi. Lisa aktsia sümboli ja kogusega, nt": "Your portfolio is empty. Add a stock by symbol and quantity, e.g.",
+    "tk.": "shares.", "Sümbol": "Symbol", "Aktsiaid": "Shares", "Hind": "Price", "24h": "24h", "Trend": "Trend", "Kasum": "Profit",
+    "hind puudub": "no price", "Käsitsi lisatud": "Added manually", "{p}% portfellist": "{p}% of portfolio",
+    "Keskm. ostuhind ({c})": "Avg. purchase price ({c})",
+    "Uuendatud {aeg}": "Updated {aeg}", "Demo · hinnad liiguvad reaalajas": "Demo · prices move in real time",
+    "Otsevoog · hinnad liiguvad reaalajas": "Live stream · prices move in real time", "Börs suletud · otsevoog ootab tehinguid": "Market closed · stream waiting for trades",
+    "Otsevoog ühendatud · ootan tehinguid": "Stream connected · waiting for trades", "Börs suletud": "Market closed", "Uueneb iga minut": "Updates every minute",
+    "Lisa aktsia": "Add stock", "Sümbol (ticker)": "Symbol (ticker)", "nt AAPL, TSLA, NVDA, VOO": "e.g. AAPL, TSLA, NVDA, VOO",
+    "Aktsiaid (tk)": "Shares", "nt 2,5": "e.g. 2.5", "nt 500": "e.g. 500", "nt 180": "e.g. 180",
+    "Täida üks: kas mitu aktsiat sul on või kui palju raha sul selles aktsias on. Teise arvutab äpp ise.": "Fill in one: how many shares you have or how much money you have in this stock. The app calculates the other.",
+    "Keskm. ostuhind": "Avg. purchase price", "(valikuline, aktsia valuutas, nt $)": "(optional, in the stock's currency, e.g. $)",
+    "Ostuhinna järgi arvutatakse muutus. Kui jätad selle tühjaks, arvestatakse tänast hinda ja näed muutust alates lisamisest.": "The change is calculated from the purchase price. If you leave it empty, today's price is used and you'll see the change since adding.",
+    "Lisa portfelli": "Add to portfolio", "Laen hinda…": "Loading price…", "(demohind)": "(demo price)",
+    "{s} lisatud: {a} tk ≈ {v}": v => `${v.s} added: ${v.a} share${v.a === "1" ? "" : "s"} ≈ ${v.v}`,
+    "{s}: lisatud {a} tk olemasolevale positsioonile (kokku {b} tk).": v => `${v.s}: added ${v.a} share${v.a === "1" ? "" : "s"} to the existing position (total ${v.b}).`,
+    "Sisesta korrektne sümbol, nt AAPL.": "Enter a valid symbol, e.g. AAPL.", "Sisesta kas aktsiate arv või summa eurodes.": "Enter either the number of shares or an amount.",
+    "Aktsiate arv peab olema suurem kui 0.": "Number of shares must be greater than 0.", "Summa peab olema suurem kui 0.": "Amount must be greater than 0.",
+    "Ostuhind ei saa olla negatiivne.": "Purchase price can't be negative.", "Eemaldada {s} portfellist?": "Remove {s} from your portfolio?",
+    "Hinnaandmed": "Price data", "Päris hinnad": "Real prices", "Päris hinnad tulevad": "Real prices come from", "Finnhubist": "Finnhub",
+    ". Selleks on vaja tasuta API võtit:": ". You need a free API key for this:", "Loo tasuta konto:": "Create a free account:",
+    "Kopeeri Dashboardist": "Copy from the Dashboard", "Kleebi see siia. Võti salvestub ainult sinu seadmesse.": "Paste it here. The key is stored only on your device.",
+    "Kleebi API võti": "Paste API key", "API võti": "API key", "Ilma võtmeta töötab äpp": "Without a key the app runs in",
+    "demorežiimis": "demo mode", "simuleeritud hindadega, et saaksid kõike kohe proovida.": "with simulated prices so you can try everything right away.",
+    "Hinnad uuenevad iga minuti tagant, kui leht on lahti. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e. Kõik summad näidatakse valitud valuutas.": "Prices update every minute while the page is open. The free key mainly supports US stocks and ETFs. All amounts are shown in your selected currency.",
+    "Muuda võtit": "Change key", "Eemalda võti (demorežiim)": "Remove key (demo mode)", "Uus Finnhubi API võti:": "New Finnhub API key:",
+    "Eemaldada API võti? Äpp läheb demorežiimi ja investeeringud ei lähe enam eesmärgi arvestusse.": "Remove the API key? The app switches to demo mode and investments no longer count toward your goal.",
+    "Lisa vara käsitsi (nt fond, mille hinda ei saa automaatselt)": "Add an asset manually (e.g. a fund without an automatic price)",
+    "Nimi, nt pensionifond": "Name, e.g. pension fund", "Kurss:": "Rate:",
+    "Valuutakurssi ei saanud uuendada.": "Couldn't update the exchange rate.", "Valuutakurssi ei saanud laadida.": "Couldn't load the exchange rate.",
+    "Kasutan viimati salvestatud kurssi {k} ({aeg}).": "Using the last saved rate {k} ({aeg}).",
+    "Kasutan ligikaudset kurssi {k} – summad on umbkaudsed.": "Using an approximate rate {k} – amounts are approximate.",
+    "Valuuta {c} kurssi ei õnnestunud saada.": "Couldn't get the exchange rate for {c}.",
+    "Ühendus hinnaserveriga ebaõnnestus. Kontrolli internetiühendust.": "Couldn't connect to the price server. Check your internet connection.",
+    "API võti ei kehti. Kontrolli võtit.": "The API key is invalid. Please check it.", "Liiga palju päringuid. Proovi minuti pärast uuesti.": "Too many requests. Try again in a minute.",
+    "Selle aktsia hind pole tasuta võtmega saadaval.": "This stock's price isn't available with a free key.", "Hinnaserver vastas veaga ({s}).": "The price server returned an error ({s}).",
+    "{s}: hinda ei leitud. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e.": "{s}: price not found. The free key mainly supports US stocks and ETFs.",
+
+    // Seaded
+    "Eelistused": "Preferences", "Keel ja valuuta": "Language and currency", "Keel": "Language", "Valuuta": "Currency",
+    "Valuuta muutmine ei teisenda juba sisestatud summasid. Aktsiahinnad arvutatakse valitud valuutasse.": "Changing the currency doesn't convert amounts you've already entered. Stock prices are converted to the selected currency.",
+    "Muuda valuutaks {c}?\n\nJuba sisestatud summasid ei teisendata – need näidatakse lihtsalt uue valuutaga. Investeeringute hinnad arvutatakse uue valuuta järgi ja portfelli ajaloo graafik alustab uuesti.": "Change currency to {c}?\n\nAmounts you've already entered aren't converted – they're just shown in the new currency. Investment prices are recalculated in the new currency and the portfolio history chart starts over.",
+    "Heli ja vibratsioon": "Sound and vibration", "Heli": "Sound", "Mündikõlin, kui lisad raha, ja plõks, kui märgid ülesande tehtuks.": "A coin clink when you add money and a pop when you complete a task.",
+    "Vibratsioon": "Vibration", "See seade ei toeta vibratsiooni (nt iPhone).": "This device doesn't support vibration (e.g. iPhone).",
+    "Proovi: raha": "Try: money", "Proovi: tehtud": "Try: done", "Meeldetuletused": "Reminders", "Brauseri teavitused": "Browser notifications",
+    "Näiteks „Täna on 2 ülesannet tegemata“ ja teavitus ülesande kellaajal.": "For example “2 tasks left today” and a notification at a task's time.",
+    "Päeva kokkuvõte kell": "Daily summary at",
+    "Teavitused töötavad siis, kui äpp on brauseris lahti (võib olla ka taustal oleval vahelehel).": "Notifications work while the app is open in your browser (a background tab is fine).",
+    "Saada proovi-teavitus": "Send a test notification", "Meeldetuletus": "Reminder", "Nii näeb meeldetuletus välja.": "This is what a reminder looks like.",
+    "Täna on {n} ülesanne tegemata": "{n} task left today", "Täna on {n} ülesannet tegemata": "{n} tasks left today",
+    "{n} ülesanne on hiljaks jäänud": "{n} task is overdue", "{n} ülesannet on hiljaks jäänud": "{n} tasks are overdue", "+ {n} hilinenud": "+ {n} overdue",
+    "See brauser ei toeta teavitusi – meeldetuletused näidatakse äpi sees.": "This browser doesn't support notifications – reminders are shown inside the app.",
+    "Brauseri teavitused on lubatud.": "Browser notifications are allowed.", "Brauser küsib luba teavituste saatmiseks.": "Your browser will ask for permission to send notifications.",
+    "Teavitused on brauseris keelatud. Luba need brauseri aadressiriba lukuikoonilt – seni näidatakse meeldetuletusi äpi sees.": "Notifications are blocked in your browser. Allow them via the lock icon in the address bar – until then reminders are shown inside the app.",
+
+    // Konto
+    "Konto": "Account", "Sisse logitud": "Signed in", "Pole sisse logitud": "Not signed in",
+    "Konto abil on sinu andmed turvaliselt pilves ja saad neid kasutada mitmes seadmes. Sõbrad saavad luua oma konto – igaüks näeb ainult enda andmeid.": "With an account your data is stored securely in the cloud and you can use it on several devices. Friends can create their own accounts – everyone only sees their own data.",
+    "Kontode jaoks on vaja tasuta Supabase'i andmebaasi. Lehe omanik seadistab selle ühe korra (umbes 5 minutit) – juhend on failis KONTOD.md.": "Accounts need a free Supabase database. The site owner sets it up once (about 5 minutes) – see KONTOD.md for instructions.",
+    "Seni hoitakse andmeid ainult selles seadmes.": "Until then, data is kept only on this device.",
+    "Mul on Supabase'i andmed – sisesta need siia": "I have Supabase details – enter them here",
+    "Need salvestuvad ainult selles seadmes. Et kõik kasutajad saaksid kontot luua, pane need faili config.js.": "These are saved only on this device. To let all users create accounts, put them in config.js.",
+    "Logi sisse": "Sign in", "Loo konto": "Create account", "E-post": "Email", "Parool": "Password", "Vähemalt 6 tähemärki.": "At least 6 characters.",
+    "Unustasid parooli?": "Forgot your password?", "Kui lood konto, laaditakse selle seadme andmed sinu kontole.": "When you create an account, this device's data is uploaded to it.",
+    "Sünkrooni kohe": "Sync now", "Logi välja": "Sign out",
+    "Muudatused salvestatakse kontole automaatselt. Finnhubi API võti jääb ainult sellesse seadmesse.": "Changes are saved to your account automatically. The Finnhub API key stays on this device only.",
+    "Sünkroonin…": "Syncing…", "Sünkroonimine ebaõnnestus: {e}": "Sync failed: {e}", "Sünkroonitud {aeg}": "Synced {aeg}",
+    "Kontod pole seadistatud.": "Accounts aren't set up.", "Serveriga ei saanud ühendust.": "Couldn't connect to the server.",
+    "Vale e-post või parool.": "Wrong email or password.", "Selle e-postiga konto on juba olemas. Logi sisse.": "An account with this email already exists. Please sign in.",
+    "Kinnita kõigepealt oma e-post (vaata postkasti).": "Please confirm your email first (check your inbox).", "Parool peab olema vähemalt 6 tähemärki.": "Password must be at least 6 characters.",
+    "Sinu kontol on juba andmed.\n\nOK – kasuta konto andmeid (selle seadme andmed asendatakse).\nTühista – laadi selle seadme andmed kontole.": "Your account already has data.\n\nOK – use the account's data (this device's data will be replaced).\nCancel – upload this device's data to the account.",
+    "Logisid välja. Andmed jäid sellesse seadmesse alles.": "You signed out. Your data stays on this device.",
+    "Sisesta kõigepealt oma e-post.": "Enter your email first.", "Saatsime parooli taastamise lingi aadressile {e}.": "We sent a password reset link to {e}.",
+    "Konto loodud!": "Account created!", "Konto loodud! Kinnita oma e-post (vaata postkasti) ja logi siis sisse.": "Account created! Confirm your email (check your inbox) and then sign in.",
+    "Tere tulemast tagasi!": "Welcome back!"
+  });
+
+  // ---------- Heli ja vibratsioon ----------
+  // Helid sünteesitakse Web Audio API-ga (helifaile pole vaja).
+  let actx = null;
+  function audio() {
+    if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; actx = new AC(); }
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function beep(freq, at, dur, { type = "triangle", vol = 0.18, to = null } = {}) {
+    const a = audio(); if (!a) return;
+    const o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime + at;
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if (to) o.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  const buzz = p => { if (S.vibrate && navigator.vibrate) try { navigator.vibrate(p); } catch (e) {} };
+  const sfx = {
+    coin() {                                             // mündikõlin: kaks kiiret kõrget nooti + kerge kõla
+      if (S.sound) { beep(988, 0, 0.09, { type: "square", vol: 0.07 }); beep(1319, 0.08, 0.45, { type: "square", vol: 0.07 }); beep(2637, 0.08, 0.3, { type: "sine", vol: 0.03 }); }
+      buzz([18, 40, 28]);
+    },
+    done() {                                             // ülesanne tehtud: pehme tõusev "plõks"
+      if (S.sound) { beep(587, 0, 0.12, { type: "sine", vol: 0.16, to: 880 }); beep(1175, 0.09, 0.22, { type: "sine", vol: 0.08 }); }
+      buzz(22);
+    },
+    out() { if (S.sound) beep(330, 0, 0.18, { type: "sine", vol: 0.12, to: 220 }); buzz(12); }   // väljaminek: madal toon
+  };
+
+  // ---------- Teade ekraani nurgas ----------
+  let toastTimer = null;
+  function toast(msg, ms = 4000) {
+    const el = document.getElementById("toast");
+    el.textContent = msg; el.hidden = false; el.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.hidden = true, 250); }, ms);
+  }
+
 
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-  const euro = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 2 }) + " €";
+  // Summad valitud valuutas (vaikimisi EUR). Nimi "euro" on jäänud ajaloolistel põhjustel.
+  const euro = n => { try { return curFmt({ minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(n) || 0); } catch (e) { return (Number(n) || 0).toLocaleString(LOC) + " " + S.currency; } };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const ICON_X = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>';
   const ICON_EDIT = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>';
@@ -882,15 +1227,15 @@
     const d = new Date(); d.setDate(d.getDate() + offset);
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
-  const fmtDate = s => { if (!s) return ""; const [y, m, d] = s.split("-"); return `${d}.${m}.${y}`; };
+  const fmtDate = s => { if (!s) return ""; const [y, m, d] = s.split("-"); return S.lang === "en" ? `${d}/${m}/${y}` : `${d}.${m}.${y}`; };
   const WEEKDAYS = ["pühapäev", "esmaspäev", "teisipäev", "kolmapäev", "neljapäev", "reede", "laupäev"];
   function dayLabel(s) {
-    if (s < dateStr(0)) return "Hilinenud";
-    if (s === dateStr(0)) return "Täna";
-    if (s === dateStr(1)) return "Homme";
-    if (s === dateStr(2)) return "Ülehomme";
+    if (s < dateStr(0)) return t("Hilinenud");
+    if (s === dateStr(0)) return t("Täna");
+    if (s === dateStr(1)) return t("Homme");
+    if (s === dateStr(2)) return t("Ülehomme");
     const [y, m, d] = s.split("-").map(Number);
-    return WEEKDAYS[new Date(y, m - 1, d).getDay()];
+    return S.lang === "et" ? WEEKDAYS[new Date(y, m - 1, d).getDay()] : new Date(y, m - 1, d).toLocaleDateString(LOC, { weekday: "long" });
   }
 
   // ---------- Navigeerimine ----------
@@ -924,8 +1269,8 @@
     const goal = state.goal;
     const pct = goal > 0 ? Math.max(0, Math.min(100, net / goal * 100)) : 0;
 
-    document.getElementById("goalName").textContent = state.goalName;
-    document.getElementById("goalAmount").innerHTML = Number(goal).toLocaleString("et-EE") + "<small>€</small>";
+    document.getElementById("goalName").textContent = state.goalName; document.getElementById("goalName").setAttribute("data-no-tr", "");
+    document.getElementById("goalAmount").innerHTML = Number(goal).toLocaleString(LOC) + `<small class="cs">${esc(curSym())}</small>`;
     document.getElementById("pct").textContent = Math.floor(pct) + "%";
     document.getElementById("sTotal").textContent = euro(round2(net));
     document.getElementById("sLeft").textContent = euro(round2(Math.max(0, goal - net)));
@@ -934,8 +1279,8 @@
     document.getElementById("complete").style.display = goal > 0 && net >= goal ? "block" : "none";
     document.getElementById("footTotal").textContent = euro(round2(net)) + " / " + euro(goal);
     document.getElementById("footBar").style.width = pct + "%";
-    document.getElementById("inSum").textContent = inSum ? "+" + euro(round2(inSum)) : "0 €";
-    document.getElementById("outSum").textContent = outSum ? "−" + euro(round2(outSum)) : "0 €";
+    document.getElementById("inSum").textContent = inSum ? "+" + euro(round2(inSum)) : euro(0);
+    document.getElementById("outSum").textContent = outSum ? "−" + euro(round2(outSum)) : euro(0);
 
     renderBar(goal, inSum, net);
     renderTxList(state.incomes, "incomeList", "in");
@@ -951,6 +1296,7 @@
     const carryable = Math.max(0, net - inv);
     document.getElementById("carryAmt").textContent = euro(round2(carryable));
     document.getElementById("carryRow").style.display = carryable > 0 ? "flex" : "none";
+    if (S.lang === "en") { translateDOM(document.getElementById("page-money")); translateDOM(document.getElementById("page-invest")); }
   }
 
   // Riba: iga sissetuleku allikas on oma värvi lõik. Väljaminekud võetakse lõpust maha (triibuline osa).
@@ -960,7 +1306,7 @@
     const parts = [];
     if (state.carry > 0) parts.push({ amount: state.carry, color: "var(--carry)", title: "Eelmisest eesmärgist" });
     state.incomes.forEach((inc, i) => parts.push({ amount: inc.amount, color: color(i), title: inc.note || "Sissetulek" }));
-    (state.holdings || []).forEach((h, i) => { const v = goalValue(h); if (v > 0) parts.push({ amount: v, color: color(state.incomes.length + i), title: "Investeering: " + (h.symbol || h.name) }); });
+    (state.holdings || []).forEach((h, i) => { const v = goalValue(h); if (v > 0) parts.push({ amount: v, color: color(state.incomes.length + i), title: t("Investeering") + ": " + (h.symbol || h.name) }); });
     let used = 0;
     parts.forEach(p => {
       if (used >= goal) return;
@@ -969,7 +1315,7 @@
       const seg = document.createElement("div");
       seg.className = "seg";
       seg.style.background = p.color;
-      seg.title = p.title + " · " + euro(round2(p.amount));
+      seg.title = t(p.title) + " · " + euro(round2(p.amount));
       bar.appendChild(seg);
       requestAnimationFrame(() => requestAnimationFrame(() => seg.style.width = (part / goal * 100) + "%"));
     });
@@ -981,9 +1327,9 @@
       out.className = "seg-out";
       out.style.left = (from / goal * 100) + "%";
       out.style.width = ((gross - from) / goal * 100) + "%";
-      out.title = "Väljaminekud · −" + euro(round2(sumOf(state.expenses)));
+      out.title = t("Väljaminekud") + " · −" + euro(round2(sumOf(state.expenses)));
       bar.appendChild(out);
-      legend.innerHTML = `<span class="lg-out"></span>Väljaminekud võetud maha: −${euro(round2(sumOf(state.expenses)))}`;
+      legend.innerHTML = `<span class="lg-out"></span>` + esc(t("Väljaminekud võetud maha: {x}", { x: "−" + euro(round2(sumOf(state.expenses))) }));
     } else legend.innerHTML = "";
   }
 
@@ -995,7 +1341,7 @@
     }
     const rows = list.map((t, i) => `
       <tr>
-        <td><span class="swatch" style="background:${kind === "in" ? color(i) : "var(--warm)"}"></span>${esc(t.note || (kind === "in" ? "Sissetulek" : "Väljaminek"))}${t.entries.length > 1 ? `<span class="times num">× ${t.entries.length}</span>` : ""}<div class="row-date num">${fmtDate(t.date)}</div></td>
+        <td><span class="swatch" style="background:${kind === "in" ? color(i) : "var(--warm)"}"></span>${t.note ? `<span data-no-tr>${esc(t.note)}</span>` : (kind === "in" ? "Sissetulek" : "Väljaminek")}${t.entries.length > 1 ? `<span class="times num">× ${t.entries.length}</span>` : ""}<div class="row-date num">${fmtDate(t.date)}</div></td>
         <td class="r num"><b class="${kind === "in" ? "" : "minus"}" style="font-weight:600">${kind === "in" ? "+" : "−"}${euro(round2(t.amount))}</b></td>
         <td class="r" style="width:40px"><button class="x" data-del="${t.id}" data-kind="${kind}" title="Kustuta">${ICON_X}</button></td>
       </tr>`).reverse().join("");
@@ -1025,11 +1371,14 @@
     }
     const daysLeft = Math.ceil((goal - net) / perDay);
     const target = new Date(today); target.setDate(target.getDate() + daysLeft);
-    const yearPart = target.getFullYear() !== today.getFullYear() ? target.getFullYear() + ". aasta " : "";
-    const when = yearPart + target.getDate() + ". " + MONTHS_TRANSL[target.getMonth()];
-    main.innerHTML = `Kui kogud samas tempos edasi, jõuad eesmärgini umbes <b>${when}</b>.`;
-    sub.textContent = `Keskmiselt ${euro(round2(perDay))} päevas (pärast väljaminekuid) · veel umbes ${daysLeft} ${daysLeft === 1 ? "päev" : "päeva"}` +
-      (days === 1 ? " · ennustus täpsustub, kui lisad tehinguid eri päevadel" : "");
+    const otherYear = target.getFullYear() !== today.getFullYear();
+    const when = S.lang === "et"
+      ? (otherYear ? target.getFullYear() + ". aasta " : "") + target.getDate() + ". " + MONTHS_TRANSL[target.getMonth()]
+      : target.toLocaleDateString(LOC, { day: "numeric", month: "long", ...(otherYear ? { year: "numeric" } : {}) });
+    main.innerHTML = esc(t("Kui kogud samas tempos edasi, jõuad eesmärgini umbes {d}.", { d: "\u0001" })).replace("\u0001", `<b>${esc(when)}</b>`);
+    sub.textContent = t("Keskmiselt {x} päevas (pärast väljaminekuid)", { x: euro(round2(perDay)) }) + " · " +
+      tn(daysLeft, "veel umbes {n} päev", "veel umbes {n} päeva") +
+      (days === 1 ? " · " + t("ennustus täpsustub, kui lisad tehinguid eri päevadel") : "");
   }
 
   // Kuu ülevaade: summad kuude kaupa ja keskmine kuu kohta (esimesest tehingu kuust kuni praeguse kuuni).
@@ -1063,14 +1412,14 @@
     const tOut = all.reduce((s, k) => s + (months[k]?.out || 0), 0);
     const avgIn = tIn / n, avgOut = tOut / n;
     const pctOf = v => goal > 0 ? (v / goal * 100) : 0;
-    const fmtPct = v => (Math.round(v * 10) / 10).toLocaleString("et-EE") + "%";
+    const fmtPct = v => (Math.round(v * 10) / 10).toLocaleString(LOC) + "%";
     set("mIn", "+" + euro(round2(avgIn)));
     set("mOut", "−" + euro(round2(avgOut)));
     set("mPct", fmtPct(pctOf(avgIn)));
-    set("mPctNet", "pärast väljaminekuid " + fmtPct(pctOf(avgIn - avgOut)));
+    set("mPctNet", t("pärast väljaminekuid {p}", { p: fmtPct(pctOf(avgIn - avgOut)) }));
     set("sAvg", "+" + euro(round2(avgIn)) + " · " + fmtPct(pctOf(avgIn)));
-    set("monthRange", `${n} kuu põhjal`);
-    const label = k => { const [yy, mm] = k.split("-").map(Number); return MONTHS[mm - 1] + " " + yy; };
+    set("monthRange", t("{n} kuu põhjal", { n }));
+    const label = k => { const [yy, mm] = k.split("-").map(Number); return S.lang === "et" ? MONTHS[mm - 1] + " " + yy : new Date(yy, mm - 1, 1).toLocaleDateString(LOC, { month: "long", year: "numeric" }); };
     table.innerHTML = `<table>
       <thead><tr><th>Kuu</th><th class="r mcol">Plussid</th><th class="r mcol">Miinused</th><th class="r">Kokku</th><th class="r">Eesmärgist</th></tr></thead>
       <tbody>${all.slice().reverse().slice(0, 12).map(k => {
@@ -1078,8 +1427,8 @@
         const netM = v.in - v.out;
         return `<tr>
           <td>${label(k)}${k === now ? ' <span class="times">jooksev</span>' : ""}</td>
-          <td class="r num good-t mcol">${v.in ? "+" + euro(round2(v.in)) : "0 €"}</td>
-          <td class="r num warm-t mcol">${v.out ? "−" + euro(round2(v.out)) : "0 €"}</td>
+          <td class="r num good-t mcol">${v.in ? "+" + euro(round2(v.in)) : euro(0)}</td>
+          <td class="r num warm-t mcol">${v.out ? "−" + euro(round2(v.out)) : euro(0)}</td>
           <td class="r num"><b style="font-weight:600">${netM < 0 ? "−" : ""}${euro(round2(Math.abs(netM)))}</b></td>
           <td class="r num">${fmtPct(pctOf(v.in))}</td>
         </tr>`; }).join("")}</tbody></table>`;
@@ -1092,8 +1441,8 @@
     document.getElementById("historyList").innerHTML = list.slice().reverse().map(g => `
       <div class="item">
         <span class="badge ${g.reached ? "ok" : ""}">${g.reached ? "Täidetud" : "Pooleli"}</span>
-        <div class="t"><div>${esc(g.name || "Eesmärk")} · <span class="num">${euro(g.goal)}</span></div>
-          <div class="s num">Kogutud ${euro(round2(g.collected))} · lõpetatud ${fmtDate(g.end)}</div></div>
+        <div class="t"><div>${esc(g.name || t("Eesmärk"))} · <span class="num">${euro(g.goal)}</span></div>
+          <div class="s num">${esc(t("Kogutud {x} · lõpetatud {d}", { x: euro(round2(g.collected)), d: fmtDate(g.end) }))}</div></div>
         <button class="x" data-del-hist="${g.id}" title="Kustuta">${ICON_X}</button>
       </div>`).join("");
   }
@@ -1107,7 +1456,7 @@
     document.querySelectorAll("#txType button").forEach(x => x.classList.toggle("on", x === b));
     document.getElementById("txType").classList.toggle("is-out", txType === "out");
     txBtn.classList.toggle("out", txType === "out");
-    txNote.placeholder = txType === "in" ? "Allikas, nt töö, müük" : "Mille peale, nt söök, kino";
+    txNote.placeholder = txType === "in" ? t("Allikas, nt töö, müük") : t("Mille peale, nt söök, kino");
   };
   document.getElementById("txForm").onsubmit = e => {
     e.preventDefault();
@@ -1118,7 +1467,8 @@
     const entry = { amount, date: dateStr() };
     const existing = list.find(i => incomeKey(i.note) === incomeKey(note));
     if (existing) { existing.entries.push(entry); recalcIncome(existing); }
-    else { const t = { id: uid(), note, entries: [entry] }; recalcIncome(t); list.push(t); }
+    else { const tx = { id: uid(), note, entries: [entry] }; recalcIncome(tx); list.push(tx); }
+    if (txType === "in") sfx.coin(); else sfx.out();
     save();
     document.getElementById("txAmount").value = ""; txNote.value = "";
     renderMoney();
@@ -1147,7 +1497,7 @@
     save(); renderMoney();
   };
   document.getElementById("resetIncome").onclick = () => {
-    if (confirm("Kustutada kõik sissetulekud ja väljaminekud ning alustada otsast?")) {
+    if (confirm(t("Kustutada kõik sissetulekud ja väljaminekud ning alustada otsast?"))) {
       state.incomes = []; state.expenses = []; state.carry = 0; save(); renderMoney();
     }
   };
@@ -1196,37 +1546,39 @@
     return null;
   }
   const money = (n, cur) => {
-    try { return Number(n).toLocaleString("et-EE", { style: "currency", currency: cur || "EUR", maximumFractionDigits: 2 }); }
-    catch (e) { return round2(n).toLocaleString("et-EE") + " " + (cur || ""); }
+    try { return Number(n).toLocaleString(LOC, { style: "currency", currency: cur || "EUR", maximumFractionDigits: 2 }); }
+    catch (e) { return round2(n).toLocaleString(LOC) + " " + (cur || ""); }
   };
   const signed = (n, fmt) => (n > 0.004 ? "+" : n < -0.004 ? "−" : "") + fmt(Math.abs(n));
-  const pctStr = n => signed(n, v => v.toFixed(2).replace(".", ",") + "%");
+  const pctStr = n => signed(n, v => v.toLocaleString(LOC, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%");
   const tone = n => n > 0.004 ? "good" : n < -0.004 ? "warm" : "";
-  const pfMsg = (t, bad) => { const el = document.getElementById("pfMsg"); el.textContent = t || ""; el.classList.toggle("bad", !!bad); };
+  const pfMsg = (msg, bad) => { const el = document.getElementById("pfMsg"); el.textContent = msg ? t(msg) : ""; el.classList.toggle("bad", !!bad); };
 
   // ---- Päris andmed: Finnhub + Frankfurter ----
   async function finnhub(path, params) {
     const qs = new URLSearchParams({ ...params, token: getKey() });
     let r;
     try { r = await fetch(`https://finnhub.io/api/v1/${path}?${qs}`); }
-    catch (e) { throw new Error("Ühendus hinnaserveriga ebaõnnestus. Kontrolli internetiühendust."); }
-    if (r.status === 401) throw new Error("API võti ei kehti. Kontrolli võtit.");
-    if (r.status === 429) throw new Error("Liiga palju päringuid. Proovi minuti pärast uuesti.");
-    if (r.status === 403) throw new Error("Selle aktsia hind pole tasuta võtmega saadaval.");
-    if (!r.ok) throw new Error("Hinnaserver vastas veaga (" + r.status + ").");
+    catch (e) { throw new Error(t("Ühendus hinnaserveriga ebaõnnestus. Kontrolli internetiühendust.")); }
+    if (r.status === 401) throw new Error(t("API võti ei kehti. Kontrolli võtit."));
+    if (r.status === 429) throw new Error(t("Liiga palju päringuid. Proovi minuti pärast uuesti."));
+    if (r.status === 403) throw new Error(t("Selle aktsia hind pole tasuta võtmega saadaval."));
+    if (!r.ok) throw new Error(t("Hinnaserver vastas veaga ({s}).", { s: r.status }));
     return r.json();
   }
   // ---- Valuutakursid → EUR ----
   // Proovitakse mitut tasuta allikat järjest. Õnnestunud kurss salvestatakse seadmesse;
   // kui ükski allikas ei vasta, kasutatakse viimati salvestatud kurssi, viimase abinõuna ligikaudset kurssi.
   const FX_STORE = "rahaEesmarkApp_fx";
-  const FX_APPROX = { USD: 0.92, GBP: 1.18, CHF: 1.06, CAD: 0.66, AUD: 0.60, SEK: 0.087, NOK: 0.085, DKK: 0.134, JPY: 0.0061, HKD: 0.118 };
+  // Ligikaudsed kursid eurodes (1 ühik = x €); muude valuutade vaheline kurss arvutatakse läbi euro.
+  const FX_APPROX = { EUR: 1, USD: 0.92, GBP: 1.18, CHF: 1.06, CAD: 0.66, AUD: 0.60, SEK: 0.087, NOK: 0.085, DKK: 0.134, PLN: 0.23, JPY: 0.0061, HKD: 0.118 };
+  const approxRate = (c, B) => FX_APPROX[c] && FX_APPROX[B] ? FX_APPROX[c] / FX_APPROX[B] : null;
   const FX_SOURCES = [
-    ["Frankfurter (EKP)", c => getJson(`https://api.frankfurter.dev/v1/latest?base=${c}&symbols=EUR`).then(j => j.rates.EUR)],
-    ["ExchangeRate-API", c => getJson(`https://open.er-api.com/v6/latest/${c}`).then(j => j.rates.EUR)],
-    ["Currency API", c => getJson(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${c.toLowerCase()}.json`).then(j => j[c.toLowerCase()].eur)],
-    ["Currency API", c => getJson(`https://latest.currency-api.pages.dev/v1/currencies/${c.toLowerCase()}.json`).then(j => j[c.toLowerCase()].eur)],
-    ["Frankfurter (EKP)", c => getJson(`https://api.frankfurter.app/latest?from=${c}&to=EUR`).then(j => j.rates.EUR)],
+    ["Frankfurter (EKP)", (c, B) => getJson(`https://api.frankfurter.dev/v1/latest?base=${c}&symbols=${B}`).then(j => j.rates[B])],
+    ["ExchangeRate-API", (c, B) => getJson(`https://open.er-api.com/v6/latest/${c}`).then(j => j.rates[B])],
+    ["Currency API", (c, B) => getJson(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${c.toLowerCase()}.json`).then(j => j[c.toLowerCase()][B.toLowerCase()])],
+    ["Currency API", (c, B) => getJson(`https://latest.currency-api.pages.dev/v1/currencies/${c.toLowerCase()}.json`).then(j => j[c.toLowerCase()][B.toLowerCase()])],
+    ["Frankfurter (EKP)", (c, B) => getJson(`https://api.frankfurter.app/latest?from=${c}&to=${B}`).then(j => j.rates[B])],
   ];
   async function getJson(url) {
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6000);
@@ -1234,50 +1586,55 @@
     finally { clearTimeout(timer); }
   }
   const fxSaved = () => { try { return JSON.parse(localStorage.getItem(FX_STORE)) || {}; } catch (e) { return {}; } };
-  const fxInfo = { EUR: { rate: 1, status: "live" } };   // valuuta → { rate, status: live|saved|approx, source, time }
+  let fxInfo = {};                                        // "USD>EUR" → { rate, status: live|saved|approx, source, time }
   const fxPending = {};
   let fxFresh = {};                                       // mälus: millal iga valuuta viimati edukalt laaditi
   setInterval(() => { fxFresh = {}; }, 60 * 60 * 1000);   // värskenda kord tunnis
+  // Kurss aktsia valuutast (cur) valitud valuutasse (S.currency). Funktsiooni nimi on ajalooline.
   async function fxToEur(cur) {
     cur = (cur || "USD").toUpperCase();
-    if (cur === "EUR") return 1;
-    if (fxFresh[cur] && fxInfo[cur]) return fxInfo[cur].rate;
-    if (fxPending[cur]) return fxPending[cur];
-    return fxPending[cur] = (async () => {
+    const B = S.currency, k = cur + ">" + B;
+    if (cur === B) return 1;
+    if (fxFresh[k] && fxInfo[k]) return fxInfo[k].rate;
+    if (fxPending[k]) return fxPending[k];
+    return fxPending[k] = (async () => {
       for (const [source, get] of FX_SOURCES) {
         try {
-          const rate = Number(await get(cur));
+          const rate = Number(await get(cur, B));
           if (rate > 0 && isFinite(rate)) {
-            fxInfo[cur] = { rate, status: "live", source, time: Date.now() };
-            fxFresh[cur] = true;
-            try { const all = fxSaved(); all[cur] = { rate, time: Date.now(), source }; localStorage.setItem(FX_STORE, JSON.stringify(all)); } catch (e) {}
+            fxInfo[k] = { rate, status: "live", source, time: Date.now() };
+            fxFresh[k] = true;
+            try { const all = fxSaved(); all[k] = { rate, time: Date.now(), source }; localStorage.setItem(FX_STORE, JSON.stringify(all)); } catch (e) {}
             return rate;
           }
         } catch (e) { /* proovi järgmist allikat */ }
       }
-      const saved = fxSaved()[cur];
-      if (saved && saved.rate > 0) { fxInfo[cur] = { rate: saved.rate, status: "saved", source: saved.source, time: saved.time }; return saved.rate; }
-      if (FX_APPROX[cur]) { fxInfo[cur] = { rate: FX_APPROX[cur], status: "approx" }; return FX_APPROX[cur]; }
-      throw new Error(`Valuuta ${cur} kurssi eurodesse ei õnnestunud saada.`);
-    })().finally(() => { delete fxPending[cur]; });
+      const saved = fxSaved()[k] || (B === "EUR" ? fxSaved()[cur] : null);   // vanemas versioonis salvestati võtmega "USD"
+      if (saved && saved.rate > 0) { fxInfo[k] = { rate: saved.rate, status: "saved", source: saved.source, time: saved.time }; return saved.rate; }
+      const ap = approxRate(cur, B);
+      if (ap) { fxInfo[k] = { rate: ap, status: "approx" }; return ap; }
+      throw new Error(t("Valuuta {c} kurssi ei õnnestunud saada.", { c: cur }));
+    })().finally(() => { delete fxPending[k]; });
   }
   function renderFxInfo() {
-    const curs = [...new Set((state.holdings || []).filter(h => !h.manual && h.currency && h.currency !== "EUR").map(h => h.currency))];
-    const fmt = (c, i) => `1 ${c} = ${i.rate.toLocaleString("et-EE", { maximumFractionDigits: 4 })} €`;
-    const when = t => t ? new Date(t).toLocaleString("et-EE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
-    const known = curs.filter(c => fxInfo[c]);
+    const B = S.currency;
+    const curs = [...new Set((state.holdings || []).filter(h => !h.manual && h.currency && h.currency !== B).map(h => h.currency))];
+    const info = c => fxInfo[c + ">" + B];
+    const fmt = (c, i) => `1 ${c} = ${curFmt({ maximumFractionDigits: 4 }).format(i.rate)}`;
+    const when = x => x ? new Date(x).toLocaleString(LOC, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+    const known = curs.filter(info);
     document.getElementById("fxLine").textContent = isDemo() || !known.length ? "" :
-      "Kurss: " + known.map(c => fmt(c, fxInfo[c]) + (fxInfo[c].status === "live" ? ` (${fxInfo[c].source})` : "")).join(" · ");
-    const bad = isDemo() ? [] : known.filter(c => fxInfo[c].status !== "live");
+      t("Kurss:") + " " + known.map(c => fmt(c, info(c)) + (info(c).status === "live" ? ` (${info(c).source})` : "")).join(" · ");
+    const bad = isDemo() ? [] : known.filter(c => info(c).status !== "live");
     const note = document.getElementById("fxNote");
     note.hidden = !bad.length;
-    note.innerHTML = bad.map(c => fxInfo[c].status === "saved"
-      ? `<b>Valuutakurssi ei saanud uuendada.</b> Kasutan viimati salvestatud kurssi ${fmt(c, fxInfo[c])} (${when(fxInfo[c].time)}).`
-      : `<b>Valuutakurssi ei saanud laadida.</b> Kasutan ligikaudset kurssi ${fmt(c, fxInfo[c])} – eurosummad on umbkaudsed.`).join("<br>");
+    note.innerHTML = bad.map(c => info(c).status === "saved"
+      ? `<b>${esc(t("Valuutakurssi ei saanud uuendada."))}</b> ${esc(t("Kasutan viimati salvestatud kurssi {k} ({aeg}).", { k: fmt(c, info(c)), aeg: when(info(c).time) }))}`
+      : `<b>${esc(t("Valuutakurssi ei saanud laadida."))}</b> ${esc(t("Kasutan ligikaudset kurssi {k} – summad on umbkaudsed.", { k: fmt(c, info(c)) }))}`).join("<br>");
   }
 
   // ---- Demoandmed (simuleeritud) ----
-  const DEMO_FX = { USD: 0.92 };
+  const demoFx = c => (c === S.currency ? 1 : approxRate(c, S.currency) || 1);
   const DEMO_LIST = {
     AAPL: ["Apple Inc", 228], MSFT: ["Microsoft Corp", 420], NVDA: ["NVIDIA Corp", 138], TSLA: ["Tesla Inc", 245],
     AMZN: ["Amazon.com Inc", 195], GOOGL: ["Alphabet Inc (A)", 170], META: ["Meta Platforms Inc", 560], NFLX: ["Netflix Inc", 700],
@@ -1314,9 +1671,9 @@
       return { name: p.name || "", currency: p.currency || "USD" };
     },
     async quote(sym, currency) {
-      if (isDemo()) { const q = demoQuote(sym); return { ...q, fx: DEMO_FX[currency] || 1 }; }
+      if (isDemo()) { const q = demoQuote(sym); return { ...q, fx: demoFx(currency) }; }
       const q = await finnhub("quote", { symbol: sym });
-      if (!q || !q.c) throw new Error(`${sym}: hinda ei leitud. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e.`);
+      if (!q || !q.c) throw new Error(t("{s}: hinda ei leitud. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e.", { s: sym }));
       const fx = await fxToEur(currency);
       return { price: q.c, change: q.d || 0, dayPct: q.dp || 0, time: q.t ? q.t * 1000 : Date.now(), fx };
     }
@@ -1335,6 +1692,7 @@
     Object.keys(hist).forEach(k => delete hist[k]);
     (state.holdings || []).filter(h => !h.manual).forEach(h => {
       ["price", "priceEur", "fx", "change", "dayPct", "prevClose", "quoteTime", "updated"].forEach(k => delete h[k]);
+      delete h.costAssumedCur;
       h.demo = isDemo();
     });
     save();
@@ -1404,15 +1762,15 @@
     const stale = Date.now() - lastQuote > 20 * 60 * 1000;
     const ticking = Date.now() - lastTickAt < 30000;
     let off = false, text;
-    if (isDemo()) text = "Demo · hinnad liiguvad reaalajas";
-    else if (wsOpen && ticking) text = "Otsevoog · hinnad liiguvad reaalajas";
-    else if (wsOpen && stale) { off = true; text = "Börs suletud · otsevoog ootab tehinguid"; }
-    else if (wsOpen) text = "Otsevoog ühendatud · ootan tehinguid";
-    else { off = stale; text = stale ? "Börs suletud" : "Uueneb iga minut"; }
-    el.innerHTML = `<span class="live-dot ${off ? "off" : ""}"></span>${text}`;
+    if (isDemo()) text = t("Demo · hinnad liiguvad reaalajas");
+    else if (wsOpen && ticking) text = t("Otsevoog · hinnad liiguvad reaalajas");
+    else if (wsOpen && stale) { off = true; text = t("Börs suletud · otsevoog ootab tehinguid"); }
+    else if (wsOpen) text = t("Otsevoog ühendatud · ootan tehinguid");
+    else { off = stale; text = stale ? t("Börs suletud") : t("Uueneb iga minut"); }
+    el.innerHTML = `<span class="live-dot ${off ? "off" : ""}"></span>${esc(text)}`;
     const last = priced.map(h => h.updated).filter(Boolean).sort().pop();
     document.getElementById("pfUpdated").textContent = last
-      ? "Uuendatud " + new Date(last).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+      ? t("Uuendatud {aeg}", { aeg: new Date(last).toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit", second: "2-digit" }) }) : "";
   }
 
   // Kui äpp avatakse päris režiimis, aga salvestatud on demohinnad, visatakse need ära.
@@ -1518,15 +1876,15 @@
     for (let v = lo; v <= hi + step / 2; v += step) out.push(round2(v));
     return out;
   }
-  const fmtAxisEur = v => (Math.abs(v) >= 10000 ? (v / 1000).toLocaleString("et-EE", { maximumFractionDigits: 1 }) + " t" : v.toLocaleString("et-EE", { maximumFractionDigits: 0 })) + " €";
+  const fmtAxisEur = v => { try { return curFmt(Math.abs(v) >= 10000 ? { notation: "compact", maximumFractionDigits: 1 } : { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(v); } catch (e) { return String(v); } };
   function fmtX(t, r) {
     const d = new Date(t);
-    if (r === "1P") return d.toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit" });
-    if (r === "5P") return d.toLocaleDateString("et-EE", { weekday: "short", day: "numeric" });
-    if (r === "1K" || r === "6K") return d.toLocaleDateString("et-EE", { day: "numeric", month: "short" });
-    return d.toLocaleDateString("et-EE", { month: "short", year: "2-digit" });
+    if (r === "1P") return d.toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" });
+    if (r === "5P") return d.toLocaleDateString(LOC, { weekday: "short", day: "numeric" });
+    if (r === "1K" || r === "6K") return d.toLocaleDateString(LOC, { day: "numeric", month: "short" });
+    return d.toLocaleDateString(LOC, { month: "short", year: "2-digit" });
   }
-  const fmtFull = t => new Date(t).toLocaleString("et-EE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const fmtFull = t => new Date(t).toLocaleString(LOC, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   let chPts = [], chGeo = null, chHoverX = null;
   function renderChart() {
@@ -1543,9 +1901,9 @@
     if (pts.length < 2) {
       svg.innerHTML = ""; tip.hidden = true; chGeo = null; empty.hidden = false;
       const since = state.pfHistory[0];
-      empty.textContent = !(state.holdings || []).length ? "Lisa aktsia, et näha portfelli arengut."
-        : `Graafik täitub aja jooksul: äpp salvestab portfelli väärtuse iga 5 minuti järel, kui leht on lahti.${since ? " Ajalugu alates " + fmtFull(since.t) + "." : ""}`;
-      chg.textContent = "–"; chg.className = "chart-change num"; sub.textContent = RANGE_LABEL[chRange];
+      empty.textContent = !(state.holdings || []).length ? t("Lisa aktsia, et näha portfelli arengut.")
+        : t("Graafik täitub aja jooksul: äpp salvestab portfelli väärtuse iga 5 minuti järel, kui leht on lahti.") + (since ? " " + t("Ajalugu alates {d}.", { d: fmtFull(since.t) }) : "");
+      chg.textContent = "–"; chg.className = "chart-change num"; sub.textContent = t(RANGE_LABEL[chRange]);
       document.getElementById("chTable").innerHTML = "";
       return;
     }
@@ -1555,8 +1913,8 @@
     const added = b.c - a.c, change = (b.v - a.v) - added, base = a.v + Math.max(0, added);
     chg.textContent = signed(change, x => euro(round2(x))) + (base > 0 ? " (" + pctStr(change / base * 100) + ")" : "");
     chg.className = "chart-change num " + tone(change);
-    sub.textContent = RANGE_LABEL[chRange] + (Math.abs(added) >= 0.01 ? ` · perioodil lisatud ${signed(added, x => euro(round2(x)))} (pole arvestatud kasumina)` : "")
-      + (isDemo() ? " · demoajalugu on simuleeritud" : "");
+    sub.textContent = t(RANGE_LABEL[chRange]) + (Math.abs(added) >= 0.01 ? " · " + t("perioodil lisatud {x} (pole arvestatud kasumina)", { x: signed(added, x => euro(round2(x))) }) : "")
+      + (isDemo() ? " · " + t("demoajalugu on simuleeritud") : "");
 
     // Geomeetria
     const W = Math.max(280, wrap.clientWidth), H = W < 520 ? 190 : 240;
@@ -1594,6 +1952,7 @@
     const rows = pts.filter((_, i) => i % stepN === 0 || i === pts.length - 1).reverse();
     document.getElementById("chTable").innerHTML = `<table><thead><tr><th>Aeg</th><th class="r">Väärtus</th><th class="r">Investeeritud</th><th class="r">Muutus</th></tr></thead><tbody>${
       rows.map(p => `<tr><td class="num">${esc(fmtFull(p.t))}</td><td class="r num">${euro(round2(p.v))}</td><td class="r num">${euro(round2(p.c))}</td><td class="r num ${tone(p.v - p.c)}">${signed(p.v - p.c, x => euro(round2(x)))}</td></tr>`).join("")}</tbody></table>`;
+    if (S.lang === "en") translateDOM(document.getElementById("chartPanel"));
   }
 
   function showHover(px) {
@@ -1615,8 +1974,8 @@
       const bEl = document.createElement("b"); bEl.textContent = val; const s = document.createElement("span"); s.textContent = label; r.append(bEl, s); return r; };
     const head = document.createElement("div"); head.className = "th"; head.textContent = fmtFull(p.t);
     const gain = p.v - p.c;
-    tip.append(head, row(euro(round2(p.v)), "Väärtus", CH.v), row(euro(round2(p.c)), "Investeeritud", CH.c),
-      row(signed(gain, z => euro(round2(z))), "Kasum/kahjum"));
+    tip.append(head, row(euro(round2(p.v)), t("Väärtus"), CH.v), row(euro(round2(p.c)), t("Investeeritud"), CH.c),
+      row(signed(gain, z => euro(round2(z))), t("Kasum/kahjum")));
     tip.hidden = false;
     const wrapW = document.getElementById("chartWrap").clientWidth, tw = tip.offsetWidth;
     tip.style.left = Math.min(wrapW - tw - 4, Math.max(4, x + 12 > wrapW - tw - 4 ? x - tw - 12 : x + 12)) + "px";
@@ -1660,7 +2019,7 @@
 
     // Koguväärtuse kaart
     const totEl = document.getElementById("pfTotal");
-    totEl.innerHTML = round2(total).toLocaleString("et-EE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "<small>€</small>";
+    totEl.innerHTML = round2(total).toLocaleString(LOC, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + `<small class="cs">${esc(curSym())}</small>`;
     if (prevPfTotal != null && Math.abs(total - prevPfTotal) >= 0.005) {
       totEl.classList.remove("tick-up", "tick-down"); void totEl.offsetWidth;
       totEl.classList.add(total > prevPfTotal ? "tick-up" : "tick-down");
@@ -1671,11 +2030,11 @@
     totPct.textContent = withCost.length && cost > 0 ? pctStr(pl / cost * 100) : "–"; totPct.className = "v num " + tone(pl);
     document.getElementById("pfInvested").textContent = withCost.length ? euro(round2(cost)) : "–";
     document.getElementById("pfInvHint").textContent = !list.length ? "" : withCost.length
-      ? `praegu ${euro(round2(withCost.reduce((s, h) => s + holdingValue(h), 0)))}` + (withCost.length < list.length ? ` · ${withCost.length}/${list.length} positsiooni` : "") : "";
+      ? t("praegu {x}", { x: euro(round2(withCost.reduce((s, h) => s + holdingValue(h), 0))) }) + (withCost.length < list.length ? " · " + t("{a}/{b} positsiooni", { a: withCost.length, b: list.length }) : "") : "";
     const plEl = document.getElementById("pfPL");
     plEl.textContent = withCost.length ? signed(pl, v => euro(round2(v))) : "–"; plEl.className = "v num " + tone(pl);
     document.getElementById("pfPLHint").textContent = withCost.length && cost > 0
-      ? pctStr(pl / cost * 100) + (assumed ? ` · ${assumed} pos. lisamise hinnast` : "") : "";
+      ? pctStr(pl / cost * 100) + (assumed ? " · " + t("{n} pos. lisamise hinnast", { n: assumed }) : "") : "";
     const dEl = document.getElementById("pfDay");
     dEl.textContent = list.some(h => !h.manual) ? signed(dayEur, v => euro(round2(v))) : "–"; dEl.className = "v num " + tone(dayEur);
     document.getElementById("pfDayHint").textContent = dayBase > 0 && list.some(h => !h.manual) ? pctStr(dayEur / dayBase * 100) : "";
@@ -1689,7 +2048,11 @@
       ? "Lisa esimene aktsia allpool. Portfelli väärtus läheb sinu rahalise eesmärgi arvestusse."
       : demo && counted === 0
         ? "Demohinnad ei lähe rahalise eesmärgi arvestusse."
-        : `Eesmärgi arvestusse läheb <b>${euro(round2(counted))}</b>` + (state.goal > 0 ? ` – see on <b>${Math.round(counted / state.goal * 100)}%</b> eesmärgist „${esc(state.goalName || euro(state.goal))}“.` : ".");
+        : (() => {
+            const parts = { x: "\u0001", p: "\u0002", g: state.goalName || euro(state.goal) };
+            const txt = esc(state.goal > 0 ? t("Eesmärgi arvestusse läheb {x} – see on {p} eesmärgist „{g}“.", parts) : t("Eesmärgi arvestusse läheb {x}.", parts));
+            return txt.replace("\u0001", `<b>${euro(round2(counted))}</b>`).replace("\u0002", `<b>${Math.round(counted / state.goal * 100)}%</b>`);
+          })();
     document.getElementById("pfGoalSub").textContent = list.length && demo ? "Lisa API võti, et kasutada päris hindu." : "";
 
     // Režiim, staatus
@@ -1719,8 +2082,9 @@
     const md = document.getElementById("miniDay");
     md.textContent = list.some(h => !h.manual) ? signed(dayEur, v => euro(round2(v))) : "–"; md.className = "v num " + tone(dayEur);
     document.getElementById("miniNote").textContent = !list.length ? "Portfell on tühi."
-      : demo && counted === 0 ? "Demorežiim – ei lähe eesmärgi arvestusse." : `Eesmärgi arvestuses: ${euro(round2(counted))}`;
+      : demo && counted === 0 ? t("Demorežiim – ei lähe eesmärgi arvestusse.") : t("Eesmärgi arvestuses: {x}", { x: euro(round2(counted)) });
     const cnt = document.getElementById("investCount"); if (cnt) cnt.textContent = list.length || "";
+    if (S.lang === "en") translateDOM(document.getElementById("page-invest"));
   }
 
   function rowHtml(h, colorIdx, total) {
@@ -1732,15 +2096,15 @@
         <form class="edit-row" data-edit-form="${h.id}">
           <b class="num">${esc(h.symbol || h.name)}</b>
           ${h.manual
-            ? `<label>Väärtus € <input type="number" class="num" name="value" min="0" step="any" value="${round2(h.value)}" required></label>`
-            : `<label>Aktsiaid <input type="number" class="num" name="shares" min="0.000001" step="any" value="${h.shares}" required></label>
-               <label>Keskm. ostuhind (${esc(h.currency || "USD")}) <input type="number" class="num" name="avg" min="0" step="any" value="${h.avgPrice ?? ""}" placeholder="valikuline"></label>`}
+            ? `<label>${esc(t("Väärtus"))} ${esc(curSym())} <input type="number" class="num" name="value" min="0" step="any" value="${round2(h.value)}" required></label>`
+            : `<label>${esc(t("Aktsiaid"))} <input type="number" class="num" name="shares" min="0.000001" step="any" value="${h.shares}" required></label>
+               <label>${esc(t("Keskm. ostuhind ({c})", { c: h.currency || "USD" }))} <input type="number" class="num" name="avg" min="0" step="any" value="${h.avgPrice ?? ""}" placeholder="valikuline"></label>`}
           <span class="edit-actions"><button class="btn sm" type="submit">Salvesta</button><button class="btn ghost sm" type="button" data-cancel>Tühista</button></span>
         </form></td></tr>`;
     }
-    const sharesTxt = h.manual ? "–" : Number(h.shares).toLocaleString("et-EE", { maximumFractionDigits: 6 });
-    const priceTxt = h.manual ? "–" : h.priceEur ? money(h.priceEur, "EUR") : (refreshing ? "…" : `<span class="muted-t">hind puudub</span>`);
-    const priceSub = !h.manual && h.currency && h.currency !== "EUR" && h.price ? `<div class="sub-t">${money(h.price, h.currency)}</div>` : "";
+    const sharesTxt = h.manual ? "–" : Number(h.shares).toLocaleString(LOC, { maximumFractionDigits: 6 });
+    const priceTxt = h.manual ? "–" : h.priceEur ? money(h.priceEur, S.currency) : (refreshing ? "…" : `<span class="muted-t">hind puudub</span>`);
+    const priceSub = !h.manual && h.currency && h.currency !== S.currency && h.price ? `<div class="sub-t">${money(h.price, h.currency)}</div>` : "";
     const day = h.manual || typeof h.dayPct !== "number" ? "–" : `<span class="${tone(h.dayPct)}">${pctStr(h.dayPct)}</span>`;
     const plTxt = pl == null ? `<span class="muted-t">–</span>` : `<span class="${tone(pl)}">${signed(pl, x => euro(round2(x)))}</span>${c > 0 ? `<div class="sub-t ${tone(pl)}">${pctStr(pl / c * 100)}</div>` : ""}`;
     return `<tr class="${move}">
@@ -1748,7 +2112,7 @@
         <div class="sub-t name-t">${esc(h.manual ? "Käsitsi lisatud" : (h.name || ""))}</div></td>
       <td class="r num" data-l="Aktsiaid"><span class="cv">${sharesTxt}</span></td>
       <td class="r num pc" data-l="Hind"><span class="cv">${priceTxt}${priceSub}</span></td>
-      <td class="r num pc" data-l="Väärtus"><span class="cv"><b style="font-weight:600">${euro(round2(v))}</b><div class="sub-t">${share.toFixed(0)}% portfellist</div></span></td>
+      <td class="r num pc" data-l="Väärtus"><span class="cv"><b style="font-weight:600">${euro(round2(v))}</b><div class="sub-t">${esc(t("{p}% portfellist", { p: share.toFixed(0) }))}</div></span></td>
       <td class="r num" data-l="24h"><span class="cv">${day}</span></td>
       <td class="r trend" data-l="Trend"><span class="cv">${h.manual ? "–" : spark(h.symbol)}</span></td>
       <td class="r num" data-l="Kasum"><span class="cv">${plTxt}</span></td>
@@ -1795,7 +2159,7 @@
     if (sharesIn != null && !(sharesIn > 0)) return pfMsg("Aktsiate arv peab olema suurem kui 0.", true);
     if (sharesIn == null && !(amountEur > 0)) return pfMsg("Summa peab olema suurem kui 0.", true);
     if (avg != null && !(avg >= 0)) return pfMsg("Ostuhind ei saa olla negatiivne.", true);
-    const btn = document.getElementById("pfAddBtn"); btn.disabled = true; btn.textContent = "Laen hinda…"; pfMsg("");
+    const btn = document.getElementById("pfAddBtn"); btn.disabled = true; btn.textContent = t("Laen hinda…"); pfMsg("");
     clearTimeout(sugTimer); sugSeq++; sugBox.hidden = true;
     try {
       const existing = state.holdings.find(h => !h.manual && h.symbol === symbol);
@@ -1805,7 +2169,7 @@
       const shares = sharesIn != null ? sharesIn : amountEur / (q.price * q.fx);
       // Selle osa ostuhind: sisestatud või (kui tühi) tänane hind – siis näidatakse muutust alates lisamisest.
       const lotAvg = avg != null ? avg : q.price;
-      const sharesTxt = n => Number(n).toLocaleString("et-EE", { maximumFractionDigits: 4 });
+      const sharesTxt = n => Number(n).toLocaleString(LOC, { maximumFractionDigits: 4 });
       if (existing) {
         // Sama aktsia: liida kogus ja arvuta kaalutud keskmine ostuhind (kui mõlema osa ostuhind on teada).
         const oldAvg = existing.avgPrice ?? (existing.invested != null && existing.fx ? existing.invested / existing.fx / existing.shares : null);
@@ -1815,18 +2179,19 @@
         existing.costAssumed = !!existing.costAssumed || avg == null;
         delete existing.invested;
         applyQuote(existing, q);
-        pfMsg(`${symbol}: lisatud ${sharesTxt(shares)} tk olemasolevale positsioonile (kokku ${sharesTxt(existing.shares)} tk).`);
+        pfMsg(t("{s}: lisatud {a} tk olemasolevale positsioonile (kokku {b} tk).", { s: symbol, a: sharesTxt(shares), b: sharesTxt(existing.shares) }));
       } else {
         const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: lotAvg, costAssumed: avg == null, added: dateStr() };
         applyQuote(h, q);
         state.holdings.push(h);
         streamSync();
-        pfMsg(`${symbol} lisatud: ${sharesTxt(shares)} tk ≈ ${euro(round2(shares * q.price * q.fx))}${isDemo() ? " (demohind)" : ""}.`);
+        pfMsg(t("{s} lisatud: {a} tk ≈ {v}", { s: symbol, a: sharesTxt(shares), v: euro(round2(shares * q.price * q.fx)) }) + (isDemo() ? " " + t("(demohind)") : "") + ".");
       }
+      sfx.coin();
       save(); e.target.reset(); renderMoney();
     } catch (err) {
       pfMsg(err.message, true);
-    } finally { btn.disabled = false; btn.textContent = "Lisa portfelli"; }
+    } finally { btn.disabled = false; btn.textContent = t("Lisa portfelli"); }
   };
 
   // Aktsiate arv ja summa välistavad teineteist: ühe täitmine tühjendab teise.
@@ -1852,7 +2217,7 @@
     else if (cancel) { editingId = null; renderInvest(); }
     else if (del) {
       const h = state.holdings.find(x => x.id === del.dataset.pfDel);
-      if (!confirm(`Eemaldada ${h.symbol || h.name} portfellist?`)) return;
+      if (!confirm(t("Eemaldada {s} portfellist?", { s: h.symbol || h.name }))) return;
       state.holdings = state.holdings.filter(x => x !== h); save(); renderMoney(); streamSync();
     }
   });
@@ -1886,11 +2251,11 @@
     clearPrices(); streamStop(); renderMoney(); refreshPrices(false).then(streamSync);
   };
   document.getElementById("keyChange").onclick = () => {
-    const k = prompt("Uus Finnhubi API võti:", "");
+    const k = prompt(t("Uus Finnhubi API võti:"), "");
     if (k && k.trim()) { setKey(k.trim()); clearPrices(); streamStop(); renderMoney(); refreshPrices(false).then(streamSync); }
   };
   document.getElementById("keyRemove").onclick = () => {
-    if (!confirm("Eemaldada API võti? Äpp läheb demorežiimi ja investeeringud ei lähe enam eesmärgi arvestusse.")) return;
+    if (!confirm(t("Eemaldada API võti? Äpp läheb demorežiimi ja investeeringud ei lähe enam eesmärgi arvestusse."))) return;
     setKey(""); clearPrices(); streamStop(); renderMoney(); refreshPrices(true);
   };
   document.getElementById("pfRefresh").onclick = () => refreshPrices(false);
@@ -1906,32 +2271,36 @@
     whenSel.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     document.getElementById("dateField").style.display = when === "custom" ? "flex" : "none";
   };
+  const ICON_GRIP = '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5.5" cy="3.5" r="1.3"/><circle cx="10.5" cy="3.5" r="1.3"/><circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/><circle cx="5.5" cy="12.5" r="1.3"/><circle cx="10.5" cy="12.5" r="1.3"/></svg>';
+  const ICON_BELL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" width="11" height="11" style="vertical-align:-1px;margin-right:4px"><path d="M4 11V7a4 4 0 0 1 8 0v4l1 1.5H3zM6.5 14a1.5 1.5 0 0 0 3 0"/></svg>';
+  // Järjekord: iga ülesanne kannab välja "order"; vanadel andmetel seda pole, siis jääb lisamise järjekord.
+  state.tasks.forEach((tk, i) => { if (tk.order == null) tk.order = i; });
+  const byOrder = (a, b) => a.done - b.done || a.order - b.order;
 
   function renderShort() {
-    const open = state.tasks.filter(t => !t.done).length;
+    const open = state.tasks.filter(x => !x.done).length;
     document.getElementById("shortCount").textContent = open || "";
     const wrap = document.getElementById("shortList");
-    if (!state.tasks.length) { wrap.innerHTML = `<div class="empty">Ülesandeid pole. Lisa, mida pead homme tegema.</div>`; return; }
-
+    if (!state.tasks.length) { wrap.innerHTML = `<div class="empty">Ülesandeid pole. Lisa, mida pead homme tegema.</div>`; translateDOM(wrap); return; }
     const today = dateStr(0);
     const groups = {};
-    [...state.tasks].sort((a, b) => a.date.localeCompare(b.date)).forEach(t => {
-      const key = t.date < today ? "late" : t.date;
-      (groups[key] = groups[key] || []).push(t);
-    });
+    state.tasks.forEach(x => { const key = x.date < today ? "late" : x.date; (groups[key] = groups[key] || []).push(x); });
     const keys = Object.keys(groups).sort((a, b) => a === "late" ? -1 : b === "late" ? 1 : a.localeCompare(b));
     wrap.innerHTML = keys.map(k => {
-      const items = groups[k].sort((a, b) => a.done - b.done);
-      const label = k === "late" ? "Hilinenud" : dayLabel(k);
+      const items = groups[k].sort(byOrder);
+      const label = k === "late" ? t("Hilinenud") : dayLabel(k);
       const right = k === "late" ? "" : fmtDate(k);
-      return `<div class="group ${k === "late" ? "late" : ""}"><span>${label}</span><span class="num">${right}</span></div>` +
-        items.map(t => `
-          <div class="item ${t.done ? "done" : ""}">
-            <button class="check ${t.done ? "on" : ""}" data-toggle="${t.id}" aria-label="Märgi tehtuks">${ICON_CHECK}</button>
-            <div class="t"><div>${esc(t.text)}</div>${k === "late" ? `<div class="s num">${fmtDate(t.date)}</div>` : ""}</div>
-            <button class="x" data-del="${t.id}" title="Kustuta">${ICON_X}</button>
-          </div>`).join("");
+      return `<div class="task-group" data-date="${k}">
+        <div class="group ${k === "late" ? "late" : ""}"><span>${esc(label)}</span><span class="num">${right}</span></div>` +
+        items.map(x => `
+          <div class="item ${x.done ? "done" : ""}" data-id="${x.id}">
+            <button class="grip" type="button" data-grip aria-label="${esc(t("Lohista järjekorra muutmiseks"))}" title="${esc(t("Lohista järjekorra muutmiseks"))}">${ICON_GRIP}</button>
+            <button class="check ${x.done ? "on" : ""}" data-toggle="${x.id}" aria-label="${esc(t("Märgi tehtuks"))}">${ICON_CHECK}</button>
+            <div class="t"><div data-no-tr>${esc(x.text)}</div>${k === "late" || x.time ? `<div class="s num">${k === "late" ? fmtDate(x.date) : ""}${k === "late" && x.time ? " · " : ""}${x.time ? ICON_BELL + x.time : ""}</div>` : ""}</div>
+            <button class="x" data-del="${x.id}" title="${esc(t("Kustuta"))}">${ICON_X}</button>
+          </div>`).join("") + `</div>`;
     }).join("");
+    translateDOM(wrap);
   }
   document.getElementById("shortForm").onsubmit = e => {
     e.preventDefault();
@@ -1939,23 +2308,90 @@
     if (!text) return;
     const date = when === "custom" ? document.getElementById("shortDate").value : dateStr(parseInt(when));
     if (!date) { document.getElementById("shortDate").focus(); return; }
-    state.tasks.push({ id: uid(), text, date, done: false });
-    save(); document.getElementById("shortText").value = ""; renderShort();
+    const time = document.getElementById("shortTime").value || "";
+    const order = Math.max(-1, ...state.tasks.filter(x => x.date === date).map(x => x.order)) + 1;
+    state.tasks.push({ id: uid(), text, date, time, done: false, order });
+    save();
+    document.getElementById("shortText").value = ""; document.getElementById("shortTime").value = "";
+    renderShort();
+    if (time && S.remind && window.Notification?.permission !== "granted") toast(t("Lülita seadetes meeldetuletused sisse, et saada teavitus."));
   };
-  document.getElementById("shortList").onclick = e => {
+  const shortList = document.getElementById("shortList");
+  shortList.onclick = e => {
+    if (dragJustEnded) return;
     const tg = e.target.closest("[data-toggle]"), dl = e.target.closest("[data-del]");
-    if (tg) { const t = state.tasks.find(x => x.id === tg.dataset.toggle); t.done = !t.done; }
+    if (tg) { const x = state.tasks.find(y => y.id === tg.dataset.toggle); x.done = !x.done; if (x.done) sfx.done(); }
     else if (dl) state.tasks = state.tasks.filter(x => x.id !== dl.dataset.del);
     else return;
     save(); renderShort();
   };
-  document.getElementById("clearDone").onclick = () => { state.tasks = state.tasks.filter(t => !t.done); save(); renderShort(); };
+  document.getElementById("clearDone").onclick = () => { state.tasks = state.tasks.filter(x => !x.done); save(); renderShort(); };
+
+  // ---- Lohistamine (hiir, puute- ja pliiatsiekraan) ----
+  // Lohista ülesannet käepidemest (⋮⋮). Teise päeva alla lohistades muutub ka ülesande kuupäev.
+  // Klaviatuuril: käepide fookusesse ja nooleklahvid ↑/↓.
+  let drag = null, dragJustEnded = false;
+  shortList.addEventListener("pointerdown", e => {
+    const g = e.target.closest("[data-grip]"); if (!g || e.button > 0) return;
+    const item = g.closest(".item"); e.preventDefault();
+    const r = item.getBoundingClientRect();
+    const ghost = item.cloneNode(true);
+    ghost.classList.add("drag-ghost"); ghost.removeAttribute("data-id");
+    Object.assign(ghost.style, { width: r.width + "px", left: r.left + "px", top: r.top + "px" });
+    document.body.appendChild(ghost);
+    item.classList.add("drag-src");
+    drag = { item, ghost, offY: e.clientY - r.top, startY: e.clientY, moved: false };
+    g.setPointerCapture(e.pointerId);
+  });
+  shortList.addEventListener("pointermove", e => {
+    if (!drag) return;
+    drag.ghost.style.top = (e.clientY - drag.offY) + "px";
+    if (Math.abs(e.clientY - drag.startY) > 3) drag.moved = true;
+    // Leia rühm ja koht kursori all.
+    const groupsEl = [...shortList.querySelectorAll(".task-group")];
+    let grp = groupsEl.find(gr => { const b = gr.getBoundingClientRect(); return e.clientY >= b.top && e.clientY <= b.bottom; })
+      || (e.clientY < groupsEl[0].getBoundingClientRect().top ? groupsEl[0] : groupsEl[groupsEl.length - 1]);
+    const items = [...grp.querySelectorAll(".item")].filter(x => x !== drag.item);
+    const before = items.find(x => { const b = x.getBoundingClientRect(); return e.clientY < b.top + b.height / 2; });
+    if (before) grp.insertBefore(drag.item, before); else grp.appendChild(drag.item);
+    // Kerimine ekraani servas.
+    if (e.clientY < 60) window.scrollBy(0, -12); else if (e.clientY > innerHeight - 60) window.scrollBy(0, 12);
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    drag.ghost.remove(); drag.item.classList.remove("drag-src");
+    if (drag.moved) { commitOrder(); dragJustEnded = true; setTimeout(() => dragJustEnded = false, 50); }
+    drag = null;
+  };
+  shortList.addEventListener("pointerup", endDrag);
+  shortList.addEventListener("pointercancel", endDrag);
+  function commitOrder() {
+    shortList.querySelectorAll(".task-group").forEach(gr => {
+      gr.querySelectorAll(".item").forEach((el, i) => {
+        const x = state.tasks.find(y => y.id === el.dataset.id); if (!x) return;
+        if (gr.dataset.date !== "late" && x.date !== gr.dataset.date) { x.date = gr.dataset.date; x.notified = false; }
+        x.order = i;
+      });
+    });
+    save(); renderShort();
+  }
+  shortList.addEventListener("keydown", e => {
+    const g = e.target.closest("[data-grip]"); if (!g || !["ArrowUp", "ArrowDown"].includes(e.key)) return;
+    e.preventDefault();
+    const item = g.closest(".item"), grp = item.parentElement;
+    const sib = e.key === "ArrowUp" ? item.previousElementSibling : item.nextElementSibling;
+    if (!sib || !sib.classList.contains("item")) return;
+    if (e.key === "ArrowUp") grp.insertBefore(item, sib); else grp.insertBefore(sib, item);
+    const id = item.dataset.id;
+    commitOrder();
+    shortList.querySelector(`.item[data-id="${id}"] [data-grip]`)?.focus();
+  });
 
   // ---------- Tuleviku eesmärgid ----------
   function renderLong() {
     document.getElementById("longCount").textContent = state.longGoals.filter(g => !g.done).length || "";
     const list = document.getElementById("longList");
-    if (!state.longGoals.length) { list.innerHTML = `<div class="empty">Lisa oma esimene tuleviku eesmärk.</div>`; return; }
+    if (!state.longGoals.length) { list.innerHTML = `<div class="empty">Lisa oma esimene tuleviku eesmärk.</div>`; translateDOM(list); return; }
     list.innerHTML = state.longGoals.map(g => {
       const saved = g.saved || 0;
       const pct = g.amount ? Math.min(100, saved / g.amount * 100) : 0;
@@ -1964,8 +2400,8 @@
         <div class="top">
           <button class="check ${g.done ? "on" : ""}" data-toggle="${g.id}" aria-label="Märgi täidetuks" style="margin-top:3px">${ICON_CHECK}</button>
           <div>
-            <div class="title">${esc(g.text)}</div>
-            <div class="meta num">${g.date ? "Tähtaeg " + fmtDate(g.date) : "Tähtajata"}</div>
+            <div class="title" data-no-tr>${esc(g.text)}</div>
+            <div class="meta num">${g.date ? esc(t("Tähtaeg {d}", { d: fmtDate(g.date) })) : esc(t("Tähtajata"))}</div>
           </div>
           ${g.amount ? `<div class="amt num"><b>${euro(saved)}</b><br><span>/ ${euro(g.amount)}</span></div>` : ""}
           <button class="x" data-del="${g.id}" title="Kustuta" style="${g.amount ? "" : "margin-left:auto"}">${ICON_X}</button>
@@ -1973,12 +2409,14 @@
         ${g.amount ? `
           <div class="thin"><div style="width:${pct}%"></div></div>
           <form class="add-inline" data-add="${g.id}">
-            <input type="number" class="num" min="0.01" step="0.01" placeholder="Lisa summa €" required>
+            <input type="number" class="num" min="0.01" step="0.01" placeholder="${esc(t("Lisa summa"))} ${esc(curSym())}" required>
             <button class="btn ghost sm" type="submit">Lisa</button>
           </form>` : ""}
       </div>`;
     }).join("");
+    translateDOM(list);
   }
+
   document.getElementById("longForm").onsubmit = e => {
     e.preventDefault();
     const text = document.getElementById("longText").value.trim();
@@ -1993,7 +2431,7 @@
   const longList = document.getElementById("longList");
   longList.onclick = e => {
     const tg = e.target.closest("[data-toggle]"), dl = e.target.closest("[data-del]");
-    if (tg) { const g = state.longGoals.find(x => x.id === tg.dataset.toggle); g.done = !g.done; }
+    if (tg) { const g = state.longGoals.find(x => x.id === tg.dataset.toggle); g.done = !g.done; if (g.done) sfx.done(); }
     else if (dl) state.longGoals = state.longGoals.filter(x => x.id !== dl.dataset.del);
     else return;
     save(); renderLong();
@@ -2005,10 +2443,317 @@
     if (!(v > 0)) return;
     const g = state.longGoals.find(x => x.id === f.dataset.add);
     g.saved = (g.saved || 0) + v;
+    sfx.coin();
     save(); renderLong();
   };
 
-  renderMoney(); renderShort(); renderLong();
+  // ---------- Meeldetuletused ----------
+  // Brauseri teavitused töötavad siis, kui äpp on brauseris lahti (ka taustal oleval vahelehel).
+  // Staatiline leht ei saa teavitusi saata, kui äpp on täiesti suletud – selleks oleks vaja serverit.
+  let swReg = null;
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").then(r => { swReg = r; }).catch(() => {});
+  }
+  const notifSupported = () => "Notification" in window;
+  async function notify(title, body, tag) {
+    if (notifSupported() && Notification.permission === "granted") {
+      const opts = { body, tag, icon: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#060B06"/><rect x="14" y="14" width="24" height="24" fill="#4ADE80"/><rect x="26" y="26" width="24" height="24" fill="#F87171"/></svg>') };
+      try { const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration()); if (reg) { await reg.showNotification(title, opts); return; } } catch (e) {}
+      try { new Notification(title, opts); return; } catch (e) {}
+    }
+    toast(title + (body ? " – " + body : ""), 7000);       // varuvariant: teade äpi sees
+  }
+  if (!state.remindLog) state.remindLog = {};
+  function checkReminders() {
+    if (!S.remind) return;
+    const today = dateStr(), hm = new Date().toTimeString().slice(0, 5);
+    // 1) Päeva kokkuvõte valitud kellaajal (üks kord päevas).
+    if (state.remindLog.daily !== today && hm >= (S.remindTime || "09:00")) {
+      const open = state.tasks.filter(x => !x.done && x.date === today);
+      const late = state.tasks.filter(x => !x.done && x.date < today);
+      if (open.length || late.length) {
+        const title = open.length ? tn(open.length, "Täna on {n} ülesanne tegemata", "Täna on {n} ülesannet tegemata")
+                                  : tn(late.length, "{n} ülesanne on hiljaks jäänud", "{n} ülesannet on hiljaks jäänud");
+        const body = [...open, ...late].slice(0, 4).map(x => "• " + x.text).join("\n") + (open.length && late.length ? "\n" + tn(late.length, "+ {n} hilinenud", "+ {n} hilinenud") : "");
+        notify(title, body, "daily-" + today);
+      }
+      state.remindLog.daily = today; save();
+    }
+    // 2) Üksikud ülesanded, millele on pandud kellaaeg.
+    state.tasks.filter(x => !x.done && x.time && !x.notified && x.date === today && hm >= x.time).forEach(x => {
+      notify(t("Meeldetuletus"), x.text, "task-" + x.id); x.notified = true; save();
+    });
+  }
+  setInterval(checkReminders, 30 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkReminders(); });
+
+  // ---------- Kontod (Supabase) ----------
+  // Seadistus: rahaeesmark/config.js (vt KONTOD.md). Kui seadistust pole, töötab äpp nagu enne – andmed on ainult selles seadmes.
+  const SB_LOCAL = "rahaEesmarkApp_supabase", SESS = "rahaEesmarkApp_session";
+  const sbConf = () => {
+    const c = window.RAHA_CONFIG || {};
+    let o = {}; try { o = JSON.parse(localStorage.getItem(SB_LOCAL)) || {}; } catch (e) {}
+    const url = (c.supabaseUrl || o.url || "").replace(/\/+$/, ""), key = c.supabaseAnonKey || o.key || "";
+    return url && key ? { url, key, fromFile: !!c.supabaseUrl } : null;
+  };
+  let session = null; try { session = JSON.parse(localStorage.getItem(SESS)); } catch (e) {}
+  const setSession = s => { session = s; try { s ? localStorage.setItem(SESS, JSON.stringify(s)) : localStorage.removeItem(SESS); } catch (e) {} };
+  let syncState = { status: "idle", at: null, error: "" }, lastPushed = null, pushTimer = null;
+
+  async function sb(path, { method = "GET", body, auth = true, headers = {} } = {}, retried) {
+    const c = sbConf(); if (!c) throw new Error(t("Kontod pole seadistatud."));
+    if (auth && session && session.expires_at && Date.now() > session.expires_at * 1000 - 60000) await sbRefresh();
+    const h = { apikey: c.key, "Content-Type": "application/json", ...headers };
+    if (auth && session) h.Authorization = "Bearer " + session.access_token;
+    let r;
+    try { r = await fetch(c.url + path, { method, headers: h, body: body ? JSON.stringify(body) : undefined }); }
+    catch (e) { throw new Error(t("Serveriga ei saanud ühendust.")); }
+    if (r.status === 401 && auth && session && !retried) { await sbRefresh(); return sb(path, { method, body, auth, headers }, true); }
+    const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+    if (!r.ok) {
+      const m = (j && (j.error_description || j.msg || j.message || j.error)) || ("HTTP " + r.status);
+      throw new Error(authError(m));
+    }
+    return j;
+  }
+  function authError(m) {
+    const s = String(m).toLowerCase();
+    if (s.includes("invalid login")) return t("Vale e-post või parool.");
+    if (s.includes("already registered") || s.includes("already exists")) return t("Selle e-postiga konto on juba olemas. Logi sisse.");
+    if (s.includes("email not confirmed")) return t("Kinnita kõigepealt oma e-post (vaata postkasti).");
+    if (s.includes("password") && s.includes("6")) return t("Parool peab olema vähemalt 6 tähemärki.");
+    return m;
+  }
+  async function sbRefresh() {
+    if (!session?.refresh_token) return;
+    try {
+      const j = await sb("/auth/v1/token?grant_type=refresh_token", { method: "POST", auth: false, body: { refresh_token: session.refresh_token } });
+      setSession(withExpiry(j));
+    } catch (e) { setSession(null); renderAccount(); throw e; }
+  }
+  const withExpiry = j => ({ ...j, expires_at: j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600) });
+
+  // Mida sünkroonitakse: kõik andmed peale kiiresti muutuvate hinnaväljade (need laaditakse igas seadmes uuesti).
+  const VOLATILE = ["price", "priceEur", "fx", "change", "dayPct", "prevClose", "quoteTime", "updated", "demo"];
+  function syncPayload() {
+    const d = JSON.parse(JSON.stringify(state));
+    (d.holdings || []).forEach(h => VOLATILE.forEach(k => delete h[k]));
+    delete d.remindLog;
+    return d;
+  }
+  async function pullRemote() {
+    const rows = await sb(`/rest/v1/user_data?select=data,updated_at&user_id=eq.${encodeURIComponent(session.user.id)}`);
+    return rows && rows[0] ? rows[0] : null;
+  }
+  async function pushRemote(force) {
+    if (!session || !sbConf()) return;
+    const data = syncPayload(), str = JSON.stringify(data);
+    if (!force && str === lastPushed) return;
+    syncState = { ...syncState, status: "syncing" }; renderSyncStatus();
+    try {
+      await sb("/rest/v1/user_data", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: [{ user_id: session.user.id, data, updated_at: new Date().toISOString() }] });
+      lastPushed = str; state.syncedAt = Date.now();
+      syncState = { status: "ok", at: Date.now(), error: "" };
+    } catch (e) { syncState = { status: "error", at: syncState.at, error: e.message }; }
+    renderSyncStatus();
+  }
+  const schedulePush = () => { if (!session || !sbConf()) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => pushRemote(), 2500); };
+  function applyRemote(data) {
+    const keepPrices = {}; (state.holdings || []).forEach(h => keepPrices[h.symbol] = h);
+    const loc = { ...S };
+    state = Object.assign({}, defaults, data);
+    state.settings = Object.assign({}, loc, data.settings || {});
+    state.incomes = normalizeIncomes(state.incomes); state.expenses = normalizeIncomes(state.expenses);
+    (state.holdings || []).forEach(h => { const o = keepPrices[h.symbol]; if (o) VOLATILE.forEach(k => { if (o[k] != null) h[k] = o[k]; }); });
+    if (!Array.isArray(state.pfHistory)) state.pfHistory = [];
+    if (!state.remindLog) state.remindLog = {};
+    state.tasks.forEach((tk, i) => { if (tk.order == null) tk.order = i; });
+    lastPushed = JSON.stringify(syncPayload());
+    rebindSettings();
+    localSave(); renderAll(); refreshPrices(true).then(streamSync);
+  }
+  const hasLocalData = () => state.incomes.length || state.expenses.length || state.tasks.length || state.longGoals.length || (state.holdings || []).length;
+  async function afterLogin() {
+    syncState = { status: "syncing", at: null, error: "" }; renderAccount();
+    try {
+      const remote = await pullRemote();
+      if (remote && remote.data) {
+        const useRemote = !hasLocalData() || confirm(t("Sinu kontol on juba andmed.\n\nOK – kasuta konto andmeid (selle seadme andmed asendatakse).\nTühista – laadi selle seadme andmed kontole."));
+        if (useRemote) applyRemote(remote.data); else await pushRemote(true);
+      } else await pushRemote(true);
+      syncState = { status: "ok", at: Date.now(), error: "" };
+    } catch (e) { syncState = { status: "error", at: null, error: e.message }; }
+    renderAccount();
+  }
+  async function startupSync() {
+    if (!session || !sbConf()) return;
+    try {
+      const remote = await pullRemote();
+      const rt = remote ? Date.parse(remote.updated_at) : 0;
+      if (remote && remote.data && rt > (state.syncedAt || 0) + 1000) { applyRemote(remote.data); state.syncedAt = rt; localSave(); syncState = { status: "ok", at: Date.now(), error: "" }; }
+      else await pushRemote();
+    } catch (e) { syncState = { status: "error", at: null, error: e.message }; }
+    renderAccount();
+  }
+
+  // ---------- Seadete leht ----------
+  const CURRENCIES = ["EUR", "USD", "GBP", "SEK", "NOK", "DKK", "CHF", "PLN"];
+  function rebindSettings() {   // S viitab state.settings objektile – värskenda pärast andmete vahetust
+    const fresh = { ...state.settings }; Object.keys(S).forEach(k => delete S[k]); Object.assign(S, fresh); state.settings = S;
+    LOC = S.lang === "en" ? "en-GB" : "et-EE";
+  }
+  function renderSettings() {
+    document.querySelectorAll("#langSel button").forEach(b => b.classList.toggle("on", b.dataset.lang === S.lang));
+    const cs = document.getElementById("curSel");
+    if (!cs.options.length) cs.innerHTML = CURRENCIES.map(c => `<option value="${c}">${c}</option>`).join("");
+    [...cs.options].forEach(o => { let sym = o.value; try { sym = new Intl.NumberFormat(LOC, { style: "currency", currency: o.value }).formatToParts(0).find(p => p.type === "currency").value; } catch (e) {} o.textContent = sym === o.value ? o.value : `${o.value} (${sym})`; });
+    cs.value = S.currency;
+    document.getElementById("setSound").checked = !!S.sound;
+    document.getElementById("setVibrate").checked = !!S.vibrate;
+    document.getElementById("vibNote").hidden = !!navigator.vibrate;
+    document.getElementById("setRemind").checked = !!S.remind;
+    document.getElementById("remindTime").value = S.remindTime || "09:00";
+    document.getElementById("remindTimeRow").hidden = !S.remind;
+    const st = document.getElementById("notifStatus");
+    st.textContent = !notifSupported() ? t("See brauser ei toeta teavitusi – meeldetuletused näidatakse äpi sees.")
+      : Notification.permission === "granted" ? t("Brauseri teavitused on lubatud.")
+      : Notification.permission === "denied" ? t("Teavitused on brauseris keelatud. Luba need brauseri aadressiriba lukuikoonilt – seni näidatakse meeldetuletusi äpi sees.")
+      : S.remind ? t("Brauser küsib luba teavituste saatmiseks.") : "";
+    renderAccount();
+  }
+  document.getElementById("langSel").addEventListener("click", e => {
+    const b = e.target.closest("button[data-lang]"); if (!b || b.dataset.lang === S.lang) return;
+    S.lang = b.dataset.lang; LOC = S.lang === "en" ? "en-GB" : "et-EE"; save(); renderAll();
+  });
+  document.getElementById("curSel").addEventListener("change", e => {
+    const c = e.target.value; if (c === S.currency) return;
+    if (!confirm(t("Muuda valuutaks {c}?\n\nJuba sisestatud summasid ei teisendata – need näidatakse lihtsalt uue valuutaga. Investeeringute hinnad arvutatakse uue valuuta järgi ja portfelli ajaloo graafik alustab uuesti.", { c }))) { e.target.value = S.currency; return; }
+    S.currency = c; state.pfHistory = []; clearPrices(); save(); renderAll(); refreshPrices(true).then(streamSync);
+  });
+  document.getElementById("setSound").addEventListener("change", e => { S.sound = e.target.checked; save(); if (S.sound) sfx.coin(); });
+  document.getElementById("setVibrate").addEventListener("change", e => { S.vibrate = e.target.checked; save(); buzz(30); });
+  document.getElementById("testCoin").onclick = () => sfx.coin();
+  document.getElementById("testDone").onclick = () => sfx.done();
+  document.getElementById("setRemind").addEventListener("change", async e => {
+    S.remind = e.target.checked;
+    if (S.remind && notifSupported() && Notification.permission === "default") { try { await Notification.requestPermission(); } catch (err) {} }
+    save(); renderSettings(); checkReminders();
+  });
+  document.getElementById("remindTime").addEventListener("change", e => {
+    S.remindTime = e.target.value || "09:00";
+    // Kui uus kellaaeg on täna veel ees, tuleb tänane kokkuvõte selleks ajaks uuesti.
+    if (S.remindTime > new Date().toTimeString().slice(0, 5)) state.remindLog.daily = null;
+    save(); checkReminders();
+  });
+  document.getElementById("testNotif").onclick = async () => {
+    if (notifSupported() && Notification.permission === "default") { try { await Notification.requestPermission(); } catch (e) {} renderSettings(); }
+    const open = state.tasks.filter(x => !x.done && x.date === dateStr()).length;
+    notify(tn(open, "Täna on {n} ülesanne tegemata", "Täna on {n} ülesannet tegemata"), t("Nii näeb meeldetuletus välja."), "test");
+  };
+
+  // Konto paneel
+  let authMode = "login";
+  function renderSyncStatus() {
+    const pill = document.getElementById("acctPill");
+    pill.hidden = !sbConf();
+    pill.textContent = session ? t("Sisse logitud") : t("Pole sisse logitud"); pill.className = "mode-pill " + (session ? "live" : "");
+    const el = document.getElementById("syncStatus"); if (!el) return;
+    el.className = "sync-status " + syncState.status;
+    el.textContent = syncState.status === "syncing" ? t("Sünkroonin…")
+      : syncState.status === "error" ? t("Sünkroonimine ebaõnnestus: {e}", { e: syncState.error })
+      : syncState.at ? t("Sünkroonitud {aeg}", { aeg: new Date(syncState.at).toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" }) }) : "";
+  }
+  function renderAccount() {
+    const box = document.getElementById("accountBody"), c = sbConf();
+    if (!c) {
+      box.innerHTML = `
+        <p class="note">${esc(t("Konto abil on sinu andmed turvaliselt pilves ja saad neid kasutada mitmes seadmes. Sõbrad saavad luua oma konto – igaüks näeb ainult enda andmeid."))}</p>
+        <p class="note">${esc(t("Kontode jaoks on vaja tasuta Supabase'i andmebaasi. Lehe omanik seadistab selle ühe korra (umbes 5 minutit) – juhend on failis KONTOD.md."))}</p>
+        <p class="note">${esc(t("Seni hoitakse andmeid ainult selles seadmes."))}</p>
+        <details class="manual"><summary>${esc(t("Mul on Supabase'i andmed – sisesta need siia"))}</summary>
+          <form id="sbForm" style="margin-top:12px">
+            <div class="field"><label for="sbUrl">Project URL</label><input id="sbUrl" type="url" placeholder="https://xxxx.supabase.co" required spellcheck="false"></div>
+            <div class="field"><label for="sbKey">anon public key</label><input id="sbKey" type="text" placeholder="eyJhbGciOi…" required spellcheck="false" autocomplete="off"></div>
+            <button class="btn ghost" type="submit">${esc(t("Salvesta"))}</button>
+            <p class="note" style="margin-top:10px">${esc(t("Need salvestuvad ainult selles seadmes. Et kõik kasutajad saaksid kontot luua, pane need faili config.js."))}</p>
+          </form></details>`;
+    } else if (!session) {
+      box.innerHTML = `
+        <div class="seg-select tabs2" id="authTabs"><button type="button" data-m="login" class="${authMode === "login" ? "on" : ""}">${esc(t("Logi sisse"))}</button><button type="button" data-m="signup" class="${authMode === "signup" ? "on" : ""}">${esc(t("Loo konto"))}</button></div>
+        <form id="authForm" style="margin-top:16px">
+          <div class="field"><label for="authEmail">${esc(t("E-post"))}</label><input id="authEmail" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="authPw">${esc(t("Parool"))}</label><input id="authPw" type="password" minlength="6" autocomplete="${authMode === "signup" ? "new-password" : "current-password"}" required>
+            ${authMode === "signup" ? `<span class="note" style="margin:0">${esc(t("Vähemalt 6 tähemärki."))}</span>` : ""}</div>
+          <button class="btn block" type="submit" id="authBtn">${esc(authMode === "signup" ? t("Loo konto") : t("Logi sisse"))}</button>
+          ${authMode === "login" ? `<button class="link-btn" type="button" id="forgotPw" style="margin-top:12px">${esc(t("Unustasid parooli?"))}</button>` : ""}
+          <div class="inv-msg" id="authMsg"></div>
+        </form>
+        <p class="note" style="margin-top:14px">${esc(t("Kui lood konto, laaditakse selle seadme andmed sinu kontole."))}</p>`;
+    } else {
+      box.innerHTML = `
+        <div class="acct-row"><div class="avatar">${esc((session.user?.email || "?")[0].toUpperCase())}</div>
+          <div><div class="acct-mail">${esc(session.user?.email || "")}</div><div class="sync-status" id="syncStatus"></div></div></div>
+        <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap">
+          <button class="btn ghost sm" type="button" id="syncNow">${esc(t("Sünkrooni kohe"))}</button>
+          <button class="btn ghost sm" type="button" id="logout">${esc(t("Logi välja"))}</button>
+        </div>
+        <p class="note" style="margin-top:14px">${esc(t("Muudatused salvestatakse kontole automaatselt. Finnhubi API võti jääb ainult sellesse seadmesse."))}</p>`;
+    }
+    renderSyncStatus();
+  }
+  document.getElementById("accountBody").addEventListener("click", async e => {
+    const tab = e.target.closest("#authTabs button");
+    if (tab) { authMode = tab.dataset.m; renderAccount(); return; }
+    if (e.target.closest("#logout")) {
+      try { await sb("/auth/v1/logout", { method: "POST" }); } catch (err) {}
+      setSession(null); syncState = { status: "idle", at: null, error: "" }; renderAccount(); toast(t("Logisid välja. Andmed jäid sellesse seadmesse alles.")); return;
+    }
+    if (e.target.closest("#syncNow")) { await pushRemote(true); return; }
+    if (e.target.closest("#forgotPw")) {
+      const email = document.getElementById("authEmail").value.trim();
+      const msg = document.getElementById("authMsg");
+      if (!email) { msg.textContent = t("Sisesta kõigepealt oma e-post."); msg.classList.add("bad"); return; }
+      try { await sb("/auth/v1/recover", { method: "POST", auth: false, body: { email } }); msg.classList.remove("bad"); msg.textContent = t("Saatsime parooli taastamise lingi aadressile {e}.", { e: email }); }
+      catch (err) { msg.classList.add("bad"); msg.textContent = err.message; }
+    }
+  });
+  document.getElementById("accountBody").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (e.target.id === "sbForm") {
+      const url = document.getElementById("sbUrl").value.trim(), key = document.getElementById("sbKey").value.trim();
+      try { localStorage.setItem(SB_LOCAL, JSON.stringify({ url, key })); } catch (err) {}
+      renderAccount(); return;
+    }
+    if (e.target.id !== "authForm") return;
+    const email = document.getElementById("authEmail").value.trim(), password = document.getElementById("authPw").value;
+    const msg = document.getElementById("authMsg"), btn = document.getElementById("authBtn");
+    btn.disabled = true; msg.textContent = ""; msg.classList.remove("bad");
+    try {
+      if (authMode === "signup") {
+        const j = await sb("/auth/v1/signup", { method: "POST", auth: false, body: { email, password } });
+        if (j && j.access_token) { setSession(withExpiry(j)); await afterLogin(); toast(t("Konto loodud!")); }
+        else { msg.textContent = t("Konto loodud! Kinnita oma e-post (vaata postkasti) ja logi siis sisse."); authMode = "login"; }
+      } else {
+        const j = await sb("/auth/v1/token?grant_type=password", { method: "POST", auth: false, body: { email, password } });
+        setSession(withExpiry(j)); await afterLogin(); toast(t("Tere tulemast tagasi!"));
+      }
+    } catch (err) { msg.textContent = err.message; msg.classList.add("bad"); }
+    finally { if (document.body.contains(btn)) btn.disabled = false; }
+  });
+
+  function renderAll() {
+    LOC = S.lang === "en" ? "en-GB" : "et-EE";
+    document.documentElement.lang = S.lang;
+    document.title = t("Eesmärgid");
+    applyCurrencySymbols();
+    renderMoney(); renderShort(); renderLong(); renderSettings();
+    translateDOM(document.body);
+  }
+  window.__schedulePush = schedulePush;
+  renderAll();
+  checkReminders();
+  startupSync();
   // Reaalajas hinnad: uuenda kohe avamisel ja seejärel iga minuti tagant, kui leht on lahti.
   // (Taustal olevat vahelehte ei uuendata, et API päringuid kokku hoida; tagasi tulles uuendatakse kohe.)
   const LIVE_MS = 60 * 1000;
