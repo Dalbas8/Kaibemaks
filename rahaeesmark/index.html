@@ -206,7 +206,16 @@
   @keyframes flashDown { from { background: rgba(248,113,113,.22); } to { background: transparent; } }
   tr.flash-up td { animation: flashUp 1.6s ease-out; }
   tr.flash-down td { animation: flashDown 1.6s ease-out; }
-  @media (prefers-reduced-motion: reduce) { .live-dot, tr.flash-up td, tr.flash-down td { animation: none; } }
+  .pf-table tr.flash-up td, .pf-table tr.flash-down td { animation: none; }
+  .pf-table tr.flash-up td.pc { animation: flashUp .9s ease-out; }
+  .pf-table tr.flash-down td.pc { animation: flashDown .9s ease-out; }
+  @keyframes txtUp { from { color: var(--accent); } to { color: var(--ink); } }
+  @keyframes txtDown { from { color: var(--warm); } to { color: var(--ink); } }
+  .pf-total.tick-up { animation: txtUp 1s ease-out; }
+  .pf-total.tick-down { animation: txtDown 1s ease-out; }
+  .spark { display: block; margin-left: auto; }
+  .pf-table td.trend { width: 100px; vertical-align: middle; }
+  @media (prefers-reduced-motion: reduce) { .live-dot, tr.flash-up td, tr.flash-down td, .pf-table tr td.pc, .pf-total { animation: none !important; } }
   /* ---------- Investeeringud ---------- */
   .head-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .live-status { font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; }
@@ -216,6 +225,9 @@
   .demo-banner b { color: #FCD34D; }
   .demo-banner a { color: var(--accent); }
   .pf-total { font-size: clamp(44px, 7.5vw, 84px); }
+  .pct-box .v.good { color: var(--accent); }
+  .pct-box .v.warm { color: var(--warm); }
+  .pct-box .v:not(.good):not(.warm) { color: var(--ink); }
   .mode-pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border: 1px solid var(--line-strong); color: var(--muted); }
   .mode-pill.live { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .mode-pill.demo { border-color: rgba(252,211,77,.5); color: #FCD34D; }
@@ -347,6 +359,7 @@
     .pf-hero .pct-box { text-align: left; }
     .lbl-long { display: none; }
     .lbl-short { display: inline !important; }
+    .pf-table td.trend { width: 100%; }
     .pf-table td.actions { position: absolute; top: 10px; right: 8px; width: auto; padding: 0; display: flex; }
     .name-t { max-width: none; }
     .pf-table tr.editing { padding: 14px; }
@@ -1192,21 +1205,109 @@
   function applyQuote(h, q) {
     if (h.priceEur && Math.abs(q.price * q.fx - h.priceEur) > 1e-9) lastMoves[h.id] = q.price * q.fx > h.priceEur ? "up" : "down";
     Object.assign(h, { price: q.price, fx: q.fx, priceEur: q.price * q.fx, change: q.change, dayPct: q.dayPct,
-                       quoteTime: q.time, updated: new Date().toISOString(), demo: isDemo() });
+                       prevClose: q.price - (q.change || 0), quoteTime: q.time, updated: new Date().toISOString(), demo: isDemo() });
+    pushHist(h.symbol, q.price);
   }
 
   // Režiimi vahetusel (demo ↔ päris) visatakse vanad hinnad ära, et simuleeritud hind ei jääks kunagi päris hinnaks.
   function clearPrices() {
+    Object.keys(hist).forEach(k => delete hist[k]);
     (state.holdings || []).filter(h => !h.manual).forEach(h => {
-      ["price", "priceEur", "fx", "change", "dayPct", "quoteTime", "updated"].forEach(k => delete h[k]);
+      ["price", "priceEur", "fx", "change", "dayPct", "prevClose", "quoteTime", "updated"].forEach(k => delete h[k]);
       h.demo = isDemo();
     });
     save();
   }
+
+  // ---- Otsevoog: hinnad liiguvad ise ----
+  // Päris režiim: Finnhubi WebSocket saadab iga tehingu kohe (USA börsi lahtiolekuajal, Eesti aja järgi ~16:30–23:00).
+  // Demorežiim: simuleeritud hind liigub iga 1,5 sekundi järel.
+  // Ekraan joonistatakse ümber kuni kord sekundis; localStorage'isse salvestatakse kuni iga 5 sekundi järel.
+  const hist = {};                                   // sümbol → viimased hinnad trendijoone jaoks (ainult mälus)
+  function pushHist(sym, p) { const a = hist[sym] = hist[sym] || []; if (a[a.length - 1] !== p || a.length < 2) a.push(p); if (a.length > 90) a.shift(); }
+  let dirty = false, lastTickAt = 0, ws = null, wsOpen = false, wsSubs = new Set(), wsRetry = 0, wsTimer = null;
+
+  function applyTick(sym, p, t) {
+    let hit = false;
+    (state.holdings || []).forEach(h => {
+      if (h.manual || h.symbol !== sym || !h.fx || !(p > 0)) return;
+      if (h.price && p !== h.price) lastMoves[h.id] = p > h.price ? "up" : "down";
+      h.price = p; h.priceEur = p * h.fx;
+      if (h.prevClose) { h.change = p - h.prevClose; h.dayPct = h.change / h.prevClose * 100; }
+      h.quoteTime = t || Date.now(); h.updated = new Date().toISOString(); h.demo = isDemo();
+      hit = true;
+    });
+    if (hit) { pushHist(sym, p); dirty = true; lastTickAt = Date.now(); }
+  }
+
+  const wantedSymbols = () => new Set((state.holdings || []).filter(h => !h.manual && h.symbol).map(h => h.symbol));
+  function streamSync() {
+    if (isDemo() || document.hidden || !wantedSymbols().size) { streamStop(); return; }
+    if (!ws) { if (!wsTimer) streamStart(); return; }
+    if (!wsOpen) return;
+    const want = wantedSymbols();
+    want.forEach(sym => { if (!wsSubs.has(sym)) { ws.send(JSON.stringify({ type: "subscribe", symbol: sym })); wsSubs.add(sym); } });
+    [...wsSubs].forEach(sym => { if (!want.has(sym)) { ws.send(JSON.stringify({ type: "unsubscribe", symbol: sym })); wsSubs.delete(sym); } });
+  }
+  function streamStart() {
+    let sock;
+    try { sock = new WebSocket("wss://ws.finnhub.io?token=" + encodeURIComponent(getKey())); } catch (e) { return; }
+    ws = sock;
+    sock.onopen = () => { if (ws !== sock) return; wsOpen = true; wsRetry = 0; wsSubs.clear(); streamSync(); renderPfStatus(); };
+    sock.onmessage = e => {
+      let m; try { m = JSON.parse(e.data); } catch (_) { return; }
+      if (m.type !== "trade" || !Array.isArray(m.data)) return;
+      const latest = {};                             // ühest sõnumist võtame iga sümboli viimase tehingu
+      m.data.forEach(d => { if (!latest[d.s] || d.t >= latest[d.s].t) latest[d.s] = d; });
+      Object.values(latest).forEach(d => applyTick(d.s, d.p, d.t));
+    };
+    sock.onclose = () => {
+      if (ws !== sock) return;
+      ws = null; wsOpen = false; wsSubs.clear(); renderPfStatus();
+      if (!isDemo() && !document.hidden) {           // proovi uuesti: 3 s, 6 s, 12 s … kuni 60 s
+        wsTimer = setTimeout(() => { wsTimer = null; streamSync(); }, Math.min(60000, 3000 * 2 ** wsRetry++));
+      }
+    };
+    sock.onerror = () => { try { sock.close(); } catch (_) {} };
+  }
+  function streamStop() {
+    clearTimeout(wsTimer); wsTimer = null;
+    if (ws) { const w = ws; ws = null; wsOpen = false; wsSubs.clear(); try { w.close(); } catch (_) {} }
+  }
+
+  function renderPfStatus() {
+    const priced = (state.holdings || []).filter(h => !h.manual);
+    const el = document.getElementById("pfStatus");
+    if (!priced.length) { el.innerHTML = ""; document.getElementById("pfUpdated").textContent = ""; return; }
+    const lastQuote = Math.max(0, ...priced.map(h => h.quoteTime || 0));
+    const stale = Date.now() - lastQuote > 20 * 60 * 1000;
+    const ticking = Date.now() - lastTickAt < 30000;
+    let off = false, text;
+    if (isDemo()) text = "Demo · hinnad liiguvad reaalajas";
+    else if (wsOpen && ticking) text = "Otsevoog · hinnad liiguvad reaalajas";
+    else if (wsOpen && stale) { off = true; text = "Börs suletud · otsevoog ootab tehinguid"; }
+    else if (wsOpen) text = "Otsevoog ühendatud · ootan tehinguid";
+    else { off = stale; text = stale ? "Börs suletud" : "Uueneb iga minut"; }
+    el.innerHTML = `<span class="live-dot ${off ? "off" : ""}"></span>${text}`;
+    const last = priced.map(h => h.updated).filter(Boolean).sort().pop();
+    document.getElementById("pfUpdated").textContent = last
+      ? "Uuendatud " + new Date(last).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+  }
+
+  // Kui äpp avatakse päris režiimis, aga salvestatud on demohinnad, visatakse need ära.
   if (!isDemo() && (state.holdings || []).some(h => !h.manual && h.demo)) clearPrices();
 
+  function spark(sym) {
+    const a = hist[sym];
+    if (!a || a.length < 2) return `<span class="muted-t">…</span>`;
+    const w = 84, ht = 24, min = Math.min(...a), max = Math.max(...a), r = max - min || 1;
+    const pts = a.map((p, i) => `${(i / (a.length - 1) * w).toFixed(1)},${(ht - 2 - (p - min) / r * (ht - 4)).toFixed(1)}`).join(" ");
+    const up = a[a.length - 1] >= a[0];
+    return `<svg class="spark" viewBox="0 0 ${w} ${ht}" width="${w}" height="${ht}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(${up ? "--accent" : "--warm"})" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  }
+
   // ---- Hindade uuendamine ----
-  let refreshing = false, lastMoves = {};
+  let refreshing = false, lastMoves = {}, prevPfTotal = null;
   async function refreshPrices(silent) {
     const list = (state.holdings || []).filter(h => !h.manual);
     if (!list.length || refreshing) return;
@@ -1235,7 +1336,13 @@
     const pl = withCost.reduce((s, h) => s + holdingValue(h), 0) - cost;
 
     // Koguväärtuse kaart
-    document.getElementById("pfTotal").innerHTML = round2(total).toLocaleString("et-EE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "<small>€</small>";
+    const totEl = document.getElementById("pfTotal");
+    totEl.innerHTML = round2(total).toLocaleString("et-EE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "<small>€</small>";
+    if (prevPfTotal != null && Math.abs(total - prevPfTotal) >= 0.005) {
+      totEl.classList.remove("tick-up", "tick-down"); void totEl.offsetWidth;
+      totEl.classList.add(total > prevPfTotal ? "tick-up" : "tick-down");
+    }
+    prevPfTotal = total;
     const dp = document.getElementById("pfDayPct");
     dp.textContent = dayBase > 0 ? pctStr(dayEur / dayBase * 100) : "–"; dp.className = "v num " + tone(dayEur);
     const dEl = document.getElementById("pfDay");
@@ -1263,14 +1370,7 @@
     const pill = document.getElementById("modePill");
     pill.textContent = demo ? "Demo" : "Päris hinnad"; pill.className = "mode-pill " + (demo ? "demo" : "live");
     if (!demo) { const k = getKey(); document.getElementById("keyMask").textContent = "Võti: " + k.slice(0, 4) + "••••" + k.slice(-3); }
-    const priced = list.filter(h => !h.manual);
-    const last = priced.map(h => h.updated).filter(Boolean).sort().pop();
-    const lastQuote = priced.map(h => h.quoteTime).filter(Boolean).sort().pop();
-    const closed = !demo && lastQuote && Date.now() - lastQuote > 20 * 60 * 1000;
-    document.getElementById("pfStatus").innerHTML = !priced.length ? "" :
-      `<span class="live-dot ${closed ? "off" : ""}"></span>${closed ? "Börs suletud" : demo ? "Demo · uueneb iga minut" : "Reaalajas · uueneb iga minut"}`;
-    document.getElementById("pfUpdated").textContent = last
-      ? "Uuendatud " + new Date(last).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + (closed ? " · viimane börsihind" : "") : "";
+    renderPfStatus();
 
     // Positsioonide tabel
     const table = document.getElementById("pfTable");
@@ -1279,7 +1379,7 @@
     } else {
       const sorted = list.map((h, i) => ({ h, i })).sort((a, b) => holdingValue(b.h) - holdingValue(a.h));
       table.innerHTML = `<table class="pf-table">
-        <thead><tr><th>Sümbol</th><th class="r">Aktsiaid</th><th class="r">Hind</th><th class="r">Väärtus</th><th class="r">24h</th><th class="r">Kasum</th><th></th></tr></thead>
+        <thead><tr><th>Sümbol</th><th class="r">Aktsiaid</th><th class="r">Hind</th><th class="r">Väärtus</th><th class="r">24h</th><th class="r">Trend</th><th class="r">Kasum</th><th></th></tr></thead>
         <tbody>${sorted.map(({ h, i }) => rowHtml(h, state.incomes.length + i, total)).join("")}</tbody></table>`;
     }
     lastMoves = {};
@@ -1298,7 +1398,7 @@
     const share = total > 0 ? v / total * 100 : 0;
     const move = lastMoves[h.id] ? "flash-" + lastMoves[h.id] : "";
     if (editingId === h.id) {
-      return `<tr class="editing"><td colspan="7">
+      return `<tr class="editing"><td colspan="8">
         <form class="edit-row" data-edit-form="${h.id}">
           <b class="num">${esc(h.symbol || h.name)}</b>
           ${h.manual
@@ -1317,9 +1417,10 @@
       <td data-l="Sümbol"><span class="swatch" style="background:${color(colorIdx)}"></span><b class="num tk">${esc(h.symbol || h.name)}</b>
         <div class="sub-t name-t">${esc(h.manual ? "Käsitsi lisatud" : (h.name || ""))}</div></td>
       <td class="r num" data-l="Aktsiaid"><span class="cv">${sharesTxt}</span></td>
-      <td class="r num" data-l="Hind"><span class="cv">${priceTxt}${priceSub}</span></td>
-      <td class="r num" data-l="Väärtus"><span class="cv"><b style="font-weight:600">${euro(round2(v))}</b><div class="sub-t">${share.toFixed(0)}% portfellist</div></span></td>
+      <td class="r num pc" data-l="Hind"><span class="cv">${priceTxt}${priceSub}</span></td>
+      <td class="r num pc" data-l="Väärtus"><span class="cv"><b style="font-weight:600">${euro(round2(v))}</b><div class="sub-t">${share.toFixed(0)}% portfellist</div></span></td>
       <td class="r num" data-l="24h"><span class="cv">${day}</span></td>
+      <td class="r trend" data-l="Trend"><span class="cv">${h.manual ? "–" : spark(h.symbol)}</span></td>
       <td class="r num" data-l="Kasum"><span class="cv">${plTxt}</span></td>
       <td class="r actions">
         <button class="x" data-pf-edit="${h.id}" title="Muuda" aria-label="Muuda">${ICON_EDIT}</button>
@@ -1364,6 +1465,7 @@
     if (!(shares > 0)) return pfMsg("Aktsiate arv peab olema suurem kui 0.", true);
     if (avg != null && !(avg >= 0)) return pfMsg("Ostuhind ei saa olla negatiivne.", true);
     const btn = document.getElementById("pfAddBtn"); btn.disabled = true; btn.textContent = "Laen hinda…"; pfMsg("");
+    clearTimeout(sugTimer); sugSeq++; sugBox.hidden = true;
     try {
       const existing = state.holdings.find(h => !h.manual && h.symbol === symbol);
       if (existing) {
@@ -1381,6 +1483,7 @@
         const h = { id: uid(), symbol, name: prof.name, currency: prof.currency, shares, avgPrice: avg, added: dateStr() };
         applyQuote(h, q);
         state.holdings.push(h);
+        streamSync();
         pfMsg(`${symbol} lisatud${isDemo() ? " (demohind)" : ""}.`);
       }
       save(); e.target.reset(); renderMoney();
@@ -1408,7 +1511,7 @@
     else if (del) {
       const h = state.holdings.find(x => x.id === del.dataset.pfDel);
       if (!confirm(`Eemaldada ${h.symbol || h.name} portfellist?`)) return;
-      state.holdings = state.holdings.filter(x => x !== h); save(); renderMoney();
+      state.holdings = state.holdings.filter(x => x !== h); save(); renderMoney(); streamSync();
     }
   });
   pfTable.addEventListener("submit", e => {
@@ -1435,15 +1538,15 @@
     const k = document.getElementById("keyInput").value.trim();
     if (!k) return;
     setKey(k); document.getElementById("keyInput").value = "";
-    clearPrices(); renderMoney(); refreshPrices(false);
+    clearPrices(); streamStop(); renderMoney(); refreshPrices(false).then(streamSync);
   };
   document.getElementById("keyChange").onclick = () => {
     const k = prompt("Uus Finnhubi API võti:", "");
-    if (k && k.trim()) { setKey(k.trim()); clearPrices(); renderMoney(); refreshPrices(false); }
+    if (k && k.trim()) { setKey(k.trim()); clearPrices(); streamStop(); renderMoney(); refreshPrices(false).then(streamSync); }
   };
   document.getElementById("keyRemove").onclick = () => {
     if (!confirm("Eemaldada API võti? Äpp läheb demorežiimi ja investeeringud ei lähe enam eesmärgi arvestusse.")) return;
-    setKey(""); clearPrices(); renderMoney(); refreshPrices(true);
+    setKey(""); clearPrices(); streamStop(); renderMoney(); refreshPrices(true);
   };
   document.getElementById("pfRefresh").onclick = () => refreshPrices(false);
   document.getElementById("toApi").onclick = e => { e.preventDefault(); document.getElementById("apiPanel").scrollIntoView({ behavior: "smooth" }); document.getElementById("keyInput").focus({ preventScroll: true }); };
@@ -1565,11 +1668,31 @@
   // (Taustal olevat vahelehte ei uuendata, et API päringuid kokku hoida; tagasi tulles uuendatakse kohe.)
   const LIVE_MS = 60 * 1000;
   const lastUpdate = () => Math.max(0, ...(state.holdings || []).filter(h => !h.manual && h.updated).map(h => +new Date(h.updated)));
-  refreshPrices(true);
+  refreshPrices(true).then(streamSync);
   setInterval(() => { if (!document.hidden) refreshPrices(true); }, LIVE_MS);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && Date.now() - lastUpdate() > LIVE_MS - 2000) refreshPrices(true);
+    if (document.hidden) { streamStop(); return; }
+    streamSync();
+    if (Date.now() - lastUpdate() > LIVE_MS - 2000) refreshPrices(true);
   });
+
+  // Demorežiimis liigub simuleeritud hind iga 1,5 sekundi järel.
+  setInterval(() => {
+    if (!isDemo() || document.hidden) return;
+    (state.holdings || []).filter(h => !h.manual && h.fx && demoState[h.symbol]).forEach(h => {
+      const d = demoState[h.symbol]; d.c *= 1 + (Math.random() - 0.5) * 0.003;
+      applyTick(h.symbol, d.c, Date.now());
+    });
+  }, 1500);
+
+  // Joonista muutused ekraanile kuni kord sekundis (mitte siis, kui kasutaja parasjagu rida muudab).
+  let lastSave = 0;
+  setInterval(() => {
+    const busy = editingId !== null || document.getElementById("pfTable").contains(document.activeElement);
+    if (dirty && !document.hidden && !busy) { dirty = false; renderMoney(); }
+    if (lastTickAt > lastSave && Date.now() - lastSave > 5000) { lastSave = Date.now(); save(); }
+    renderPfStatus();
+  }, 1000);
 </script>
 </body>
 </html>
