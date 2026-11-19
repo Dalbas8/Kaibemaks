@@ -265,6 +265,17 @@
   .key-mask { font-size: 13px; color: var(--ink-2); }
   .opt { color: var(--muted); font-weight: 400; }
   .mode-pill[hidden] { display: none; }
+  .rank { min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: var(--accent-soft); color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+  .goal-card.done .rank { background: transparent; color: var(--muted); }
+  .goal-card .top { align-items: flex-start; }
+  .goal-card .top .grip { margin-left: -8px; }
+  .goal-card .thin, .goal-card .add-inline { margin-left: 72px; }
+  .pf-table .grip { margin: 0 4px 0 -8px; vertical-align: middle; height: 22px; }
+  .grip-sp { display: inline-block; width: 18px; }
+  .head-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+  .drag-label { padding: 10px 14px; font-weight: 600; font-size: 14px; }
+  tr.drag-src { opacity: .35; }
+  .goal-card.drag-src { opacity: .35; }
   .count-h { color: var(--muted); font-weight: 500; }
   .chart-top { flex-wrap: wrap; gap: 10px; }
   .range-sel { display: inline-flex; border: 1px solid var(--line-strong); }
@@ -415,6 +426,8 @@
     .pf-table tr:last-child { border-bottom: none; }
     .pf-table td { border: none; padding: 3px 0; text-align: left !important; display: flex; justify-content: space-between; gap: 12px; }
     .pf-table td:first-child { display: block; padding-right: 64px; margin-bottom: 6px; }
+    .pf-table .grip { margin-left: -6px; }
+    .goal-card .thin, .goal-card .add-inline { margin-left: 0; }
     .pf-table td[data-l]:not(:first-child)::before { content: attr(data-l); color: var(--muted); font-size: 12px; }
     .pf-table .cv { text-align: right; }
     .pf-table .cv .sub-t { display: inline; margin-left: 6px; }
@@ -804,7 +817,7 @@
 
       <!-- Positsioonid -->
       <div class="panel" style="margin-top:20px">
-        <div class="panel-head"><h2>Positsioonid <span class="num count-h" id="pfCount"></span></h2><span class="head-note num" id="pfUpdated"></span></div>
+        <div class="panel-head"><h2>Positsioonid <span class="num count-h" id="pfCount"></span></h2><span class="head-right"><button class="link-btn" type="button" id="pfSortValue">Järjesta väärtuse järgi</button><span class="head-note num" id="pfUpdated"></span></span></div>
         <div id="pfTable"></div>
       </div>
 
@@ -1072,6 +1085,7 @@
     "Lisa ülesanne": "Add task", "Ülesanded": "Tasks", "Eemalda tehtud": "Remove completed",
     "Ülesandeid pole. Lisa, mida pead homme tegema.": "No tasks. Add something you need to do tomorrow.",
     "Märgi tehtuks": "Mark as done", "Lohista järjekorra muutmiseks": "Drag to reorder",
+    "Lohista tähtsuse järjekorra muutmiseks": "Drag to reorder by importance", "Tähtsus": "Priority", "Järjesta väärtuse järgi": "Sort by value",
     "Lülita seadetes meeldetuletused sisse, et saada teavitus.": "Turn on reminders in Settings to get a notification.",
 
     // Tuleviku eesmärgid
@@ -2070,9 +2084,9 @@
     if (!list.length) {
       table.innerHTML = `<div class="empty">Portfell on tühi. Lisa aktsia sümboli ja kogusega, nt <b class="num">AAPL</b> · <b class="num">2</b> tk.</div>`;
     } else {
-      const sorted = list.map((h, i) => ({ h, i })).sort((a, b) => holdingValue(b.h) - holdingValue(a.h));
+      const sorted = list.map((h, i) => ({ h, i }));      // kasutaja järjekord (lohistades); "Järjesta väärtuse järgi" sorteerib ühe korra
       table.innerHTML = `<table class="pf-table">
-        <thead><tr><th>Sümbol</th><th class="r">Aktsiaid</th><th class="r">Hind</th><th class="r">Väärtus</th><th class="r">24h</th><th class="r">Trend</th><th class="r">Kasum</th><th></th></tr></thead>
+        <thead><tr><th><span class="grip-sp"></span>Sümbol</th><th class="r">Aktsiaid</th><th class="r">Hind</th><th class="r">Väärtus</th><th class="r">24h</th><th class="r">Trend</th><th class="r">Kasum</th><th></th></tr></thead>
         <tbody>${sorted.map(({ h, i }) => rowHtml(h, state.incomes.length + i, total)).join("")}</tbody></table>`;
     }
     lastMoves = {};
@@ -2107,8 +2121,8 @@
     const priceSub = !h.manual && h.currency && h.currency !== S.currency && h.price ? `<div class="sub-t">${money(h.price, h.currency)}</div>` : "";
     const day = h.manual || typeof h.dayPct !== "number" ? "–" : `<span class="${tone(h.dayPct)}">${pctStr(h.dayPct)}</span>`;
     const plTxt = pl == null ? `<span class="muted-t">–</span>` : `<span class="${tone(pl)}">${signed(pl, x => euro(round2(x)))}</span>${c > 0 ? `<div class="sub-t ${tone(pl)}">${pctStr(pl / c * 100)}</div>` : ""}`;
-    return `<tr class="${move}">
-      <td data-l="Sümbol"><span class="swatch" style="background:${color(colorIdx)}"></span><b class="num tk">${esc(h.symbol || h.name)}</b>
+    return `<tr class="${move}" data-id="${h.id}">
+      <td data-l="Sümbol"><button class="grip" type="button" data-grip aria-label="${esc(t("Lohista tähtsuse järjekorra muutmiseks"))}" title="${esc(t("Lohista tähtsuse järjekorra muutmiseks"))}">${ICON_GRIP}</button><span class="swatch" style="background:${color(colorIdx)}"></span><b class="num tk">${esc(h.symbol || h.name)}</b>
         <div class="sub-t name-t">${esc(h.manual ? "Käsitsi lisatud" : (h.name || ""))}</div></td>
       <td class="r num" data-l="Aktsiaid"><span class="cv">${sharesTxt}</span></td>
       <td class="r num pc" data-l="Hind"><span class="cv">${priceTxt}${priceSub}</span></td>
@@ -2211,7 +2225,15 @@
   // ---- Muutmine ja kustutamine ----
   let editingId = null;
   const pfTable = document.getElementById("pfTable");
+  const pfSort = makeSortable(pfTable, {
+    item: "tr[data-id]", label: el => el.querySelector(".tk")?.textContent || "",
+    onCommit: order => { state.holdings = reorderBy(state.holdings, order); save(); renderMoney(); }
+  });
+  document.getElementById("pfSortValue").onclick = () => {
+    state.holdings.sort((a, b) => holdingValue(b) - holdingValue(a)); save(); renderMoney();
+  };
   pfTable.addEventListener("click", e => {
+    if (pfSort.justEnded) return;
     const ed = e.target.closest("[data-pf-edit]"), del = e.target.closest("[data-pf-del]"), cancel = e.target.closest("[data-cancel]");
     if (ed) { editingId = ed.dataset.pfEdit; renderInvest(); pfTable.querySelector(".edit-row input")?.focus(); }
     else if (cancel) { editingId = null; renderInvest(); }
@@ -2261,6 +2283,59 @@
   document.getElementById("pfRefresh").onclick = () => refreshPrices(false);
   document.getElementById("toApi").onclick = e => { e.preventDefault(); document.getElementById("apiPanel").scrollIntoView({ behavior: "smooth" }); document.getElementById("keyInput").focus({ preventScroll: true }); };
 
+
+
+  // ---------- Lohistatav loend (tuleviku eesmärgid, investeeringud) ----------
+  // Lohista käepidemest (⋮⋮) hiire, sõrme või pliiatsiga; klaviatuuril käepide fookusesse ja ↑/↓.
+  function makeSortable(container, { item, label, onCommit }) {
+    let d = null, justEnded = false;
+    const ids = () => [...container.querySelectorAll(item)].map(x => x.dataset.id);
+    container.addEventListener("pointerdown", e => {
+      const g = e.target.closest("[data-grip]"); if (!g || e.button > 0) return;
+      const el = g.closest(item); if (!el) return;
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      let ghost;
+      if (el.tagName === "TR") { ghost = document.createElement("div"); ghost.className = "drag-ghost drag-label"; ghost.textContent = label(el); }
+      else { ghost = el.cloneNode(true); ghost.classList.add("drag-ghost"); ghost.removeAttribute("data-id"); }
+      Object.assign(ghost.style, { width: (el.tagName === "TR" ? Math.min(r.width, 360) : r.width) + "px", left: r.left + "px", top: r.top + "px" });
+      document.body.appendChild(ghost);
+      el.classList.add("drag-src");
+      d = { el, ghost, offY: e.clientY - r.top, startY: e.clientY, moved: false };
+      g.setPointerCapture(e.pointerId);
+    });
+    container.addEventListener("pointermove", e => {
+      if (!d) return;
+      d.ghost.style.top = (e.clientY - d.offY) + "px";
+      if (Math.abs(e.clientY - d.startY) > 3) d.moved = true;
+      const parent = d.el.parentElement;
+      const sibs = [...parent.children].filter(x => x !== d.el && x.matches(item));
+      const before = sibs.find(x => { const b = x.getBoundingClientRect(); return e.clientY < b.top + b.height / 2; });
+      if (before) parent.insertBefore(d.el, before); else if (sibs.length) sibs[sibs.length - 1].after(d.el);
+      if (e.clientY < 60) window.scrollBy(0, -12); else if (e.clientY > innerHeight - 60) window.scrollBy(0, 12);
+    });
+    const end = () => {
+      if (!d) return;
+      d.ghost.remove(); d.el.classList.remove("drag-src");
+      if (d.moved) { onCommit(ids()); justEnded = true; setTimeout(() => justEnded = false, 50); }
+      d = null;
+    };
+    container.addEventListener("pointerup", end);
+    container.addEventListener("pointercancel", end);
+    container.addEventListener("keydown", e => {
+      const g = e.target.closest("[data-grip]"); if (!g || !["ArrowUp", "ArrowDown"].includes(e.key)) return;
+      e.preventDefault();
+      const el = g.closest(item), id = el.dataset.id;
+      const sib = e.key === "ArrowUp" ? el.previousElementSibling : el.nextElementSibling;
+      if (!sib || !sib.matches(item)) return;
+      if (e.key === "ArrowUp") sib.before(el); else sib.after(el);
+      onCommit(ids());
+      container.querySelector(`${item}[data-id="${id}"] [data-grip]`)?.focus();
+    });
+    return { get justEnded() { return justEnded; } };
+  }
+  // Järjesta massiiv uue id-järjekorra järgi (puuduvad jäävad lõppu).
+  const reorderBy = (arr, order) => order.map(id => arr.find(x => x.id === id)).filter(Boolean).concat(arr.filter(x => !order.includes(x.id)));
 
   // ---------- Lühiaja eesmärgid ----------
   let when = "1";
@@ -2392,12 +2467,17 @@
     document.getElementById("longCount").textContent = state.longGoals.filter(g => !g.done).length || "";
     const list = document.getElementById("longList");
     if (!state.longGoals.length) { list.innerHTML = `<div class="empty">Lisa oma esimene tuleviku eesmärk.</div>`; translateDOM(list); return; }
-    list.innerHTML = state.longGoals.map(g => {
+    const ordered = [...state.longGoals.filter(g => !g.done), ...state.longGoals.filter(g => g.done)];
+    let rank = 0;
+    list.innerHTML = ordered.map(g => {
       const saved = g.saved || 0;
+      if (!g.done) rank++;
       const pct = g.amount ? Math.min(100, saved / g.amount * 100) : 0;
       return `
-      <div class="goal-card ${g.done ? "done" : ""}">
+      <div class="goal-card ${g.done ? "done" : ""}" data-id="${g.id}">
         <div class="top">
+          <button class="grip" type="button" data-grip aria-label="${esc(t("Lohista tähtsuse järjekorra muutmiseks"))}" title="${esc(t("Lohista tähtsuse järjekorra muutmiseks"))}" style="margin-top:1px">${ICON_GRIP}</button>
+          <span class="rank num" title="${esc(t("Tähtsus"))}">${g.done ? "✓" : rank}</span>
           <button class="check ${g.done ? "on" : ""}" data-toggle="${g.id}" aria-label="Märgi täidetuks" style="margin-top:3px">${ICON_CHECK}</button>
           <div>
             <div class="title" data-no-tr>${esc(g.text)}</div>
@@ -2429,7 +2509,12 @@
     save(); e.target.reset(); renderLong();
   };
   const longList = document.getElementById("longList");
+  const longSort = makeSortable(longList, {
+    item: ".goal-card", label: el => el.querySelector(".title")?.textContent || "",
+    onCommit: order => { state.longGoals = reorderBy(state.longGoals, order); save(); renderLong(); }
+  });
   longList.onclick = e => {
+    if (longSort.justEnded) return;
     const tg = e.target.closest("[data-toggle]"), dl = e.target.closest("[data-del]");
     if (tg) { const g = state.longGoals.find(x => x.id === tg.dataset.toggle); g.done = !g.done; if (g.done) sfx.done(); }
     else if (dl) state.longGoals = state.longGoals.filter(x => x.id !== dl.dataset.del);
