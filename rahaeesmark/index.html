@@ -276,6 +276,19 @@
   .drag-label { padding: 10px 14px; font-weight: 600; font-size: 14px; }
   tr.drag-src { opacity: .35; }
   .goal-card.drag-src { opacity: .35; }
+  .grp-right { display: inline-flex; align-items: center; gap: 14px; }
+  .group .bulk { font-size: 11px; text-transform: none; letter-spacing: 0; color: var(--accent); text-decoration-color: rgba(74,222,128,.4); }
+  .group.late .bulk { color: var(--warm); text-decoration-color: rgba(248,113,113,.4); }
+  .x.later:hover { color: var(--accent); }
+  .moved { color: var(--c4, #FCD34D); }
+  .pop { position: absolute; z-index: 40; min-width: 230px; background: var(--panel-head); border: 1px solid var(--line-strong); box-shadow: 0 10px 30px rgba(0,0,0,.5); padding: 6px 0; }
+  .pop[hidden] { display: none; }
+  .pop-h { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 6px 14px 8px; }
+  .pop button[data-days] { all: unset; box-sizing: border-box; cursor: pointer; display: flex; justify-content: space-between; gap: 16px; width: 100%; padding: 9px 14px; font-size: 14px; color: var(--ink); }
+  .pop button[data-days] .num { color: var(--muted); font-size: 12px; }
+  .pop button[data-days]:hover, .pop button[data-days]:focus-visible { background: var(--accent-soft); }
+  .pop-date { display: flex; gap: 8px; padding: 8px 14px 6px; border-top: 1px solid var(--line); margin-top: 4px; }
+  .pop-date input { padding: 6px 8px; font-size: 13px; }
   .count-h { color: var(--muted); font-weight: 500; }
   .chart-top { flex-wrap: wrap; gap: 10px; }
   .range-sel { display: inline-flex; border: 1px solid var(--line-strong); }
@@ -933,8 +946,10 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h2>Meeldetuletused</h2></div>
+          <div class="panel-head"><h2>Ülesanded ja meeldetuletused</h2></div>
           <div class="panel-body">
+            <label class="switch-row"><span><b>Tõsta hilinenud ülesanded tänasesse</b><span class="note">Tegemata jäänud ülesanded liiguvad uuel päeval automaatselt tänase alla.</span></span>
+              <input type="checkbox" class="switch" id="setAutoRoll"></label>
             <label class="switch-row"><span><b>Brauseri teavitused</b><span class="note">Näiteks „Täna on 2 ülesannet tegemata“ ja teavitus ülesande kellaajal.</span></span>
               <input type="checkbox" class="switch" id="setRemind"></label>
             <div class="field" id="remindTimeRow">
@@ -1085,7 +1100,13 @@
     "Lisa ülesanne": "Add task", "Ülesanded": "Tasks", "Eemalda tehtud": "Remove completed",
     "Ülesandeid pole. Lisa, mida pead homme tegema.": "No tasks. Add something you need to do tomorrow.",
     "Märgi tehtuks": "Mark as done", "Lohista järjekorra muutmiseks": "Drag to reorder",
-    "Lohista tähtsuse järjekorra muutmiseks": "Drag to reorder by importance", "Tähtsus": "Priority", "Järjesta väärtuse järgi": "Sort by value",
+    "Lohista tähtsuse järjekorra muutmiseks": "Drag to reorder by importance",
+    "Lükka edasi": "Postpone", "Tõsta kõik tänasesse": "Move all to today", "Lükka tegemata homsesse": "Move unfinished to tomorrow",
+    "Nädala pärast": "In a week", "Vali kuupäev": "Pick a date", "Vali": "Set", "Mitu korda edasi lükatud": "Times postponed",
+    "{n} ülesanne → {d}": v => `${v.n} task → ${v.d}`, "{n} ülesannet → {d}": v => `${v.n} tasks → ${v.d}`,
+    "{n} hilinenud ülesanne tõsteti tänasesse.": "{n} overdue task was moved to today.", "{n} hilinenud ülesannet tõsteti tänasesse.": "{n} overdue tasks were moved to today.",
+    "Ülesanded ja meeldetuletused": "Tasks and reminders", "Tõsta hilinenud ülesanded tänasesse": "Move overdue tasks to today",
+    "Tegemata jäänud ülesanded liiguvad uuel päeval automaatselt tänase alla.": "Unfinished tasks automatically move to today when a new day starts.", "Tähtsus": "Priority", "Järjesta väärtuse järgi": "Sort by value",
     "Lülita seadetes meeldetuletused sisse, et saada teavitus.": "Turn on reminders in Settings to get a notification.",
 
     // Tuleviku eesmärgid
@@ -2347,6 +2368,7 @@
     document.getElementById("dateField").style.display = when === "custom" ? "flex" : "none";
   };
   const ICON_GRIP = '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5.5" cy="3.5" r="1.3"/><circle cx="10.5" cy="3.5" r="1.3"/><circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/><circle cx="5.5" cy="12.5" r="1.3"/><circle cx="10.5" cy="12.5" r="1.3"/></svg>';
+  const ICON_LATER = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="3" width="9" height="9.5"/><path d="M1.5 6h9M4 1.5v3M8 1.5v3"/><path d="M10.5 9.5h4M12.5 7.5l2 2-2 2"/></svg>';
   const ICON_BELL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" width="11" height="11" style="vertical-align:-1px;margin-right:4px"><path d="M4 11V7a4 4 0 0 1 8 0v4l1 1.5H3zM6.5 14a1.5 1.5 0 0 0 3 0"/></svg>';
   // Järjekord: iga ülesanne kannab välja "order"; vanadel andmetel seda pole, siis jääb lisamise järjekord.
   state.tasks.forEach((tk, i) => { if (tk.order == null) tk.order = i; });
@@ -2365,13 +2387,25 @@
       const items = groups[k].sort(byOrder);
       const label = k === "late" ? t("Hilinenud") : dayLabel(k);
       const right = k === "late" ? "" : fmtDate(k);
+      const openN = items.filter(x => !x.done).length;
+      // Kiirnupp päise juures: hilinenud → tänasesse, tänased tegemata → homsesse.
+      const bulk = !openN ? "" : k === "late"
+        ? `<button class="link-btn bulk" type="button" data-bulk="late">${esc(t("Tõsta kõik tänasesse"))}</button>`
+        : k === today ? `<button class="link-btn bulk" type="button" data-bulk="today">${esc(t("Lükka tegemata homsesse"))}</button>` : "";
       return `<div class="task-group" data-date="${k}">
-        <div class="group ${k === "late" ? "late" : ""}"><span>${esc(label)}</span><span class="num">${right}</span></div>` +
+        <div class="group ${k === "late" ? "late" : ""}"><span>${esc(label)}</span><span class="grp-right">${bulk}<span class="num">${right}</span></span></div>` +
         items.map(x => `
           <div class="item ${x.done ? "done" : ""}" data-id="${x.id}">
             <button class="grip" type="button" data-grip aria-label="${esc(t("Lohista järjekorra muutmiseks"))}" title="${esc(t("Lohista järjekorra muutmiseks"))}">${ICON_GRIP}</button>
             <button class="check ${x.done ? "on" : ""}" data-toggle="${x.id}" aria-label="${esc(t("Märgi tehtuks"))}">${ICON_CHECK}</button>
-            <div class="t"><div data-no-tr>${esc(x.text)}</div>${k === "late" || x.time ? `<div class="s num">${k === "late" ? fmtDate(x.date) : ""}${k === "late" && x.time ? " · " : ""}${x.time ? ICON_BELL + x.time : ""}</div>` : ""}</div>
+            <div class="t"><div data-no-tr>${esc(x.text)}</div>${(() => {
+              const bits = [];
+              if (k === "late") bits.push(fmtDate(x.date));
+              if (x.time) bits.push(ICON_BELL + x.time);
+              if (x.moved) bits.push(`<span class="moved" title="${esc(t("Mitu korda edasi lükatud"))}">↷ ${x.moved}×</span>`);
+              return bits.length ? `<div class="s num">${bits.join(" · ")}</div>` : "";
+            })()}</div>
+            ${x.done ? "" : `<button class="x later" type="button" data-later="${x.id}" title="${esc(t("Lükka edasi"))}" aria-label="${esc(t("Lükka edasi"))}" aria-haspopup="menu">${ICON_LATER}</button>`}
             <button class="x" data-del="${x.id}" title="${esc(t("Kustuta"))}">${ICON_X}</button>
           </div>`).join("") + `</div>`;
     }).join("");
@@ -2401,6 +2435,75 @@
     save(); renderShort();
   };
   document.getElementById("clearDone").onclick = () => { state.tasks = state.tasks.filter(x => !x.done); save(); renderShort(); };
+
+  // ---- Edasilükkamine ----
+  // Liigutab ülesanded uuele kuupäevale (selle päeva lõppu) ja loeb, mitu korda neid on edasi lükatud.
+  function moveTasks(ids, date, quiet) {
+    let order = Math.max(-1, ...state.tasks.filter(x => x.date === date).map(x => x.order)) + 1;
+    const moved = state.tasks.filter(x => ids.includes(x.id) && x.date !== date);
+    moved.forEach(x => { if (date > x.date) x.moved = (x.moved || 0) + 1; x.date = date; x.order = order++; x.notified = false; });
+    if (!moved.length) return 0;
+    save(); renderShort();
+    if (!quiet) toast(tn(moved.length, "{n} ülesanne → {d}", "{n} ülesannet → {d}", { d: dayLabel(date) + " (" + fmtDate(date) + ")" }));
+    return moved.length;
+  }
+  const pop = document.createElement("div");
+  pop.className = "pop"; pop.id = "laterPop"; pop.setAttribute("role", "menu"); pop.hidden = true;
+  document.body.appendChild(pop);
+  let popFor = null, popBtn = null;
+  function closePop() { pop.hidden = true; popFor = null; if (popBtn) popBtn.setAttribute("aria-expanded", "false"); }
+  function openPop(btn, id) {
+    const x = state.tasks.find(y => y.id === id); if (!x) return;
+    popFor = id; popBtn = btn; btn.setAttribute("aria-expanded", "true");
+    const today = dateStr(), opts = [];
+    if (x.date < today) opts.push([0, t("Täna")]);
+    opts.push([1, t("Homme")], [2, t("Ülehomme")], [7, t("Nädala pärast")]);
+    pop.innerHTML = `<div class="pop-h">${esc(t("Lükka edasi"))}</div>` +
+      opts.filter(([d]) => dateStr(d) !== x.date).map(([d, lbl]) => `<button type="button" role="menuitem" data-days="${d}"><span>${esc(lbl)}</span><span class="num">${fmtDate(dateStr(d))}</span></button>`).join("") +
+      `<form class="pop-date" data-pick><input type="date" min="${today}" value="${dateStr(1)}" aria-label="${esc(t("Vali kuupäev"))}" required><button class="btn sm" type="submit">${esc(t("Vali"))}</button></form>`;
+    pop.hidden = false;
+    const r = btn.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = Math.min(innerWidth - pw - 8, Math.max(8, r.right - pw)), top = r.bottom + 6;
+    if (top + ph > innerHeight - 8) top = Math.max(8, r.top - ph - 6);
+    Object.assign(pop.style, { left: left + scrollX + "px", top: top + scrollY + "px" });
+    pop.querySelector("button")?.focus();
+  }
+  pop.addEventListener("click", e => {
+    const b = e.target.closest("button[data-days]"); if (!b || !popFor) return;
+    const id = popFor; closePop(); moveTasks([id], dateStr(parseInt(b.dataset.days)));
+  });
+  pop.addEventListener("submit", e => {
+    e.preventDefault(); const v = pop.querySelector("input[type=date]").value; if (!v || !popFor) return;
+    const id = popFor; closePop(); moveTasks([id], v);
+  });
+  pop.addEventListener("keydown", e => {
+    if (e.key === "Escape") { const b = popBtn; closePop(); b?.focus(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      const items = [...pop.querySelectorAll("button[data-days]")], i = items.indexOf(document.activeElement);
+      if (i >= 0) { e.preventDefault(); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
+    }
+  });
+  document.addEventListener("pointerdown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest("[data-later]")) closePop(); });
+  window.addEventListener("resize", closePop);
+  shortList.addEventListener("click", e => {
+    const l = e.target.closest("[data-later]");
+    if (l) { e.stopPropagation(); if (popFor === l.dataset.later) closePop(); else openPop(l, l.dataset.later); return; }
+    const bk = e.target.closest("[data-bulk]");
+    if (bk) {
+      const today = dateStr();
+      if (bk.dataset.bulk === "late") moveTasks(state.tasks.filter(x => !x.done && x.date < today).map(x => x.id), today);
+      else moveTasks(state.tasks.filter(x => !x.done && x.date === today).map(x => x.id), dateStr(1));
+    }
+  }, true);
+
+  // Automaatne: hilinenud tegemata ülesanded tõstetakse tänasesse (kui seadetes sisse lülitatud).
+  function autoRoll() {
+    if (!S.autoRoll) return;
+    const today = dateStr(), late = state.tasks.filter(x => !x.done && x.date < today).map(x => x.id);
+    if (!late.length) return;
+    moveTasks(late, today, true);
+    toast(tn(late.length, "{n} hilinenud ülesanne tõsteti tänasesse.", "{n} hilinenud ülesannet tõsteti tänasesse."));
+  }
 
   // ---- Lohistamine (hiir, puute- ja pliiatsiekraan) ----
   // Lohista ülesannet käepidemest (⋮⋮). Teise päeva alla lohistades muutub ka ülesande kuupäev.
@@ -2569,8 +2672,8 @@
       notify(t("Meeldetuletus"), x.text, "task-" + x.id); x.notified = true; save();
     });
   }
-  setInterval(checkReminders, 30 * 1000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkReminders(); });
+  setInterval(() => { autoRoll(); checkReminders(); }, 30 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { autoRoll(); checkReminders(); } });
 
   // ---------- Kontod (Supabase) ----------
   // Seadistus: rahaeesmark/config.js (vt KONTOD.md). Kui seadistust pole, töötab äpp nagu enne – andmed on ainult selles seadmes.
@@ -2698,6 +2801,7 @@
     document.getElementById("setVibrate").checked = !!S.vibrate;
     document.getElementById("vibNote").hidden = !!navigator.vibrate;
     document.getElementById("setRemind").checked = !!S.remind;
+    document.getElementById("setAutoRoll").checked = !!S.autoRoll;
     document.getElementById("remindTime").value = S.remindTime || "09:00";
     document.getElementById("remindTimeRow").hidden = !S.remind;
     const st = document.getElementById("notifStatus");
@@ -2716,6 +2820,7 @@
     if (!confirm(t("Muuda valuutaks {c}?\n\nJuba sisestatud summasid ei teisendata – need näidatakse lihtsalt uue valuutaga. Investeeringute hinnad arvutatakse uue valuuta järgi ja portfelli ajaloo graafik alustab uuesti.", { c }))) { e.target.value = S.currency; return; }
     S.currency = c; state.pfHistory = []; clearPrices(); save(); renderAll(); refreshPrices(true).then(streamSync);
   });
+  document.getElementById("setAutoRoll").addEventListener("change", e => { S.autoRoll = e.target.checked; save(); autoRoll(); });
   document.getElementById("setSound").addEventListener("change", e => { S.sound = e.target.checked; save(); if (S.sound) sfx.coin(); });
   document.getElementById("setVibrate").addEventListener("change", e => { S.vibrate = e.target.checked; save(); buzz(30); });
   document.getElementById("testCoin").onclick = () => sfx.coin();
@@ -2837,6 +2942,7 @@
   }
   window.__schedulePush = schedulePush;
   renderAll();
+  autoRoll();
   checkReminders();
   startupSync();
   // Reaalajas hinnad: uuenda kohe avamisel ja seejärel iga minuti tagant, kui leht on lahti.
