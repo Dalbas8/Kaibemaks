@@ -46,6 +46,7 @@
   }
 
   * { box-sizing: border-box; margin: 0; }
+  [hidden] { display: none !important; }
   html, body { height: 100%; }
   body {
     font-family: "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -247,6 +248,51 @@
   .sync-status.error { color: var(--warm); }
   .sync-status.ok::before { content: "● "; color: var(--accent); }
   @media (max-width: 640px) { .toast { left: 92px; right: 12px; bottom: 12px; } }
+
+  /* ---------- Trennid ---------- */
+  .wk-big { font-size: clamp(52px, 8vw, 88px); }
+  .wk-big small { font-size: .4em; color: var(--muted); margin-left: 8px; font-weight: 500; }
+  .wk-goalbar { display: flex; gap: 6px; margin-top: 22px; }
+  .wk-goalbar i { flex: 1; height: 10px; background: var(--track); }
+  .wk-goalbar i.on { background: var(--accent); }
+  .wk-goal-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+  .wk-goal-row input { width: 64px; padding: 6px 8px; text-align: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { all: unset; box-sizing: border-box; cursor: pointer; padding: 7px 12px; font-size: 13px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line-strong); }
+  .chip:hover { border-color: var(--accent); color: var(--ink); }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .wk-when { grid-template-columns: repeat(3, 1fr); }
+  .cal-nav { display: flex; align-items: center; gap: 6px; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 14px 20px 8px; }
+  .cal-wd { font-size: 11px; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: .06em; padding-bottom: 4px; }
+  .cal-d { all: unset; box-sizing: border-box; cursor: pointer; aspect-ratio: 1 / 1; background: var(--track); display: flex; flex-direction: column; justify-content: space-between; padding: 5px 6px; font-size: 12px; color: var(--ink-2); position: relative; min-height: 34px; }
+  .cal-d .n { font-weight: 600; }
+  .cal-d .m { font-size: 10px; align-self: flex-end; }
+  .cal-d.l1, .cal-legend .l1 { background: rgba(74,222,128,.28); }
+  .cal-d.l2, .cal-legend .l2 { background: rgba(74,222,128,.55); }
+  .cal-d.l3, .cal-legend .l3 { background: var(--accent); }
+  .cal-d.l2, .cal-d.l3 { color: var(--accent-ink); }
+  .cal-d.out { opacity: .35; }
+  .cal-d:disabled { cursor: default; opacity: .25; }
+  .cal-d.today { box-shadow: inset 0 0 0 2px var(--ink); }
+  .cal-d.sel { box-shadow: inset 0 0 0 2px var(--warm); }
+  .cal-d:not(:disabled):hover { outline: 1px solid var(--accent); }
+  .cal-d:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .cal-legend { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 4px 20px 12px; font-size: 11px; color: var(--muted); }
+  .cal-legend i { width: 12px; height: 12px; display: inline-block; }
+  .cal-legend span:first-child { margin-right: 4px; } .cal-legend span:last-child { margin-left: 4px; }
+  .day-detail { border-top: 1px solid var(--line); padding: 14px 20px 16px; }
+  .dd-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .dd-head b { font-weight: 600; }
+  .dd-row { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .wk-item { gap: 14px; }
+  .wk-date { width: 44px; text-align: center; flex-shrink: 0; line-height: 1.1; }
+  .wk-date b { display: block; font-size: 18px; }
+  .wk-date span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  #wkChart .wkbar.hl { fill-opacity: 1; filter: brightness(1.2); }
+  #wkChart .wkhit { cursor: default; outline: none; }
+  .wk-grid { align-items: start; }
   /* ---------- Investeeringud ---------- */
   .head-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .live-status { font-size: 12px; color: var(--ink-2); display: inline-flex; align-items: center; }
@@ -450,6 +496,10 @@
     .lbl-long { display: none; }
     .lbl-short { display: inline !important; }
     .pf-table td.trend { width: 100%; }
+    .cal { padding: 12px 10px 6px; gap: 3px; }
+    .cal-d { padding: 3px 4px; font-size: 11px; min-height: 0; }
+    .cal-d .m { font-size: 9px; }
+    .cal-legend, .day-detail { padding-left: 14px; padding-right: 14px; }
     .chart-head { padding: 14px 14px 4px; }
     .chart-wrap { padding: 6px 4px 4px 0; }
     .range-sel button { padding: 6px 8px; }
@@ -515,6 +565,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M15 6h5v5"/></svg>
         <span class="lbl-long">Investeeringud</span><span class="lbl-short">Portfell</span>
         <span class="count num" id="investCount"></span>
+      </button>
+      <button data-page="workouts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>
+        <span>Trennid</span>
+        <span class="count num" id="workoutCount"></span>
       </button>
       <button data-page="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/></svg>
@@ -903,6 +958,123 @@
       </div>
     </section>
 
+    <!-- ================= TRENNID ================= -->
+    <section class="page" id="page-workouts">
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Sport</div>
+          <h1>Trennid</h1>
+        </div>
+      </div>
+
+      <!-- Kokkuvõte -->
+      <div class="panel">
+        <div class="hero wk-hero">
+          <div class="hero-top">
+            <div>
+              <div class="hero-name">See nädal</div>
+              <div class="hero-amount num wk-big" id="wkWeekCount">0<small id="wkWeekGoalSmall">/ 3</small></div>
+              <div class="sub-t" id="wkWeekSub"></div>
+            </div>
+            <div class="pct-box">
+              <div class="v num" id="wkStreak">0</div>
+              <div class="l" id="wkStreakLbl">nädalat järjest</div>
+            </div>
+          </div>
+          <div class="wk-goalbar" id="wkGoalBar" aria-hidden="true"></div>
+          <div class="wk-goal-row">
+            <label for="wkGoal">Nädala eesmärk</label>
+            <input type="number" id="wkGoal" class="num" min="1" max="14" step="1" value="3">
+            <span>trenni</span>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="l">See kuu</div><div class="v num" id="wkMonth">–</div><div class="hint num" id="wkMonthTime"></div></div>
+          <div class="stat"><div class="l">Keskmine trenn</div><div class="v num" id="wkAvg">–</div><div class="hint num" id="wkFav"></div></div>
+          <div class="stat"><div class="l">Kokku</div><div class="v num" id="wkTotal">–</div><div class="hint num" id="wkTotalTime"></div></div>
+        </div>
+      </div>
+
+      <div class="grid-2 wk-grid">
+        <!-- Lisa trenn -->
+        <div class="panel">
+          <div class="panel-head"><h2 id="wkFormTitle">Lisa trenn</h2></div>
+          <form class="panel-body" id="wkForm">
+            <div class="field">
+              <label>Millal</label>
+              <div class="seg-select wk-when" id="wkWhen">
+                <button type="button" data-v="0" class="on">Täna</button>
+                <button type="button" data-v="-1">Eile</button>
+                <button type="button" data-v="custom">Kuupäev</button>
+              </div>
+            </div>
+            <div class="field" id="wkDateField" hidden>
+              <label for="wkDate">Kuupäev</label>
+              <input type="date" id="wkDate">
+            </div>
+            <div class="field">
+              <label>Trenn</label>
+              <div class="chips" id="wkTypes" role="radiogroup" aria-label="Trenni tüüp"></div>
+            </div>
+            <div class="field" id="wkOtherField" hidden>
+              <label for="wkOther">Mis trenn?</label>
+              <input type="text" id="wkOther" placeholder="Nt tennis" maxlength="40">
+            </div>
+            <div class="field">
+              <label for="wkMin">Kestus (minutites)</label>
+              <div class="chips" id="wkQuick">
+                <button type="button" class="chip" data-m="30">30 min</button>
+                <button type="button" class="chip" data-m="45">45 min</button>
+                <button type="button" class="chip" data-m="60">1 h</button>
+                <button type="button" class="chip" data-m="90">1,5 h</button>
+              </div>
+              <input type="number" id="wkMin" class="num" min="1" max="1440" step="1" placeholder="nt 60" required style="margin-top:8px">
+            </div>
+            <div class="field">
+              <label for="wkNote">Märkus <span class="opt">(valikuline)</span></label>
+              <input type="text" id="wkNote" placeholder="Nt jalapäev, 5 km" maxlength="120">
+            </div>
+            <div style="display:flex; gap:10px">
+              <button class="btn block" type="submit" id="wkSubmit">Lisa trenn</button>
+              <button class="btn ghost" type="button" id="wkCancel" hidden>Tühista</button>
+            </div>
+            <div class="inv-msg" id="wkMsg"></div>
+          </form>
+        </div>
+
+        <!-- Kalender -->
+        <div class="panel">
+          <div class="panel-head">
+            <h2 id="wkCalTitle"></h2>
+            <div class="cal-nav">
+              <button type="button" class="x" id="wkPrev" aria-label="Eelmine kuu" title="Eelmine kuu"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3L5 8l5 5"/></svg></button>
+              <button type="button" class="link-btn" id="wkToday">Täna</button>
+              <button type="button" class="x" id="wkNext" aria-label="Järgmine kuu" title="Järgmine kuu"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3l5 5-5 5"/></svg></button>
+            </div>
+          </div>
+          <div class="cal" id="wkCal"></div>
+          <div class="cal-legend"><span>Vähem</span><i style="background:var(--track)"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>Rohkem minuteid</span></div>
+          <div class="day-detail" id="wkDay"></div>
+        </div>
+      </div>
+
+      <!-- Graafik -->
+      <div class="panel" style="margin-top:20px">
+        <div class="panel-head"><h2>Minutid nädalas</h2><span class="head-note">Viimased 12 nädalat</span></div>
+        <div class="chart-wrap" id="wkChartWrap">
+          <svg id="wkChart" role="img" aria-label="Trenniminutid nädalate kaupa"></svg>
+          <div class="ch-tip" id="wkTip" hidden></div>
+        </div>
+        <details class="ch-table"><summary>Näita tabelina</summary><div id="wkTable"></div></details>
+      </div>
+
+      <!-- Viimased -->
+      <div class="panel" style="margin-top:20px">
+        <div class="panel-head"><h2>Viimased trennid</h2><span class="head-note num" id="wkListNote"></span></div>
+        <div id="wkList"></div>
+      </div>
+    </section>
+
     <!-- ================= SEADED ================= -->
     <section class="page" id="page-settings">
       <div class="page-head">
@@ -980,7 +1152,7 @@
   const COLOR_VARS = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
   const color = i => `var(${COLOR_VARS[i % COLOR_VARS.length]})`;
 
-  const defaults = { goal: 1000, goalName: "", carry: 0, incomes: [], expenses: [], holdings: [], pfHistory: [], pastGoals: [], longGoals: [], tasks: [] };
+  const defaults = { goal: 1000, goalName: "", carry: 0, incomes: [], expenses: [], holdings: [], pfHistory: [], pastGoals: [], longGoals: [], tasks: [], workouts: [] };
   let state;
   try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY)) || {}); }
   catch (e) { state = { ...defaults }; }
@@ -1171,6 +1343,26 @@
     "Selle aktsia hind pole tasuta võtmega saadaval.": "This stock's price isn't available with a free key.", "Hinnaserver vastas veaga ({s}).": "The price server returned an error ({s}).",
     "{s}: hinda ei leitud. Tasuta võti toetab peamiselt USA aktsiaid ja ETF-e.": "{s}: price not found. The free key mainly supports US stocks and ETFs.",
 
+    // Trennid
+    "Trennid": "Workouts", "Sport": "Sport", "See nädal": "This week", "nädal järjest": "week in a row", "nädalat järjest": "weeks in a row",
+    "Nädala eesmärk": "Weekly goal", "trenni": "workouts", "See kuu": "This month", "Keskmine trenn": "Average workout",
+    "Lisa trenn": "Add workout", "Muuda trenni": "Edit workout", "Eile": "Yesterday", "Trenn": "Workout", "Trenni tüüp": "Workout type",
+    "Mis trenn?": "Which workout?", "Nt tennis": "E.g. tennis", "Kestus (minutites)": "Duration (minutes)", "nt 60": "e.g. 60",
+    "Märkus": "Note", "Nt jalapäev, 5 km": "E.g. leg day, 5 km", "Eelmine kuu": "Previous month", "Järgmine kuu": "Next month",
+    "Vähem": "Less", "Rohkem minuteid": "More minutes", "Minutid nädalas": "Minutes per week", "Viimased 12 nädalat": "Last 12 weeks",
+    "Trenniminutid nädalate kaupa": "Workout minutes per week", "Viimased trennid": "Recent workouts", "30 viimast": "Last 30",
+    "Jõusaal": "Gym", "Jooks": "Running", "Jalgpall": "Football", "Korvpall": "Basketball", "Ujumine": "Swimming",
+    "Rattasõit": "Cycling", "Jooga": "Yoga", "Kõndimine": "Walking", "Kodutrenn": "Home workout", "Muu": "Other",
+    "{n} trenn · {d}": "{n} workout · {d}", "{n} trenni · {d}": "{n} workouts · {d}", "eesmärk täidetud!": "goal reached!",
+    "veel {n} trenn": "{n} more to go", "veel {n} trenni": "{n} more to go", "Sel nädalal pole veel trenni olnud.": "No workouts yet this week.",
+    "{n} trenn": "{n} workout", "{n} trenni": "{n} workouts", "Lemmik: {x}": "Favourite: {x}",
+    "Vali kalendrist päev, et näha selle trenne või lisada trenn tagantjärele.": "Pick a day in the calendar to see its workouts or add one afterwards.",
+    "+ Lisa sellele päevale": "+ Add to this day", "Sel päeval trenni ei olnud.": "No workouts on this day.",
+    "Nädal": "Week", "Trenne": "Workouts", "Trenne pole veel lisatud. Lisa oma esimene trenn!": "No workouts yet. Add your first one!",
+    "Sisesta kestus minutites (1–1440).": "Enter the duration in minutes (1–1440).", "Vali kuupäev.": "Pick a date.",
+    "Trenni ei saa lisada tulevikku.": "You can't add a workout in the future.", "1,5 h": "1.5 h", "Kirjuta, mis trenn see oli.": "Write which workout it was.",
+    "Trenn muudetud.": "Workout updated.", "Nädala eesmärk täidetud!": "Weekly goal reached!", "Trenn lisatud: {x}, {d}.": "Workout added: {x}, {d}.",
+    "Kustutada trenn „{x}“ ({d})?": "Delete workout “{x}” ({d})?",
     // Seaded
     "Eelistused": "Preferences", "Keel ja valuuta": "Language and currency", "Keel": "Language", "Valuuta": "Currency",
     "Valuuta muutmine ei teisenda juba sisestatud summasid. Aktsiahinnad arvutatakse valitud valuutasse.": "Changing the currency doesn't convert amounts you've already entered. Stock prices are converted to the selected currency.",
@@ -1279,6 +1471,8 @@
     nav.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.page === name));
     document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + name));
     window.scrollTo(0, 0);
+    if (name === "workouts" && typeof renderWkChart === "function") renderWkChart();   // mõõdud on teada alles nähtaval lehel
+    if (name === "invest" && typeof renderChart === "function") renderChart();
   }
   nav.querySelectorAll("button").forEach(b => b.onclick = () => showPage(b.dataset.page));
   document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) showPage(g.dataset.goto); });
@@ -2358,6 +2552,221 @@
   // Järjesta massiiv uue id-järjekorra järgi (puuduvad jäävad lõppu).
   const reorderBy = (arr, order) => order.map(id => arr.find(x => x.id === id)).filter(Boolean).concat(arr.filter(x => !order.includes(x.id)));
 
+  // ---------- Trennid ----------
+  // Kirje: { id, date: "YYYY-MM-DD", type, name (kui type === "other"), minutes, note }
+  const WK_TYPES = [
+    ["gym", "Jõusaal"], ["run", "Jooks"], ["football", "Jalgpall"], ["basketball", "Korvpall"], ["swim", "Ujumine"],
+    ["bike", "Rattasõit"], ["yoga", "Jooga"], ["walk", "Kõndimine"], ["home", "Kodutrenn"], ["other", "Muu"]
+  ];
+  const wkLabel = w => w.type === "other" ? (w.name || t("Muu")) : t((WK_TYPES.find(x => x[0] === w.type) || [0, "Muu"])[1]);
+  if (!Array.isArray(state.workouts)) state.workouts = [];
+  if (!S.wkGoal) S.wkGoal = 3;
+  const fmtDur = m => { m = Math.round(m); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${r} min` : `${h} h`) : `${r} min`; };
+  const parseD = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const isoD = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const weekStart = s => { const d = parseD(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoD(d); };   // esmaspäev
+  const addDays = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return isoD(d); };
+  let wkType = "gym", wkWhen = "0", wkEditId = null, wkSel = null;
+  let wkMonth = dateStr().slice(0, 7);
+
+  function renderWorkouts() {
+    const W = state.workouts, today = dateStr(), ws = weekStart(today);
+    const goal = Math.max(1, S.wkGoal || 3);
+    // --- Kokkuvõte ---
+    const thisWeek = W.filter(w => w.date >= ws && w.date <= addDays(ws, 6));
+    const weekMin = thisWeek.reduce((s, w) => s + w.minutes, 0);
+    document.getElementById("wkWeekCount").innerHTML = `${thisWeek.length}<small>/ ${goal}</small>`;
+    document.getElementById("wkWeekSub").textContent = thisWeek.length
+      ? tn(thisWeek.length, "{n} trenn · {d}", "{n} trenni · {d}", { d: fmtDur(weekMin) }) + (thisWeek.length >= goal ? " · " + t("eesmärk täidetud!") : " · " + tn(goal - thisWeek.length, "veel {n} trenn", "veel {n} trenni"))
+      : t("Sel nädalal pole veel trenni olnud.");
+    document.getElementById("wkGoalBar").innerHTML = Array.from({ length: goal }, (_, i) => `<i class="${i < thisWeek.length ? "on" : ""}"></i>`).join("");
+    document.getElementById("wkGoal").value = goal;
+    // Järjestikused nädalad, kus eesmärk täideti (kui see nädal pole veel täis, loetakse eelmisest).
+    const byWeek = {}; W.forEach(w => { const k = weekStart(w.date); byWeek[k] = (byWeek[k] || 0) + 1; });
+    let streak = 0, k = (byWeek[ws] || 0) >= goal ? ws : addDays(ws, -7);
+    while ((byWeek[k] || 0) >= goal) { streak++; k = addDays(k, -7); }
+    document.getElementById("wkStreak").textContent = streak;
+    document.getElementById("wkStreakLbl").textContent = tn(streak, "nädal järjest", "nädalat järjest");
+    const mo = today.slice(0, 7), month = W.filter(w => w.date.startsWith(mo));
+    document.getElementById("wkMonth").textContent = tn(month.length, "{n} trenn", "{n} trenni");
+    document.getElementById("wkMonthTime").textContent = month.length ? fmtDur(month.reduce((s, w) => s + w.minutes, 0)) : "";
+    document.getElementById("wkAvg").textContent = W.length ? fmtDur(W.reduce((s, w) => s + w.minutes, 0) / W.length) : "–";
+    const cnt = {}; W.forEach(w => { const l = wkLabel(w); cnt[l] = (cnt[l] || 0) + 1; });
+    const fav = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById("wkFav").textContent = fav ? t("Lemmik: {x}", { x: fav[0] }) : "";
+    document.getElementById("wkTotal").textContent = tn(W.length, "{n} trenn", "{n} trenni");
+    document.getElementById("wkTotalTime").textContent = W.length ? fmtDur(W.reduce((s, w) => s + w.minutes, 0)) : "";
+    const wc = document.getElementById("workoutCount"); if (wc) wc.textContent = thisWeek.length ? thisWeek.length + "/" + goal : "";
+
+    // --- Vorm ---
+    document.getElementById("wkTypes").innerHTML = WK_TYPES.map(([id, lbl]) =>
+      `<button type="button" class="chip ${wkType === id ? "on" : ""}" role="radio" aria-checked="${wkType === id}" data-type="${id}">${esc(t(lbl))}</button>`).join("");
+    document.getElementById("wkOtherField").hidden = wkType !== "other";
+    document.querySelectorAll("#wkWhen button").forEach(b => b.classList.toggle("on", b.dataset.v === wkWhen));
+    document.getElementById("wkDateField").hidden = wkWhen !== "custom";
+    document.getElementById("wkFormTitle").textContent = wkEditId ? t("Muuda trenni") : t("Lisa trenn");
+    document.getElementById("wkSubmit").textContent = wkEditId ? t("Salvesta muudatus") : t("Lisa trenn");
+    document.getElementById("wkCancel").hidden = !wkEditId;
+
+    renderWkCalendar(); renderWkChart(); renderWkList();
+    translateDOM(document.getElementById("page-workouts"));
+  }
+
+  // --- Kalender ---
+  function renderWkCalendar() {
+    const [y, m] = wkMonth.split("-").map(Number), first = new Date(y, m - 1, 1), today = dateStr();
+    document.getElementById("wkCalTitle").textContent = first.toLocaleDateString(LOC, { month: "long", year: "numeric" });
+    const byDay = {}; state.workouts.forEach(w => (byDay[w.date] = byDay[w.date] || []).push(w));
+    const start = addDays(isoD(first), -((first.getDay() + 6) % 7));
+    const days = []; for (let i = 0; i < 42; i++) days.push(addDays(start, i));
+    while (days.length > 35 && days[days.length - 7].slice(0, 7) !== wkMonth) days.splice(-7);
+    const wd = Array.from({ length: 7 }, (_, i) => parseD(addDays(start, i)).toLocaleDateString(LOC, { weekday: "short" }));
+    const lvl = min => !min ? "" : min < 30 ? "l1" : min < 75 ? "l2" : "l3";
+    document.getElementById("wkCal").innerHTML =
+      wd.map(d => `<div class="cal-wd">${esc(d.replace(".", ""))}</div>`).join("") +
+      days.map(d => {
+        const list = byDay[d] || [], min = list.reduce((s, w) => s + w.minutes, 0);
+        const out = d.slice(0, 7) !== wkMonth, fut = d > today;
+        const lab = parseD(d).toLocaleDateString(LOC, { day: "numeric", month: "long" }) + (list.length ? ": " + list.map(w => wkLabel(w) + " " + fmtDur(w.minutes)).join(", ") : "");
+        return `<button type="button" class="cal-d ${lvl(min)} ${out ? "out" : ""} ${d === today ? "today" : ""} ${d === wkSel ? "sel" : ""}" data-day="${d}" ${fut ? "disabled" : ""} aria-label="${esc(lab)}" title="${esc(lab)}" data-no-tr>
+          <span class="n">${parseD(d).getDate()}</span>${min ? `<span class="m num">${min >= 60 ? (Math.round(min / 6) / 10).toLocaleString(LOC) + "h" : min + "'"}</span>` : ""}</button>`;
+      }).join("");
+    // Valitud päeva detailid
+    const det = document.getElementById("wkDay");
+    if (!wkSel) { det.innerHTML = `<p class="note" style="margin:0">${esc(t("Vali kalendrist päev, et näha selle trenne või lisada trenn tagantjärele."))}</p>`; return; }
+    const list = byDay[wkSel] || [];
+    const dLbl = parseD(wkSel).toLocaleDateString(LOC, { weekday: "long", day: "numeric", month: "long" });
+    det.innerHTML = `<div class="dd-head"><b>${esc(dLbl.charAt(0).toUpperCase() + dLbl.slice(1))}</b>
+        <button type="button" class="link-btn" data-addday="${wkSel}">${esc(t("+ Lisa sellele päevale"))}</button></div>` +
+      (list.length ? list.map(w => `<div class="dd-row"><span class="dd-t" data-no-tr>${esc(wkLabel(w))}</span><span class="num">${fmtDur(w.minutes)}</span></div>`).join("")
+                   : `<p class="note" style="margin:6px 0 0">${esc(t("Sel päeval trenni ei olnud."))}</p>`);
+  }
+
+  // --- Graafik: minutid nädalas (12 nädalat) ---
+  let wkBars = [];
+  function renderWkChart() {
+    const wrap = document.getElementById("wkChartWrap"), svg = document.getElementById("wkChart");
+    const ws = weekStart(dateStr()), weeks = [];
+    for (let i = 11; i >= 0; i--) { const s = addDays(ws, -7 * i), e = addDays(s, 6); const list = state.workouts.filter(w => w.date >= s && w.date <= e); weeks.push({ s, e, min: list.reduce((a, w) => a + w.minutes, 0), n: list.length }); }
+    wkBars = weeks;
+    const W = Math.max(280, wrap.clientWidth), H = W < 520 ? 170 : 200, padL = W < 520 ? 40 : 48, padR = 10, padT = 12, padB = 26;
+    // Telje sammud täis- või pooltundides (30, 60, 90 … min), mitte 1,7 h.
+    const max = Math.max(60, ...weeks.map(w => w.min));
+    const step = [30, 60, 90, 120, 180, 240, 300, 600, 900].find(x => max / x <= 4) || 1200;
+    const yt = Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step), y1 = yt[yt.length - 1];
+    const slot = (W - padL - padR) / weeks.length, bw = Math.min(24, slot - 6);
+    const X = i => padL + i * slot + (slot - bw) / 2, Y = v => padT + (1 - v / y1) * (H - padT - padB);
+    const bar = (x, y, h) => { if (h <= 0) return ""; const r = Math.min(4, h); return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${y + h}Z`; };
+    const lbl = s => parseD(s).toLocaleDateString(LOC, { day: "numeric", month: "short" });
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", W); svg.setAttribute("height", H);
+    svg.innerHTML = `
+      <g class="grid">${yt.map(v => `<line x1="${padL}" x2="${W - padR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/>`).join("")}</g>
+      <g class="ylab">${yt.map(v => `<text x="${padL - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${v >= 60 ? (v / 60).toLocaleString(LOC, { maximumFractionDigits: 1 }) + " h" : v + " min"}</text>`).join("")}</g>
+      <g class="xlab">${weeks.map((w, i) => (i % (W < 520 ? 3 : 2) === (weeks.length - 1) % (W < 520 ? 3 : 2)) ? `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${esc(lbl(w.s))}</text>` : "").join("")}</g>
+      ${weeks.map((w, i) => `<path d="${bar(X(i), Y(w.min), (H - padB) - Y(w.min))}" fill="#22A85A" ${i === weeks.length - 1 ? "" : 'fill-opacity=".85"'} data-i="${i}" class="wkbar"/>`).join("")}
+      ${weeks.map((w, i) => `<rect x="${padL + i * slot}" y="${padT}" width="${slot}" height="${H - padT - padB}" fill="transparent" data-i="${i}" class="wkhit" tabindex="0" aria-label="${esc(lbl(w.s) + ": " + fmtDur(w.min))}"/>`).join("")}`;
+    const stepRows = weeks.slice().reverse();
+    document.getElementById("wkTable").innerHTML = `<table><thead><tr><th>${esc(t("Nädal"))}</th><th class="r">${esc(t("Trenne"))}</th><th class="r">${esc(t("Aeg"))}</th></tr></thead><tbody>${
+      stepRows.map(w => `<tr><td class="num">${esc(lbl(w.s) + " – " + lbl(w.e))}</td><td class="r num">${w.n}</td><td class="r num">${fmtDur(w.min)}</td></tr>`).join("")}</tbody></table>`;
+  }
+  function wkShowTip(i, anchorX) {
+    const w = wkBars[i], tip = document.getElementById("wkTip"); if (!w) return;
+    document.querySelectorAll("#wkChart .wkbar").forEach(b => b.classList.toggle("hl", b.dataset.i == i));
+    tip.replaceChildren();
+    const head = document.createElement("div"); head.className = "th";
+    head.textContent = parseD(w.s).toLocaleDateString(LOC, { day: "numeric", month: "short" }) + " – " + parseD(w.e).toLocaleDateString(LOC, { day: "numeric", month: "short" });
+    const row = (v, l) => { const r = document.createElement("div"); r.className = "tr"; const b = document.createElement("b"); b.textContent = v; const s = document.createElement("span"); s.textContent = l; r.append(b, s); return r; };
+    tip.append(head, row(fmtDur(w.min), t("Aeg")), row(String(w.n), t("Trenne")));
+    tip.hidden = false;
+    const ww = document.getElementById("wkChartWrap").clientWidth, tw = tip.offsetWidth;
+    tip.style.left = Math.min(ww - tw - 4, Math.max(4, anchorX + 14)) + "px";
+  }
+  const wkSvg = document.getElementById("wkChart");
+  wkSvg.addEventListener("pointermove", e => { const h = e.target.closest(".wkhit"); if (!h) return; const r = wkSvg.getBoundingClientRect(); wkShowTip(+h.dataset.i, e.clientX - r.left); });
+  wkSvg.addEventListener("focusin", e => { const h = e.target.closest(".wkhit"); if (!h) return; wkShowTip(+h.dataset.i, +h.getAttribute("x")); });
+  const wkHide = () => { document.getElementById("wkTip").hidden = true; document.querySelectorAll("#wkChart .wkbar.hl").forEach(b => b.classList.remove("hl")); };
+  wkSvg.addEventListener("pointerleave", wkHide); wkSvg.addEventListener("focusout", wkHide);
+
+  // --- Nimekiri ---
+  function renderWkList() {
+    const list = [...state.workouts].sort((a, b) => b.date.localeCompare(a.date) || (b.created || 0) - (a.created || 0)).slice(0, 30);
+    document.getElementById("wkListNote").textContent = state.workouts.length > 30 ? t("30 viimast") : "";
+    const el = document.getElementById("wkList");
+    if (!list.length) { el.innerHTML = `<div class="empty">${esc(t("Trenne pole veel lisatud. Lisa oma esimene trenn!"))}</div>`; return; }
+    el.innerHTML = list.map(w => `
+      <div class="item wk-item" data-id="${w.id}">
+        <div class="wk-date num"><b>${parseD(w.date).getDate()}</b><span>${esc(parseD(w.date).toLocaleDateString(LOC, { month: "short" }).replace(".", ""))}</span></div>
+        <div class="t"><div data-no-tr>${esc(wkLabel(w))}</div><div class="s num">${esc(fmtDur(w.minutes))}${w.note ? ` · <span data-no-tr>${esc(w.note)}</span>` : ""}</div></div>
+        <button class="x" type="button" data-wkedit="${w.id}" title="${esc(t("Muuda"))}" aria-label="${esc(t("Muuda"))}">${ICON_EDIT}</button>
+        <button class="x" type="button" data-wkdel="${w.id}" title="${esc(t("Kustuta"))}" aria-label="${esc(t("Kustuta"))}">${ICON_X}</button>
+      </div>`).join("");
+  }
+
+  // --- Sündmused ---
+  const wkMsg = (m, bad) => { const el = document.getElementById("wkMsg"); el.textContent = m || ""; el.classList.toggle("bad", !!bad); };
+  document.getElementById("wkTypes").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if (!b) return; wkType = b.dataset.type; renderWorkouts(); if (wkType === "other") document.getElementById("wkOther").focus(); });
+  document.getElementById("wkWhen").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (!b) return; wkWhen = b.dataset.v; renderWorkouts(); });
+  document.getElementById("wkQuick").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (!b) return; document.getElementById("wkMin").value = b.dataset.m; });
+  document.getElementById("wkGoal").addEventListener("change", e => { const v = parseInt(e.target.value); if (v >= 1 && v <= 14) { S.wkGoal = v; save(); renderWorkouts(); } });
+  function wkResetForm() {
+    wkEditId = null; wkWhen = "0";
+    ["wkMin", "wkNote", "wkOther", "wkDate"].forEach(id => document.getElementById(id).value = "");
+  }
+  document.getElementById("wkForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const minutes = parseInt(document.getElementById("wkMin").value);
+    if (!(minutes > 0 && minutes <= 1440)) return wkMsg(t("Sisesta kestus minutites (1–1440)."), true);
+    const date = wkWhen === "custom" ? document.getElementById("wkDate").value : dateStr(parseInt(wkWhen));
+    if (!date) return wkMsg(t("Vali kuupäev."), true);
+    if (date > dateStr()) return wkMsg(t("Trenni ei saa lisada tulevikku."), true);
+    const name = document.getElementById("wkOther").value.trim();
+    if (wkType === "other" && !name) return wkMsg(t("Kirjuta, mis trenn see oli."), true);
+    const note = document.getElementById("wkNote").value.trim();
+    const rec = { date, type: wkType, name: wkType === "other" ? name : "", minutes, note };
+    if (wkEditId) { Object.assign(state.workouts.find(w => w.id === wkEditId), rec); wkMsg(t("Trenn muudetud.")); }
+    else {
+      state.workouts.push({ id: uid(), created: Date.now(), ...rec });
+      const ws = weekStart(dateStr()), n = state.workouts.filter(w => w.date >= ws).length;
+      wkMsg(n === (S.wkGoal || 3) && date >= ws ? t("Nädala eesmärk täidetud!") : t("Trenn lisatud: {x}, {d}.", { x: wkLabel(rec), d: fmtDur(minutes) }));
+      sfx.done();
+    }
+    wkSel = date; wkMonth = date.slice(0, 7);
+    wkResetForm(); save(); renderWorkouts();
+  });
+  document.getElementById("wkCancel").onclick = () => { wkResetForm(); wkMsg(""); renderWorkouts(); };
+  document.getElementById("wkPrev").onclick = () => { const [y, m] = wkMonth.split("-").map(Number); wkMonth = isoD(new Date(y, m - 2, 1)).slice(0, 7); renderWorkouts(); };
+  document.getElementById("wkNext").onclick = () => { const [y, m] = wkMonth.split("-").map(Number); const n = isoD(new Date(y, m, 1)).slice(0, 7); if (n <= dateStr().slice(0, 7)) { wkMonth = n; renderWorkouts(); } };
+  document.getElementById("wkToday").onclick = () => { wkMonth = dateStr().slice(0, 7); wkSel = dateStr(); renderWorkouts(); };
+  document.getElementById("wkCal").addEventListener("click", e => { const d = e.target.closest("[data-day]"); if (!d || d.disabled) return; wkSel = wkSel === d.dataset.day ? null : d.dataset.day; renderWorkouts(); });
+  document.getElementById("wkDay").addEventListener("click", e => {
+    const a = e.target.closest("[data-addday]"); if (!a) return;
+    const d = a.dataset.addday;
+    wkWhen = d === dateStr() ? "0" : d === dateStr(-1) ? "-1" : "custom"; renderWorkouts();
+    if (wkWhen === "custom") document.getElementById("wkDate").value = d;
+    document.getElementById("wkForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("wkMin").focus({ preventScroll: true });
+  });
+  document.getElementById("wkList").addEventListener("click", e => {
+    const ed = e.target.closest("[data-wkedit]"), dl = e.target.closest("[data-wkdel]");
+    if (dl) {
+      const w = state.workouts.find(x => x.id === dl.dataset.wkdel);
+      if (!confirm(t("Kustutada trenn „{x}“ ({d})?", { x: wkLabel(w), d: fmtDate(w.date) }))) return;
+      state.workouts = state.workouts.filter(x => x !== w); save(); renderWorkouts(); return;
+    }
+    if (ed) {
+      const w = state.workouts.find(x => x.id === ed.dataset.wkedit); if (!w) return;
+      wkEditId = w.id; wkType = w.type;
+      wkWhen = w.date === dateStr() ? "0" : w.date === dateStr(-1) ? "-1" : "custom";
+      renderWorkouts();
+      document.getElementById("wkDate").value = w.date;
+      document.getElementById("wkMin").value = w.minutes;
+      document.getElementById("wkNote").value = w.note || "";
+      document.getElementById("wkOther").value = w.name || "";
+      document.getElementById("wkForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+  window.addEventListener("resize", () => { if (document.getElementById("page-workouts").classList.contains("active")) renderWkChart(); });
+
   // ---------- Lühiaja eesmärgid ----------
   let when = "1";
   const whenSel = document.getElementById("whenSel");
@@ -2937,7 +3346,7 @@
     document.documentElement.lang = S.lang;
     document.title = t("Eesmärgid");
     applyCurrencySymbols();
-    renderMoney(); renderShort(); renderLong(); renderSettings();
+    renderMoney(); renderShort(); renderLong(); renderWorkouts(); renderSettings();
     translateDOM(document.body);
   }
   window.__schedulePush = schedulePush;
