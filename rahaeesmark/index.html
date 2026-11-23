@@ -263,6 +263,20 @@
   .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .wk-when { grid-template-columns: repeat(3, 1fr); }
+  .sp-search { margin-top: 10px; }
+  .sp-res { grid-template-columns: 1fr auto; }
+  .sp-res b { color: var(--ink); font-weight: 500; }
+  .sp-res b.add { color: var(--accent); font-weight: 600; }
+  .sp-res.act { background: var(--accent-soft); }
+  .sp-browse { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .sp-browse summary { cursor: pointer; }
+  .sp-browse[open] summary { margin-bottom: 4px; }
+  #wkBrowseList { max-height: 360px; overflow-y: auto; padding-right: 4px; }
+  .sp-cat { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 12px 0 6px; }
+  .chip.sm { padding: 5px 9px; font-size: 12px; }
+  .chip-wrap { display: inline-flex; }
+  .chip-x { all: unset; cursor: pointer; padding: 0 8px; border: 1px solid var(--line-strong); border-left: none; color: var(--muted); display: flex; align-items: center; }
+  .chip-x:hover { color: var(--warm); }
   .cal-nav { display: flex; align-items: center; gap: 6px; }
   .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 14px 20px 8px; }
   .cal-wd { font-size: 11px; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: .06em; padding-bottom: 4px; }
@@ -1013,12 +1027,14 @@
               <input type="date" id="wkDate">
             </div>
             <div class="field">
-              <label>Trenn</label>
-              <div class="chips" id="wkTypes" role="radiogroup" aria-label="Trenni tüüp"></div>
-            </div>
-            <div class="field" id="wkOtherField" hidden>
-              <label for="wkOther">Mis trenn?</label>
-              <input type="text" id="wkOther" placeholder="Nt tennis" maxlength="40">
+              <label for="wkSearch">Spordiala</label>
+              <div class="chips" id="wkTypes" role="radiogroup" aria-label="Spordiala"></div>
+              <div class="inv-search sp-search">
+                <input type="search" id="wkSearch" placeholder="Otsi spordiala, nt judo" autocomplete="off" maxlength="40"
+                  role="combobox" aria-expanded="false" aria-controls="wkResults" aria-autocomplete="list">
+                <div class="inv-results" id="wkResults" role="listbox" hidden></div>
+              </div>
+              <details class="sp-browse" id="wkBrowse"><summary id="wkBrowseSum">Sirvi kõiki alasid</summary><div id="wkBrowseList"></div></details>
             </div>
             <div class="field">
               <label for="wkMin">Kestus (minutites)</label>
@@ -1363,6 +1379,9 @@
     "Trenni ei saa lisada tulevikku.": "You can't add a workout in the future.", "1,5 h": "1.5 h", "Kirjuta, mis trenn see oli.": "Write which workout it was.",
     "Trenn muudetud.": "Workout updated.", "Nädala eesmärk täidetud!": "Weekly goal reached!", "Trenn lisatud: {x}, {d}.": "Workout added: {x}, {d}.",
     "Kustutada trenn „{x}“ ({d})?": "Delete workout “{x}” ({d})?",
+    "Spordiala": "Sport", "Otsi spordiala, nt judo": "Search for a sport, e.g. judo", "Sirvi kõiki alasid": "Browse all sports",
+    "Sirvi kõiki alasid ({n})": "Browse all sports ({n})", "Minu alad": "My sports", "+ Lisa uus spordiala „{x}“": "+ Add new sport “{x}”",
+    "Uus spordiala „{x}“ lisatud.": "New sport “{x}” added.", "Otsi spordiala või lisa uus.": "Search for a sport or add a new one.",
     // Seaded
     "Eelistused": "Preferences", "Keel ja valuuta": "Language and currency", "Keel": "Language", "Valuuta": "Currency",
     "Valuuta muutmine ei teisenda juba sisestatud summasid. Aktsiahinnad arvutatakse valitud valuutasse.": "Changing the currency doesn't convert amounts you've already entered. Stock prices are converted to the selected currency.",
@@ -2554,11 +2573,76 @@
 
   // ---------- Trennid ----------
   // Kirje: { id, date: "YYYY-MM-DD", type, name (kui type === "other"), minutes, note }
-  const WK_TYPES = [
-    ["gym", "Jõusaal"], ["run", "Jooks"], ["football", "Jalgpall"], ["basketball", "Korvpall"], ["swim", "Ujumine"],
-    ["bike", "Rattasõit"], ["yoga", "Jooga"], ["walk", "Kõndimine"], ["home", "Kodutrenn"], ["other", "Muu"]
+  // Spordialade kataloog: [id, eesti nimi, inglise nimi, kategooria, lisasõnad otsinguks]
+  const WK_CATS = { str: ["Jõud", "Strength"], end: ["Vastupidavus", "Endurance"], ball: ["Pallimängud", "Ball sports"], fight: ["Võitlusalad", "Combat sports"],
+    water: ["Veesport", "Water sports"], winter: ["Talisport", "Winter sports"], body: ["Keha ja tants", "Mind, body & dance"], misc: ["Muu", "Other"] };
+  const WK_SPORTS = [
+    ["gym", "Jõusaal", "Gym", "str", "jõutrenn weights strength"], ["home", "Kodutrenn", "Home workout", "str", "kodus home"],
+    ["crossfit", "CrossFit", "CrossFit", "str", "wod"], ["weightlifting", "Raskejõustik", "Weightlifting", "str", "tõstmine olympic"],
+    ["powerlifting", "Jõutõstmine", "Powerlifting", "str", "kükk jõutõste"], ["calisthenics", "Kalisteenika", "Calisthenics", "str", "street workout"],
+    ["kettlebell", "Sangpomm", "Kettlebell", "str", "kettlebell"], ["circuit", "Ringtreening", "Circuit training", "str", "hiit"],
+    ["hiit", "HIIT", "HIIT", "str", "intervall interval tabata"], ["functional", "Funktsionaalne treening", "Functional training", "str", "trx"],
+    ["bodypump", "Grupitrenn", "Group class", "str", "bodypump rühmatrenn"],
+    ["run", "Jooks", "Running", "end", "sörk jogging"], ["trailrun", "Maastikujooks", "Trail running", "end", "trail"],
+    ["treadmill", "Jooksulint", "Treadmill", "end", "jooksurada"], ["walk", "Kõndimine", "Walking", "end", "jalutamine"],
+    ["nordicwalk", "Kepikõnd", "Nordic walking", "end", "kepid"], ["hike", "Matkamine", "Hiking", "end", "matk"],
+    ["bike", "Rattasõit", "Cycling", "end", "jalgratas maanteeratas bicycle"], ["spinning", "Spinning", "Indoor cycling", "end", "velotrenažöör"],
+    ["mtb", "Maastikurattasõit", "Mountain biking", "end", "mtb"], ["bmx", "BMX", "BMX", "end", ""],
+    ["rowing", "Sõudmine", "Rowing", "end", "paat"], ["erg", "Sõudeergomeeter", "Rowing machine", "end", "ergo"],
+    ["elliptical", "Elliptiline trenažöör", "Elliptical", "end", "crosstrainer"], ["stairs", "Trepikõnd", "Stair climbing", "end", "trepid stepper"],
+    ["triathlon", "Triatlon", "Triathlon", "end", "ironman"], ["orienteering", "Orienteerumine", "Orienteering", "end", "rogain"],
+    ["inline", "Rulluisutamine", "Inline skating", "end", "rulluisud"], ["skateboard", "Rulasõit", "Skateboarding", "end", "rula"],
+    ["jumprope", "Hüppenöör", "Jump rope", "end", "nööp skipping"], ["athletics", "Kergejõustik", "Athletics", "end", "track field sprint"],
+    ["football", "Jalgpall", "Football", "ball", "soccer"], ["futsal", "Saalijalgpall", "Futsal", "ball", ""],
+    ["basketball", "Korvpall", "Basketball", "ball", ""], ["volleyball", "Võrkpall", "Volleyball", "ball", ""],
+    ["beachvolley", "Rannavõrkpall", "Beach volleyball", "ball", ""], ["handball", "Käsipall", "Handball", "ball", ""],
+    ["floorball", "Saalihoki", "Floorball", "ball", "unihoki"], ["icehockey", "Jäähoki", "Ice hockey", "ball", "hoki"],
+    ["tennis", "Tennis", "Tennis", "ball", ""], ["tabletennis", "Lauatennis", "Table tennis", "ball", "ping pong"],
+    ["badminton", "Sulgpall", "Badminton", "ball", ""], ["squash", "Squash", "Squash", "ball", ""], ["padel", "Padel", "Padel", "ball", ""],
+    ["golf", "Golf", "Golf", "ball", ""], ["discgolf", "Discgolf", "Disc golf", "ball", "frisbee golf"],
+    ["rugby", "Ragbi", "Rugby", "ball", ""], ["americanfootball", "Ameerika jalgpall", "American football", "ball", ""],
+    ["baseball", "Pesapall", "Baseball", "ball", ""], ["cricket", "Kriket", "Cricket", "ball", ""],
+    ["waterpolo", "Veepall", "Water polo", "ball", ""], ["ultimate", "Ultimate frisbee", "Ultimate frisbee", "ball", "frisbee"],
+    ["dodgeball", "Rahvastepall", "Dodgeball", "ball", ""], ["bowling", "Bowling", "Bowling", "ball", "keegel"],
+    ["billiards", "Piljard", "Billiards", "ball", "snooker pool"], ["korfball", "Korfpall", "Korfball", "ball", "korfball"],
+    ["judo", "Judo", "Judo", "fight", ""], ["wrestling", "Maadlus", "Wrestling", "fight", "kreeka-rooma vabamaadlus"],
+    ["boxing", "Poks", "Boxing", "fight", ""], ["kickboxing", "Kikkpoks", "Kickboxing", "fight", ""],
+    ["karate", "Karate", "Karate", "fight", ""], ["taekwondo", "Taekwondo", "Taekwondo", "fight", ""],
+    ["bjj", "Brasiilia jiu-jitsu", "Brazilian jiu-jitsu", "fight", "bjj jiujitsu grappling"], ["mma", "MMA", "MMA", "fight", "vabavõitlus"],
+    ["muaythai", "Tai poks", "Muay Thai", "fight", "muay thai"], ["sambo", "Sambo", "Sambo", "fight", ""],
+    ["kendo", "Kendo", "Kendo", "fight", ""], ["aikido", "Aikido", "Aikido", "fight", ""], ["kungfu", "Kung fu", "Kung fu", "fight", "wushu"],
+    ["fencing", "Vehklemine", "Fencing", "fight", ""], ["kravmaga", "Krav Maga", "Krav Maga", "fight", "enesekaitse self defense"],
+    ["capoeira", "Capoeira", "Capoeira", "fight", ""],
+    ["swim", "Ujumine", "Swimming", "water", "bassein pool"], ["openwater", "Avaveeujumine", "Open water swimming", "water", "meri järv"],
+    ["aquaaerobics", "Vesiaeroobika", "Aqua aerobics", "water", ""], ["diving", "Sukeldumine", "Scuba diving", "water", ""],
+    ["platformdiving", "Vettehüpped", "Diving", "water", ""], ["surf", "Surfamine", "Surfing", "water", ""],
+    ["windsurf", "Purjelauasõit", "Windsurfing", "water", "purjesurf"], ["kitesurf", "Lohesurf", "Kitesurfing", "water", ""],
+    ["sup", "Aerusurf (SUP)", "Stand-up paddle", "water", "sup"], ["kayak", "Süstasõit", "Kayaking", "water", "süst"],
+    ["canoe", "Kanuusõit", "Canoeing", "water", "kanuu"], ["sailing", "Purjetamine", "Sailing", "water", "jaht"],
+    ["waterski", "Veesuusatamine", "Waterskiing", "water", "wakeboard"],
+    ["xcski", "Murdmaasuusatamine", "Cross-country skiing", "winter", "suusatamine"], ["alpineski", "Mäesuusatamine", "Alpine skiing", "winter", "slalom"],
+    ["snowboard", "Lumelauasõit", "Snowboarding", "winter", "lumelaud"], ["skating", "Uisutamine", "Ice skating", "winter", "uisud"],
+    ["figureskating", "Iluuisutamine", "Figure skating", "winter", ""], ["speedskating", "Kiiruisutamine", "Speed skating", "winter", ""],
+    ["biathlon", "Laskesuusatamine", "Biathlon", "winter", ""], ["snowshoe", "Räätsamatk", "Snowshoeing", "winter", "räätsad"],
+    ["curling", "Kurling", "Curling", "winter", ""], ["sledding", "Kelgutamine", "Sledding", "winter", "kelk"],
+    ["yoga", "Jooga", "Yoga", "body", ""], ["pilates", "Pilates", "Pilates", "body", ""], ["stretching", "Venitamine", "Stretching", "body", "mobility"],
+    ["mobility", "Liikuvustreening", "Mobility", "body", ""], ["aerobics", "Aeroobika", "Aerobics", "body", "step"],
+    ["zumba", "Zumba", "Zumba", "body", ""], ["dance", "Tantsimine", "Dancing", "body", "tants"], ["ballet", "Ballett", "Ballet", "body", ""],
+    ["ballroom", "Seltskonnatants", "Ballroom dancing", "body", "standard ladina"], ["hiphop", "Hip-hop tants", "Hip-hop dance", "body", ""],
+    ["taichi", "Tai chi", "Tai chi", "body", ""], ["barre", "Barre", "Barre", "body", ""], ["breathwork", "Hingamisharjutused", "Breathwork", "body", ""],
+    ["climbing", "Ronimine", "Climbing", "misc", "seinaronimine"], ["bouldering", "Boulderdamine", "Bouldering", "misc", "boulder"],
+    ["gymnastics", "Võimlemine", "Gymnastics", "misc", "riistvõimlemine"], ["rhythmic", "Iluvõimlemine", "Rhythmic gymnastics", "misc", ""],
+    ["trampoline", "Batuut", "Trampoline", "misc", "batuudihüpped"], ["parkour", "Parkuur", "Parkour", "misc", "freerunning"],
+    ["horseriding", "Ratsutamine", "Horse riding", "misc", "hobune"], ["shooting", "Laskmine", "Shooting", "misc", ""],
+    ["archery", "Vibulaskmine", "Archery", "misc", "vibu"], ["karting", "Kardisõit", "Karting", "misc", "kart"],
+    ["motocross", "Motokross", "Motocross", "misc", ""], ["physio", "Füsioteraapia", "Physiotherapy", "misc", "taastus rehab"],
+    ["other", "Muu", "Other", "misc", ""]
   ];
-  const wkLabel = w => w.type === "other" ? (w.name || t("Muu")) : t((WK_TYPES.find(x => x[0] === w.type) || [0, "Muu"])[1]);
+  const wkSport = id => WK_SPORTS.find(x => x[0] === id);
+  const sportName = sp => sp ? (S.lang === "en" ? sp[2] : sp[1]) : t("Muu");
+  const wkLabel = w => w.type === "other" ? (w.name || t("Muu")) : sportName(wkSport(w.type));
+  const fold = x => String(x).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (!Array.isArray(state.customSports)) state.customSports = [];
   if (!Array.isArray(state.workouts)) state.workouts = [];
   if (!S.wkGoal) S.wkGoal = 3;
   const fmtDur = m => { m = Math.round(m); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${r} min` : `${h} h`) : `${r} min`; };
@@ -2566,7 +2650,7 @@
   const isoD = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const weekStart = s => { const d = parseD(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoD(d); };   // esmaspäev
   const addDays = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return isoD(d); };
-  let wkType = "gym", wkWhen = "0", wkEditId = null, wkSel = null;
+  let wkType = "gym", wkCustom = "", wkWhen = "0", wkEditId = null, wkSel = null;
   let wkMonth = dateStr().slice(0, 7);
 
   function renderWorkouts() {
@@ -2599,9 +2683,20 @@
     const wc = document.getElementById("workoutCount"); if (wc) wc.textContent = thisWeek.length ? thisWeek.length + "/" + goal : "";
 
     // --- Vorm ---
-    document.getElementById("wkTypes").innerHTML = WK_TYPES.map(([id, lbl]) =>
-      `<button type="button" class="chip ${wkType === id ? "on" : ""}" role="radio" aria-checked="${wkType === id}" data-type="${id}">${esc(t(lbl))}</button>`).join("");
-    document.getElementById("wkOtherField").hidden = wkType !== "other";
+    // Kiirvalikud: enim kasutatud alad + vaikimisi alad + praegu valitud ala.
+    const keyOf = w => w.type === "other" ? "c:" + (w.name || "") : w.type;
+    const used = {}; state.workouts.forEach(w => used[keyOf(w)] = (used[keyOf(w)] || 0) + 1);
+    const picks = Object.keys(used).sort((a, b) => used[b] - used[a]).slice(0, 6);
+    ["gym", "run", "football", "basketball", "swim", "bike", "yoga", "walk"].forEach(id => { if (picks.length < 8 && !picks.includes(id)) picks.push(id); });
+    const curKey = wkType === "other" ? "c:" + wkCustom : wkType;
+    if (!picks.includes(curKey)) picks.unshift(curKey);
+    document.getElementById("wkTypes").innerHTML = picks.map(k => {
+      const on = k === curKey, isC = k.startsWith("c:");
+      const lbl = isC ? k.slice(2) : sportName(wkSport(k));
+      return `<button type="button" class="chip ${on ? "on" : ""}" role="radio" aria-checked="${on}" ${isC ? `data-custom="${esc(k.slice(2))}"` : `data-type="${k}"`} data-no-tr>${esc(lbl)}</button>`;
+    }).join("");
+    document.getElementById("wkBrowseSum").textContent = t("Sirvi kõiki alasid ({n})", { n: WK_SPORTS.length - 1 + state.customSports.length });
+    if (document.getElementById("wkBrowse").open) renderWkBrowse();
     document.querySelectorAll("#wkWhen button").forEach(b => b.classList.toggle("on", b.dataset.v === wkWhen));
     document.getElementById("wkDateField").hidden = wkWhen !== "custom";
     document.getElementById("wkFormTitle").textContent = wkEditId ? t("Muuda trenni") : t("Lisa trenn");
@@ -2704,13 +2799,84 @@
 
   // --- Sündmused ---
   const wkMsg = (m, bad) => { const el = document.getElementById("wkMsg"); el.textContent = m || ""; el.classList.toggle("bad", !!bad); };
-  document.getElementById("wkTypes").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if (!b) return; wkType = b.dataset.type; renderWorkouts(); if (wkType === "other") document.getElementById("wkOther").focus(); });
+  function wkPick(type, custom) {
+    wkType = type; wkCustom = type === "other" ? custom : "";
+    const si = document.getElementById("wkSearch"); si.value = ""; wkCloseResults();
+    renderWorkouts();
+  }
+  document.getElementById("wkTypes").addEventListener("click", e => {
+    const b = e.target.closest("[data-type],[data-custom]"); if (!b) return;
+    if (b.dataset.custom != null) wkPick("other", b.dataset.custom); else wkPick(b.dataset.type);
+  });
+  // Otsing: eesti ja inglise nimed + lisasõnad, täpitähtedeta ("jous" leiab "Jõusaal").
+  function wkSearchList(q) {
+    const f = fold(q.trim()); if (!f) return [];
+    const score = hay => { const h = fold(hay); if (h.startsWith(f)) return 3; if (h.split(/[\s()\-]+/).some(w => w.startsWith(f))) return 2; return h.includes(f) ? 1 : 0; };
+    const res = [];
+    state.customSports.forEach(n => { const sc = score(n); if (sc) res.push({ sc: sc + .5, custom: n, label: n, cat: t("Minu alad") }); });
+    WK_SPORTS.forEach(sp => { if (sp[0] === "other") return; const sc = Math.max(score(sp[1]) + (S.lang === "et" ? .3 : 0), score(sp[2]) + (S.lang === "en" ? .3 : 0), score(sp[4]) * .8);
+      if (sc >= 1) res.push({ sc, type: sp[0], label: sportName(sp), cat: WK_CATS[sp[3]][S.lang === "en" ? 1 : 0] }); });
+    return res.sort((a, b) => b.sc - a.sc || a.label.localeCompare(b.label)).slice(0, 8);
+  }
+  let wkActive = -1, wkRes = [];
+  const wkSearchEl = document.getElementById("wkSearch"), wkResEl = document.getElementById("wkResults");
+  function wkCloseResults() { wkResEl.hidden = true; wkSearchEl.setAttribute("aria-expanded", "false"); wkActive = -1; }
+  function wkRenderResults() {
+    const q = wkSearchEl.value.trim();
+    if (!q) { wkCloseResults(); return; }
+    wkRes = wkSearchList(q);
+    const fq = fold(q);
+    const exact = state.customSports.some(n => fold(n) === fq) || WK_SPORTS.some(sp => fold(sp[1]) === fq || fold(sp[2]) === fq);
+    if (!exact) wkRes.push({ add: q, label: t("+ Lisa uus spordiala „{x}“", { x: q }) });
+    wkActive = Math.min(Math.max(wkActive, 0), wkRes.length - 1);
+    wkResEl.innerHTML = wkRes.map((r, i) => `<button type="button" class="res sp-res ${i === wkActive ? "act" : ""}" role="option" id="wkopt${i}" aria-selected="${i === wkActive}" data-i="${i}" data-no-tr>
+        <b class="${r.add ? "add" : ""}">${esc(r.label)}</b>${r.cat ? `<em>${esc(r.cat)}</em>` : ""}</button>`).join("");
+    wkResEl.hidden = false; wkSearchEl.setAttribute("aria-expanded", "true");
+    wkSearchEl.setAttribute("aria-activedescendant", "wkopt" + wkActive);
+  }
+  function wkChoose(r) {
+    if (!r) return;
+    if (r.add) {
+      const name = r.add.replace(/\s+/g, " ").trim().slice(0, 40); if (!name) return;
+      const hit = WK_SPORTS.find(sp => fold(sp[1]) === fold(name) || fold(sp[2]) === fold(name));
+      if (hit) return wkPick(hit[0]);
+      const ex = state.customSports.find(n => fold(n) === fold(name));
+      if (!ex) { state.customSports.push(name); save(); toast(t("Uus spordiala „{x}“ lisatud.", { x: name })); }
+      return wkPick("other", ex || name);
+    }
+    if (r.custom != null) wkPick("other", r.custom); else wkPick(r.type);
+  }
+  wkSearchEl.addEventListener("input", () => { wkActive = 0; wkRenderResults(); });
+  wkSearchEl.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); if (wkResEl.hidden) wkRenderResults(); wkActive = (wkActive + (e.key === "ArrowDown" ? 1 : wkRes.length - 1)) % Math.max(1, wkRes.length); wkRenderResults(); }
+    else if (e.key === "Enter") { e.preventDefault(); if (!wkResEl.hidden) wkChoose(wkRes[wkActive]); }
+    else if (e.key === "Escape") wkCloseResults();
+  });
+  wkResEl.addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) wkChoose(wkRes[+b.dataset.i]); });
+  document.addEventListener("pointerdown", e => { if (!e.target.closest(".sp-search")) wkCloseResults(); });
+  // Sirvi kõiki alasid kategooriate kaupa
+  function renderWkBrowse() {
+    const groups = Object.keys(WK_CATS).map(c => [WK_CATS[c][S.lang === "en" ? 1 : 0], WK_SPORTS.filter(sp => sp[3] === c && sp[0] !== "other").sort((a, b) => sportName(a).localeCompare(sportName(b), LOC))]);
+    if (state.customSports.length) groups.unshift([t("Minu alad"), null]);
+    document.getElementById("wkBrowseList").innerHTML = groups.map(([title, list]) => `<div class="sp-cat">${esc(title)}</div><div class="chips">${
+      list ? list.map(sp => `<button type="button" class="chip sm ${wkType === sp[0] ? "on" : ""}" data-type="${sp[0]}" data-no-tr>${esc(sportName(sp))}</button>`).join("")
+           : state.customSports.map(n => `<span class="chip-wrap"><button type="button" class="chip sm ${wkType === "other" && wkCustom === n ? "on" : ""}" data-custom="${esc(n)}" data-no-tr>${esc(n)}</button><button type="button" class="chip-x" data-rmcustom="${esc(n)}" aria-label="${esc(t("Eemalda"))} ${esc(n)}" title="${esc(t("Eemalda"))}">×</button></span>`).join("")
+    }</div>`).join("");
+  }
+  document.getElementById("wkBrowse").addEventListener("toggle", e => { if (e.target.open) renderWkBrowse(); });
+  document.getElementById("wkBrowseList").addEventListener("click", e => {
+    const rm = e.target.closest("[data-rmcustom]");
+    if (rm) { state.customSports = state.customSports.filter(n => n !== rm.dataset.rmcustom); save(); renderWorkouts(); return; }
+    const b = e.target.closest("[data-type],[data-custom]"); if (!b) return;
+    if (b.dataset.custom != null) wkPick("other", b.dataset.custom); else wkPick(b.dataset.type);
+    document.getElementById("wkBrowse").open = false;
+  });
   document.getElementById("wkWhen").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (!b) return; wkWhen = b.dataset.v; renderWorkouts(); });
   document.getElementById("wkQuick").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (!b) return; document.getElementById("wkMin").value = b.dataset.m; });
   document.getElementById("wkGoal").addEventListener("change", e => { const v = parseInt(e.target.value); if (v >= 1 && v <= 14) { S.wkGoal = v; save(); renderWorkouts(); } });
   function wkResetForm() {
     wkEditId = null; wkWhen = "0";
-    ["wkMin", "wkNote", "wkOther", "wkDate"].forEach(id => document.getElementById(id).value = "");
+    ["wkMin", "wkNote", "wkSearch", "wkDate"].forEach(id => document.getElementById(id).value = "");
   }
   document.getElementById("wkForm").addEventListener("submit", e => {
     e.preventDefault();
@@ -2719,8 +2885,8 @@
     const date = wkWhen === "custom" ? document.getElementById("wkDate").value : dateStr(parseInt(wkWhen));
     if (!date) return wkMsg(t("Vali kuupäev."), true);
     if (date > dateStr()) return wkMsg(t("Trenni ei saa lisada tulevikku."), true);
-    const name = document.getElementById("wkOther").value.trim();
-    if (wkType === "other" && !name) return wkMsg(t("Kirjuta, mis trenn see oli."), true);
+    const name = wkCustom.trim();
+    if (wkType === "other" && !name) return wkMsg(t("Otsi spordiala või lisa uus."), true);
     const note = document.getElementById("wkNote").value.trim();
     const rec = { date, type: wkType, name: wkType === "other" ? name : "", minutes, note };
     if (wkEditId) { Object.assign(state.workouts.find(w => w.id === wkEditId), rec); wkMsg(t("Trenn muudetud.")); }
@@ -2755,13 +2921,12 @@
     }
     if (ed) {
       const w = state.workouts.find(x => x.id === ed.dataset.wkedit); if (!w) return;
-      wkEditId = w.id; wkType = w.type;
+      wkEditId = w.id; wkType = w.type; wkCustom = w.type === "other" ? (w.name || "") : "";
       wkWhen = w.date === dateStr() ? "0" : w.date === dateStr(-1) ? "-1" : "custom";
       renderWorkouts();
       document.getElementById("wkDate").value = w.date;
       document.getElementById("wkMin").value = w.minutes;
       document.getElementById("wkNote").value = w.note || "";
-      document.getElementById("wkOther").value = w.name || "";
       document.getElementById("wkForm").scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
