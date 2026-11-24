@@ -59,7 +59,7 @@
   .num { font-variant-numeric: tabular-nums; }
 
   /* ---------- Raamistik ---------- */
-  .app { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; background: linear-gradient(to right, var(--rail) 248px, transparent 248px); }
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; background: linear-gradient(to right, var(--rail) 248px, transparent 248px); }
 
   .rail {
     background: var(--rail);
@@ -249,6 +249,26 @@
   .sync-status.ok::before { content: "● "; color: var(--accent); }
   @media (max-width: 640px) { .toast { left: 92px; right: 12px; bottom: 12px; } }
 
+  /* ---------- Ülanurga konto ---------- */
+  .topbar { display: flex; justify-content: flex-end; margin: -16px 0 6px; min-height: 40px; }
+  .acct-wrap { position: relative; }
+  .acct-btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
+    border: 1px solid var(--line-strong); color: var(--ink); font-size: 13px; font-weight: 600; background: var(--surface); }
+  .acct-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .acct-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .acct-btn.in { padding: 0 10px 0 4px; }
+  .acct-btn.in:hover { color: var(--ink); }
+  .acct-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .acct-btn-mail { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .acct-btn .caret { width: 14px; height: 14px; color: var(--muted); }
+  .avatar.sm { width: 28px; height: 28px; font-size: 13px; }
+  .acct-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 45; min-width: 240px; background: var(--panel-head); border: 1px solid var(--line-strong); box-shadow: 0 10px 30px rgba(0,0,0,.5); padding: 6px 0; }
+  .am-head { padding: 10px 14px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+  .acct-menu button { all: unset; box-sizing: border-box; cursor: pointer; display: block; width: 100%; padding: 9px 14px; font-size: 14px; color: var(--ink); }
+  .acct-menu button:hover, .acct-menu button:focus-visible { background: var(--accent-soft); }
+  .acct-menu button.danger { color: var(--warm); }
+  .auth-dialog { margin: auto; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); padding: 0; width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 40px); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+  .auth-dialog::backdrop { background: rgba(0,0,0,.65); }
   /* ---------- Trennid ---------- */
   .wk-big { font-size: clamp(52px, 8vw, 88px); }
   .wk-big small { font-size: .4em; color: var(--muted); margin-left: 8px; font-weight: 500; }
@@ -278,20 +298,26 @@
   .chip-x { all: unset; cursor: pointer; padding: 0 8px; border: 1px solid var(--line-strong); border-left: none; color: var(--muted); display: flex; align-items: center; }
   .chip-x:hover { color: var(--warm); }
   .cal-nav { display: flex; align-items: center; gap: 6px; }
-  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 14px 20px 8px; }
+  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 14px 20px 8px; }
   .cal-wd { font-size: 11px; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: .06em; padding-bottom: 4px; }
-  .cal-d { all: unset; box-sizing: border-box; cursor: pointer; aspect-ratio: 1 / 1; background: var(--track); display: flex; flex-direction: column; justify-content: space-between; padding: 5px 6px; font-size: 12px; color: var(--ink-2); position: relative; min-height: 34px; }
+  .cal-d { all: unset; box-sizing: border-box; cursor: pointer; min-height: 64px; background: var(--track); display: flex; flex-direction: column; justify-content: space-between; padding: 5px 6px; font-size: 12px; color: var(--ink-2); position: relative; min-height: 34px; }
+  .cal-d { justify-content: flex-start !important; gap: 2px; overflow: hidden; }
+  .cal-d { min-width: 0; }
+  .cal-d .top { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
   .cal-d .n { font-weight: 600; }
-  .cal-d .m { font-size: 10px; align-self: flex-end; }
-  .cal-d.l1, .cal-legend .l1 { background: rgba(74,222,128,.28); }
-  .cal-d.l2, .cal-legend .l2 { background: rgba(74,222,128,.55); }
-  .cal-d.l3, .cal-legend .l3 { background: var(--accent); }
-  .cal-d.l2, .cal-d.l3 { color: var(--accent-ink); }
+  .cal-d .m { font-size: 10px; opacity: .85; }
+  .cal-d .nm { display: block; font-size: 11px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-d .nm.more { font-weight: 500; opacity: .8; }
+  /* Trennipäevad sinises: mida pikem trenn, seda heledam sinine; valge tekst on kõigil tasemetel hästi loetav (≥ 5,9:1). */
+  .cal-d.l1, .cal-legend .l1 { background: #1F3D66; }
+  .cal-d.l2, .cal-legend .l2 { background: #2A5793; }
+  .cal-d.l3, .cal-legend .l3 { background: #2E64B0; }
+  .cal-d.l1, .cal-d.l2, .cal-d.l3 { color: #FFFFFF; }
   .cal-d.out { opacity: .35; }
   .cal-d:disabled { cursor: default; opacity: .25; }
   .cal-d.today { box-shadow: inset 0 0 0 2px var(--ink); }
   .cal-d.sel { box-shadow: inset 0 0 0 2px var(--warm); }
-  .cal-d:not(:disabled):hover { outline: 1px solid var(--accent); }
+  .cal-d:not(:disabled):hover { outline: 1px solid #5B8CD6; }
   .cal-d:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .cal-legend { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 4px 20px 12px; font-size: 11px; color: var(--muted); }
   .cal-legend i { width: 12px; height: 12px; display: inline-block; }
@@ -460,7 +486,7 @@
   .group.late { color: var(--danger); }
   .item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; }
   .item + .item { border-top: 1px solid var(--line); }
-  .item .t { flex: 1; min-width: 0; }
+  .item .t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .item .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .item.done .t > div:first-child { text-decoration: line-through; color: var(--muted); }
 
@@ -510,9 +536,14 @@
     .lbl-long { display: none; }
     .lbl-short { display: inline !important; }
     .pf-table td.trend { width: 100%; }
+    .topbar { margin: -8px 0 4px; }
+    .acct-btn-mail { display: none; }
+    .acct-btn.in { padding: 0 6px 0 4px; }
     .cal { padding: 12px 10px 6px; gap: 3px; }
-    .cal-d { padding: 3px 4px; font-size: 11px; min-height: 0; }
-    .cal-d .m { font-size: 9px; }
+    .cal-d { padding: 3px 3px; font-size: 11px; min-height: 52px; }
+    .cal-d .m { display: none; }
+    .cal-d .nm { font-size: 8.5px; letter-spacing: -.2px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .cal-d { padding: 3px 2px; }
     .cal-legend, .day-detail { padding-left: 14px; padding-right: 14px; }
     .chart-head { padding: 14px 14px 4px; }
     .chart-wrap { padding: 6px 4px 4px 0; }
@@ -529,7 +560,7 @@
     main { padding: 28px 24px 60px; }
   }
   @media (max-width: 640px) {
-    .app { grid-template-columns: 76px 1fr; background: linear-gradient(to right, var(--rail) 76px, transparent 76px); }
+    .app { grid-template-columns: 76px minmax(0, 1fr); background: linear-gradient(to right, var(--rail) 76px, transparent 76px); }
     .brand { padding: 20px 0 22px; justify-content: center; }
     .brand span, .nav-label, .nav .count, .rail-foot { display: none; }
     .brand-mark { margin: 0; }
@@ -599,6 +630,12 @@
   </aside>
 
   <main>
+    <div class="topbar">
+      <div class="acct-wrap">
+        <button type="button" class="acct-btn" id="acctBtn" aria-expanded="false"></button>
+        <div class="acct-menu" id="acctMenu" role="menu" hidden></div>
+      </div>
+    </div>
     <!-- ================= RAHALINE EESMÄRK ================= -->
     <section class="page active" id="page-money">
       <div class="page-head">
@@ -1160,6 +1197,10 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<dialog class="auth-dialog" id="authDialog" aria-labelledby="authDlgTitle">
+  <div class="panel-head"><h2 id="authDlgTitle">Konto</h2><button type="button" class="x" id="authClose" aria-label="Sulge" title="Sulge"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg></button></div>
+  <div class="panel-body" id="authModalBody"></div>
+</dialog>
 <script src="config.js"></script>
 <script>
   // ---------- Andmed ----------
@@ -1400,7 +1441,7 @@
     "Teavitused on brauseris keelatud. Luba need brauseri aadressiriba lukuikoonilt – seni näidatakse meeldetuletusi äpi sees.": "Notifications are blocked in your browser. Allow them via the lock icon in the address bar – until then reminders are shown inside the app.",
 
     // Konto
-    "Konto": "Account", "Sisse logitud": "Signed in", "Pole sisse logitud": "Not signed in",
+    "Konto": "Account", "Konto menüü": "Account menu", "Konto seaded": "Account settings", "Sulge": "Close", "Sisse logitud": "Signed in", "Pole sisse logitud": "Not signed in",
     "Konto abil on sinu andmed turvaliselt pilves ja saad neid kasutada mitmes seadmes. Sõbrad saavad luua oma konto – igaüks näeb ainult enda andmeid.": "With an account your data is stored securely in the cloud and you can use it on several devices. Friends can create their own accounts – everyone only sees their own data.",
     "Kontode jaoks on vaja tasuta Supabase'i andmebaasi. Lehe omanik seadistab selle ühe korra (umbes 5 minutit) – juhend on failis KONTOD.md.": "Accounts need a free Supabase database. The site owner sets it up once (about 5 minutes) – see KONTOD.md for instructions.",
     "Seni hoitakse andmeid ainult selles seadmes.": "Until then, data is kept only on this device.",
@@ -2724,7 +2765,8 @@
         const out = d.slice(0, 7) !== wkMonth, fut = d > today;
         const lab = parseD(d).toLocaleDateString(LOC, { day: "numeric", month: "long" }) + (list.length ? ": " + list.map(w => wkLabel(w) + " " + fmtDur(w.minutes)).join(", ") : "");
         return `<button type="button" class="cal-d ${lvl(min)} ${out ? "out" : ""} ${d === today ? "today" : ""} ${d === wkSel ? "sel" : ""}" data-day="${d}" ${fut ? "disabled" : ""} aria-label="${esc(lab)}" title="${esc(lab)}" data-no-tr>
-          <span class="n">${parseD(d).getDate()}</span>${min ? `<span class="m num">${min >= 60 ? (Math.round(min / 6) / 10).toLocaleString(LOC) + "h" : min + "'"}</span>` : ""}</button>`;
+          <span class="top"><span class="n">${parseD(d).getDate()}</span>${min ? `<span class="m num">${min >= 60 ? (Math.round(min / 6) / 10).toLocaleString(LOC) + "h" : min + "'"}</span>` : ""}</span>
+          ${(() => { const names = [...new Set(list.map(wkLabel))]; return names.slice(0, 2).map(n => `<span class="nm">${esc(n)}</span>`).join("") + (names.length > 2 ? `<span class="nm more">+${names.length - 2}</span>` : ""); })()}</button>`;
       }).join("");
     // Valitud päeva detailid
     const det = document.getElementById("wkDay");
@@ -3416,95 +3458,150 @@
     notify(tn(open, "Täna on {n} ülesanne tegemata", "Täna on {n} ülesannet tegemata"), t("Nii näeb meeldetuletus välja."), "test");
   };
 
-  // Konto paneel
+  // Konto: sama vaade on seadete lehel (#accountBody) ja ülanurga sisselogimise aknas (#authModalBody).
+  // Modaalakna elementide id-del on eesliide "m-", et id-d ei korduks.
   let authMode = "login";
+  const ACCT_ROOTS = [["accountBody", ""], ["authModalBody", "m-"]];
+  const syncText = () => syncState.status === "syncing" ? t("Sünkroonin…")
+    : syncState.status === "error" ? t("Sünkroonimine ebaõnnestus: {e}", { e: syncState.error })
+    : syncState.at ? t("Sünkroonitud {aeg}", { aeg: new Date(syncState.at).toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" }) }) : "";
   function renderSyncStatus() {
     const pill = document.getElementById("acctPill");
     pill.hidden = !sbConf();
     pill.textContent = session ? t("Sisse logitud") : t("Pole sisse logitud"); pill.className = "mode-pill " + (session ? "live" : "");
-    const el = document.getElementById("syncStatus"); if (!el) return;
-    el.className = "sync-status " + syncState.status;
-    el.textContent = syncState.status === "syncing" ? t("Sünkroonin…")
-      : syncState.status === "error" ? t("Sünkroonimine ebaõnnestus: {e}", { e: syncState.error })
-      : syncState.at ? t("Sünkroonitud {aeg}", { aeg: new Date(syncState.at).toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" }) }) : "";
+    document.querySelectorAll(".sync-status[data-sync]").forEach(el => { el.className = "sync-status " + syncState.status; el.textContent = syncText(); });
+    renderTopAccount();
   }
-  function renderAccount() {
-    const box = document.getElementById("accountBody"), c = sbConf();
-    if (!c) {
-      box.innerHTML = `
+  function acctHTML(p) {
+    const c = sbConf();
+    if (!c) return `
         <p class="note">${esc(t("Konto abil on sinu andmed turvaliselt pilves ja saad neid kasutada mitmes seadmes. Sõbrad saavad luua oma konto – igaüks näeb ainult enda andmeid."))}</p>
         <p class="note">${esc(t("Kontode jaoks on vaja tasuta Supabase'i andmebaasi. Lehe omanik seadistab selle ühe korra (umbes 5 minutit) – juhend on failis KONTOD.md."))}</p>
         <p class="note">${esc(t("Seni hoitakse andmeid ainult selles seadmes."))}</p>
         <details class="manual"><summary>${esc(t("Mul on Supabase'i andmed – sisesta need siia"))}</summary>
-          <form id="sbForm" style="margin-top:12px">
-            <div class="field"><label for="sbUrl">Project URL</label><input id="sbUrl" type="url" placeholder="https://xxxx.supabase.co" required spellcheck="false"></div>
-            <div class="field"><label for="sbKey">anon public key</label><input id="sbKey" type="text" placeholder="eyJhbGciOi…" required spellcheck="false" autocomplete="off"></div>
+          <form id="${p}sbForm" data-form="sb" style="margin-top:12px">
+            <div class="field"><label for="${p}sbUrl">Project URL</label><input id="${p}sbUrl" data-f="url" type="url" placeholder="https://xxxx.supabase.co" required spellcheck="false"></div>
+            <div class="field"><label for="${p}sbKey">anon public key</label><input id="${p}sbKey" data-f="key" type="text" placeholder="eyJhbGciOi…" required spellcheck="false" autocomplete="off"></div>
             <button class="btn ghost" type="submit">${esc(t("Salvesta"))}</button>
             <p class="note" style="margin-top:10px">${esc(t("Need salvestuvad ainult selles seadmes. Et kõik kasutajad saaksid kontot luua, pane need faili config.js."))}</p>
           </form></details>`;
-    } else if (!session) {
-      box.innerHTML = `
-        <div class="seg-select tabs2" id="authTabs"><button type="button" data-m="login" class="${authMode === "login" ? "on" : ""}">${esc(t("Logi sisse"))}</button><button type="button" data-m="signup" class="${authMode === "signup" ? "on" : ""}">${esc(t("Loo konto"))}</button></div>
-        <form id="authForm" style="margin-top:16px">
-          <div class="field"><label for="authEmail">${esc(t("E-post"))}</label><input id="authEmail" type="email" autocomplete="email" required></div>
-          <div class="field"><label for="authPw">${esc(t("Parool"))}</label><input id="authPw" type="password" minlength="6" autocomplete="${authMode === "signup" ? "new-password" : "current-password"}" required>
+    if (!session) return `
+        <div class="seg-select tabs2" id="${p}authTabs" data-tabs><button type="button" data-m="login" class="${authMode === "login" ? "on" : ""}">${esc(t("Logi sisse"))}</button><button type="button" data-m="signup" class="${authMode === "signup" ? "on" : ""}">${esc(t("Loo konto"))}</button></div>
+        <form id="${p}authForm" data-form="auth" style="margin-top:16px">
+          <div class="field"><label for="${p}authEmail">${esc(t("E-post"))}</label><input id="${p}authEmail" data-f="email" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="${p}authPw">${esc(t("Parool"))}</label><input id="${p}authPw" data-f="pw" type="password" minlength="6" autocomplete="${authMode === "signup" ? "new-password" : "current-password"}" required>
             ${authMode === "signup" ? `<span class="note" style="margin:0">${esc(t("Vähemalt 6 tähemärki."))}</span>` : ""}</div>
-          <button class="btn block" type="submit" id="authBtn">${esc(authMode === "signup" ? t("Loo konto") : t("Logi sisse"))}</button>
-          ${authMode === "login" ? `<button class="link-btn" type="button" id="forgotPw" style="margin-top:12px">${esc(t("Unustasid parooli?"))}</button>` : ""}
-          <div class="inv-msg" id="authMsg"></div>
+          <button class="btn block" type="submit" id="${p}authBtn" data-f="btn">${esc(authMode === "signup" ? t("Loo konto") : t("Logi sisse"))}</button>
+          ${authMode === "login" ? `<button class="link-btn" type="button" id="${p}forgotPw" data-act="forgot" style="margin-top:12px">${esc(t("Unustasid parooli?"))}</button>` : ""}
+          <div class="inv-msg" id="${p}authMsg" data-f="msg"></div>
         </form>
         <p class="note" style="margin-top:14px">${esc(t("Kui lood konto, laaditakse selle seadme andmed sinu kontole."))}</p>`;
-    } else {
-      box.innerHTML = `
+    return `
         <div class="acct-row"><div class="avatar">${esc((session.user?.email || "?")[0].toUpperCase())}</div>
-          <div><div class="acct-mail">${esc(session.user?.email || "")}</div><div class="sync-status" id="syncStatus"></div></div></div>
+          <div><div class="acct-mail">${esc(session.user?.email || "")}</div><div class="sync-status" id="${p}syncStatus" data-sync></div></div></div>
         <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap">
-          <button class="btn ghost sm" type="button" id="syncNow">${esc(t("Sünkrooni kohe"))}</button>
-          <button class="btn ghost sm" type="button" id="logout">${esc(t("Logi välja"))}</button>
+          <button class="btn ghost sm" type="button" id="${p}syncNow" data-act="sync">${esc(t("Sünkrooni kohe"))}</button>
+          <button class="btn ghost sm" type="button" id="${p}logout" data-act="logout">${esc(t("Logi välja"))}</button>
         </div>
         <p class="note" style="margin-top:14px">${esc(t("Muudatused salvestatakse kontole automaatselt. Finnhubi API võti jääb ainult sellesse seadmesse."))}</p>`;
-    }
+  }
+  function renderAccount() {
+    ACCT_ROOTS.forEach(([id, p]) => { const box = document.getElementById(id); if (box) box.innerHTML = acctHTML(p); });
     renderSyncStatus();
   }
-  document.getElementById("accountBody").addEventListener("click", async e => {
-    const tab = e.target.closest("#authTabs button");
-    if (tab) { authMode = tab.dataset.m; renderAccount(); return; }
-    if (e.target.closest("#logout")) {
-      try { await sb("/auth/v1/logout", { method: "POST" }); } catch (err) {}
-      setSession(null); syncState = { status: "idle", at: null, error: "" }; renderAccount(); toast(t("Logisid välja. Andmed jäid sellesse seadmesse alles.")); return;
-    }
-    if (e.target.closest("#syncNow")) { await pushRemote(true); return; }
-    if (e.target.closest("#forgotPw")) {
-      const email = document.getElementById("authEmail").value.trim();
-      const msg = document.getElementById("authMsg");
-      if (!email) { msg.textContent = t("Sisesta kõigepealt oma e-post."); msg.classList.add("bad"); return; }
-      try { await sb("/auth/v1/recover", { method: "POST", auth: false, body: { email } }); msg.classList.remove("bad"); msg.textContent = t("Saatsime parooli taastamise lingi aadressile {e}.", { e: email }); }
-      catch (err) { msg.classList.add("bad"); msg.textContent = err.message; }
-    }
-  });
-  document.getElementById("accountBody").addEventListener("submit", async e => {
-    e.preventDefault();
-    if (e.target.id === "sbForm") {
-      const url = document.getElementById("sbUrl").value.trim(), key = document.getElementById("sbKey").value.trim();
-      try { localStorage.setItem(SB_LOCAL, JSON.stringify({ url, key })); } catch (err) {}
-      renderAccount(); return;
-    }
-    if (e.target.id !== "authForm") return;
-    const email = document.getElementById("authEmail").value.trim(), password = document.getElementById("authPw").value;
-    const msg = document.getElementById("authMsg"), btn = document.getElementById("authBtn");
-    btn.disabled = true; msg.textContent = ""; msg.classList.remove("bad");
-    try {
-      if (authMode === "signup") {
-        const j = await sb("/auth/v1/signup", { method: "POST", auth: false, body: { email, password } });
-        if (j && j.access_token) { setSession(withExpiry(j)); await afterLogin(); toast(t("Konto loodud!")); }
-        else { msg.textContent = t("Konto loodud! Kinnita oma e-post (vaata postkasti) ja logi siis sisse."); authMode = "login"; }
-      } else {
-        const j = await sb("/auth/v1/token?grant_type=password", { method: "POST", auth: false, body: { email, password } });
-        setSession(withExpiry(j)); await afterLogin(); toast(t("Tere tulemast tagasi!"));
+  async function doLogout() {
+    try { await sb("/auth/v1/logout", { method: "POST" }); } catch (err) {}
+    setSession(null); syncState = { status: "idle", at: null, error: "" }; renderAccount();
+    toast(t("Logisid välja. Andmed jäid sellesse seadmesse alles."));
+  }
+  ACCT_ROOTS.forEach(([id]) => {
+    const root = document.getElementById(id);
+    const f = name => root.querySelector(`[data-f="${name}"]`);
+    root.addEventListener("click", async e => {
+      const tab = e.target.closest("[data-tabs] button");
+      if (tab) { authMode = tab.dataset.m; renderAccount(); f("email")?.focus(); return; }
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act === "logout") { await doLogout(); return; }
+      if (act === "sync") { await pushRemote(true); return; }
+      if (act === "forgot") {
+        const email = f("email").value.trim(), msg = f("msg");
+        if (!email) { msg.textContent = t("Sisesta kõigepealt oma e-post."); msg.classList.add("bad"); return; }
+        try { await sb("/auth/v1/recover", { method: "POST", auth: false, body: { email } }); msg.classList.remove("bad"); msg.textContent = t("Saatsime parooli taastamise lingi aadressile {e}.", { e: email }); }
+        catch (err) { msg.classList.add("bad"); msg.textContent = err.message; }
       }
-    } catch (err) { msg.textContent = err.message; msg.classList.add("bad"); }
-    finally { if (document.body.contains(btn)) btn.disabled = false; }
+    });
+    root.addEventListener("submit", async e => {
+      e.preventDefault();
+      const kind = e.target.dataset.form;
+      if (kind === "sb") {
+        try { localStorage.setItem(SB_LOCAL, JSON.stringify({ url: f("url").value.trim(), key: f("key").value.trim() })); } catch (err) {}
+        renderAccount(); return;
+      }
+      if (kind !== "auth") return;
+      const email = f("email").value.trim(), password = f("pw").value, msg = f("msg"), btn = f("btn");
+      btn.disabled = true; msg.textContent = ""; msg.classList.remove("bad");
+      try {
+        if (authMode === "signup") {
+          const j = await sb("/auth/v1/signup", { method: "POST", auth: false, body: { email, password } });
+          if (j && j.access_token) { setSession(withExpiry(j)); await afterLogin(); closeAuthDialog(); toast(t("Konto loodud!")); }
+          else { authMode = "login"; renderAccount(); const m2 = f("msg"); if (m2) m2.textContent = t("Konto loodud! Kinnita oma e-post (vaata postkasti) ja logi siis sisse."); }
+        } else {
+          const j = await sb("/auth/v1/token?grant_type=password", { method: "POST", auth: false, body: { email, password } });
+          setSession(withExpiry(j)); await afterLogin(); closeAuthDialog(); toast(t("Tere tulemast tagasi!"));
+        }
+      } catch (err) { msg.textContent = err.message; msg.classList.add("bad"); }
+      finally { if (document.body.contains(btn)) btn.disabled = false; }
+    });
   });
+
+  // ---- Ülanurga konto nupp, menüü ja sisselogimise aken ----
+  const topBtn = document.getElementById("acctBtn"), topMenu = document.getElementById("acctMenu"), authDlg = document.getElementById("authDialog");
+  function renderTopAccount() {
+    if (!topBtn) return;
+    const email = session?.user?.email || "";
+    topBtn.classList.toggle("in", !!session);
+    topBtn.innerHTML = session
+      ? `<span class="avatar sm">${esc((email || "?")[0].toUpperCase())}</span><span class="acct-btn-mail" data-no-tr>${esc(email)}</span><svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6l4 4 4-4"/></svg>`
+      : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5.5" r="3"/><path d="M2.5 14.5c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/></svg><span>${esc(t("Logi sisse"))}</span>`;
+    topBtn.setAttribute("aria-haspopup", session ? "menu" : "dialog");
+    topBtn.setAttribute("aria-label", session ? t("Konto menüü") : t("Logi sisse"));
+    if (session) {
+      topMenu.innerHTML = `<div class="am-head"><div class="acct-mail" data-no-tr>${esc(email)}</div><div class="sync-status" data-sync>${esc(syncText())}</div></div>
+        <button type="button" role="menuitem" data-top="sync">${esc(t("Sünkrooni kohe"))}</button>
+        <button type="button" role="menuitem" data-top="settings">${esc(t("Konto seaded"))}</button>
+        <button type="button" role="menuitem" data-top="logout" class="danger">${esc(t("Logi välja"))}</button>`;
+      topMenu.querySelector("[data-sync]").className = "sync-status " + syncState.status;
+    } else { topMenu.hidden = true; topBtn.setAttribute("aria-expanded", "false"); }
+  }
+  function openAuthDialog(mode) {
+    if (mode) authMode = mode;
+    renderAccount();
+    if (authDlg.showModal) authDlg.showModal(); else authDlg.setAttribute("open", "");
+    setTimeout(() => (authDlg.querySelector('[data-f="email"]') || authDlg.querySelector("input,button"))?.focus(), 30);
+  }
+  function closeAuthDialog() { if (authDlg.open) { authDlg.close ? authDlg.close() : authDlg.removeAttribute("open"); } }
+  const closeTopMenu = () => { topMenu.hidden = true; topBtn.setAttribute("aria-expanded", "false"); };
+  topBtn.addEventListener("click", () => {
+    if (!session) { openAuthDialog("login"); return; }
+    const open = topMenu.hidden; topMenu.hidden = !open; topBtn.setAttribute("aria-expanded", String(open));
+    if (open) topMenu.querySelector("button")?.focus();
+  });
+  topMenu.addEventListener("click", async e => {
+    const a = e.target.closest("[data-top]")?.dataset.top; if (!a) return;
+    closeTopMenu();
+    if (a === "sync") await pushRemote(true);
+    else if (a === "settings") { showPage("settings"); document.getElementById("accountPanel").scrollIntoView({ behavior: "smooth", block: "start" }); }
+    else if (a === "logout") await doLogout();
+  });
+  topMenu.addEventListener("keydown", e => {
+    const items = [...topMenu.querySelectorAll("button")], i = items.indexOf(document.activeElement);
+    if (e.key === "Escape") { closeTopMenu(); topBtn.focus(); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus(); }
+  });
+  document.addEventListener("pointerdown", e => { if (!topMenu.hidden && !e.target.closest("#acctMenu,#acctBtn")) closeTopMenu(); });
+  document.getElementById("authClose").addEventListener("click", closeAuthDialog);
+  authDlg.addEventListener("click", e => { if (e.target === authDlg) closeAuthDialog(); });   // klõps akna taustal sulgeb
+  authDlg.addEventListener("close", () => topBtn.focus());
 
   function renderAll() {
     LOC = S.lang === "en" ? "en-GB" : "et-EE";
