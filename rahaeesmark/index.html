@@ -367,6 +367,22 @@
   .group.late .bulk { color: var(--warm); text-decoration-color: rgba(248,113,113,.4); }
   .x.later:hover { color: var(--accent); }
   .moved { color: var(--c4, #FCD34D); }
+  .day-toggles { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid var(--line-strong); }
+  .day-t { all: unset; box-sizing: border-box; cursor: pointer; text-align: center; padding: 9px 0; font-size: 13px; font-weight: 600; color: var(--ink-2); text-transform: capitalize; }
+  .day-t + .day-t { border-left: 1px solid var(--line-strong); }
+  .day-t:hover { color: var(--ink); background: var(--accent-soft); }
+  .day-t.on { background: var(--accent); color: var(--accent-ink); }
+  .day-t:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .day-toggles.sm { margin-top: 8px; max-width: 280px; }
+  .day-toggles.sm .day-t { padding: 4px 0; font-size: 11px; }
+  .rep-quick { display: flex; gap: 14px; margin-top: 8px; }
+  .rep-quick .link-btn:hover { color: var(--accent); }
+  .rt-icon { width: 22px; text-align: center; color: var(--accent); font-size: 16px; flex-shrink: 0; align-self: flex-start; margin-top: 1px; }
+  .rt-badge { color: var(--accent); }
+  .routine { align-items: flex-start; }
+  .routine.paused .t > div:first-child, .routine.paused .rt-icon { color: var(--muted); }
+  .routine.paused .day-t.on { background: var(--line-strong); color: var(--ink-2); }
+  .switch-mini { display: inline-flex; align-items: center; padding-top: 2px; }
   .pop { position: absolute; z-index: 40; min-width: 230px; background: var(--panel-head); border: 1px solid var(--line-strong); box-shadow: 0 10px 30px rgba(0,0,0,.5); padding: 6px 0; }
   .pop[hidden] { display: none; }
   .pop-h { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 6px 14px 8px; }
@@ -794,6 +810,12 @@
               <input type="text" id="shortText" placeholder="Nt helistada tööandjale" required>
             </div>
             <div class="field">
+              <label>Kordub <span class="opt">(valikuline – rutiin)</span></label>
+              <div class="day-toggles" id="repeatDays" role="group" aria-label="Kordumise päevad"></div>
+              <div class="rep-quick"><button type="button" class="link-btn" data-rep="all">Iga päev</button><button type="button" class="link-btn" data-rep="work">Tööpäeviti</button><button type="button" class="link-btn" data-rep="none">Ei kordu</button></div>
+              <p class="note" id="repeatHint" style="margin:6px 0 0"></p>
+            </div>
+            <div class="field" id="whenField">
               <label>Millal</label>
               <div class="seg-select" id="whenSel">
                 <button type="button" data-v="0">Täna</button>
@@ -810,7 +832,7 @@
               <label for="shortTime">Meeldetuletus kell <span class="opt">(valikuline)</span></label>
               <input type="time" id="shortTime" style="max-width:160px">
             </div>
-            <button class="btn block" type="submit">Lisa ülesanne</button>
+            <button class="btn block" type="submit" id="shortSubmit">Lisa ülesanne</button>
           </form>
         </div>
 
@@ -818,6 +840,11 @@
           <div class="panel-head"><h2>Ülesanded</h2><button class="link-btn" id="clearDone" type="button">Eemalda tehtud</button></div>
           <div id="shortList"></div>
         </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px" id="routinePanel">
+        <div class="panel-head"><h2>Rutiinid</h2><span class="head-note">Korduvad ülesanded ilmuvad ise valitud päevadel</span></div>
+        <div id="routineList"></div>
       </div>
     </section>
 
@@ -1334,7 +1361,18 @@
     "Nädala pärast": "In a week", "Vali kuupäev": "Pick a date", "Vali": "Set", "Mitu korda edasi lükatud": "Times postponed",
     "{n} ülesanne → {d}": v => `${v.n} task → ${v.d}`, "{n} ülesannet → {d}": v => `${v.n} tasks → ${v.d}`,
     "{n} hilinenud ülesanne tõsteti tänasesse.": "{n} overdue task was moved to today.", "{n} hilinenud ülesannet tõsteti tänasesse.": "{n} overdue tasks were moved to today.",
-    "Ülesanded ja meeldetuletused": "Tasks and reminders", "Tõsta hilinenud ülesanded tänasesse": "Move overdue tasks to today",
+    "Ülesanded ja meeldetuletused": "Tasks and reminders",
+    "Kordub": "Repeats", "(valikuline – rutiin)": "(optional – routine)", "Kordumise päevad": "Repeat days", "Iga päev": "Every day",
+    "Tööpäeviti": "Weekdays", "Ei kordu": "Doesn't repeat", "Rutiinid": "Routines", "Rutiin": "Routine",
+    "Korduvad ülesanded ilmuvad ise valitud päevadel": "Repeating tasks appear by themselves on the chosen days",
+    "iga päev": "every day", "tööpäeviti": "weekdays", "nädalavahetustel": "weekends", "iga {p}": "every {p}",
+    "Rutiin: {d}. Ülesanne ilmub ise igal valitud päeval.": "Routine: {d}. The task appears by itself on each chosen day.",
+    "Lisa rutiin": "Add routine", "Lisa ülesanne": "Add task",
+    "Rutiine pole. Vali ülesannet lisades päevad (nt N), et see korduks iga nädal.": "No routines. Pick days when adding a task (e.g. Th) to make it repeat every week.",
+    "peatatud": "paused", "Peata rutiin": "Pause routine", "Jätka rutiini": "Resume routine", "Rutiin aktiivne": "Routine active",
+    "Kustuta rutiin": "Delete routine", "Vali vähemalt üks päev.": "Pick at least one day.",
+    "Kustutada rutiin „{x}“? Tulevased tegemata korrad eemaldatakse.": "Delete routine “{x}”? Upcoming unfinished occurrences are removed.",
+    "Rutiin lisatud: {d}.": "Routine added: {d}.", "Järgmine kord: {p}.": "Next time: {p}.", "Tõsta hilinenud ülesanded tänasesse": "Move overdue tasks to today",
     "Tegemata jäänud ülesanded liiguvad uuel päeval automaatselt tänase alla.": "Unfinished tasks automatically move to today when a new day starts.", "Tähtsus": "Priority", "Järjesta väärtuse järgi": "Sort by value",
     "Lülita seadetes meeldetuletused sisse, et saada teavitus.": "Turn on reminders in Settings to get a notification.",
 
@@ -2991,13 +3029,15 @@
   const byOrder = (a, b) => a.done - b.done || a.order - b.order;
 
   function renderShort() {
+    renderRoutines(); renderRepeat();
     const open = state.tasks.filter(x => !x.done).length;
     document.getElementById("shortCount").textContent = open || "";
     const wrap = document.getElementById("shortList");
-    if (!state.tasks.length) { wrap.innerHTML = `<div class="empty">Ülesandeid pole. Lisa, mida pead homme tegema.</div>`; translateDOM(wrap); return; }
+    if (!state.tasks.some(x => !(x.done && x.date < dateStr(0)))) { wrap.innerHTML = `<div class="empty">Ülesandeid pole. Lisa, mida pead homme tegema.</div>`; translateDOM(wrap); return; }
     const today = dateStr(0);
     const groups = {};
-    state.tasks.forEach(x => { const key = x.date < today ? "late" : x.date; (groups[key] = groups[key] || []).push(x); });
+    // Möödunud päevade tehtud ülesandeid ei näidata (need pole "hilinenud").
+    state.tasks.filter(x => !(x.done && x.date < today)).forEach(x => { const key = x.date < today ? "late" : x.date; (groups[key] = groups[key] || []).push(x); });
     const keys = Object.keys(groups).sort((a, b) => a === "late" ? -1 : b === "late" ? 1 : a.localeCompare(b));
     wrap.innerHTML = keys.map(k => {
       const items = groups[k].sort(byOrder);
@@ -3018,6 +3058,7 @@
               const bits = [];
               if (k === "late") bits.push(fmtDate(x.date));
               if (x.time) bits.push(ICON_BELL + x.time);
+              if (x.routine) { const r = state.routines.find(y => y.id === x.routine); if (r) bits.push(`<span class="rt-badge" title="${esc(t("Rutiin"))}">↻ ${esc(daysText(r.days))}</span>`); }
               if (x.moved) bits.push(`<span class="moved" title="${esc(t("Mitu korda edasi lükatud"))}">↷ ${x.moved}×</span>`);
               return bits.length ? `<div class="s num">${bits.join(" · ")}</div>` : "";
             })()}</div>
@@ -3027,10 +3068,120 @@
     }).join("");
     translateDOM(wrap);
   }
+
+  // ---- Rutiinid (korduvad ülesanded) ----
+  // Rutiin: { id, text, days: [1..7] (E=1 … P=7), time, active, made: ["YYYY-MM-DD", …] }
+  // Igal rutiinil on korraga üks tegemata kordus: kui seda pole, luuakse ülesanne esimesele sobivale päevale
+  // (täna või järgmise 6 päeva jooksul), millele seda veel loodud pole. "made" jätab loodud päevad meelde –
+  // nii ei teki tehtud või kustutatud ülesanne samale päevale uuesti.
+  if (!Array.isArray(state.routines)) state.routines = [];
+  const isoDow = s => { const g = parseDate(s).getDay(); return g === 0 ? 7 : g; };          // E=1 … P=7
+  const dowShort = n => { const d = new Date(2024, 0, n); return d.toLocaleDateString(LOC, { weekday: "short" }).replace(".", ""); };   // 1.1.2024 oli esmaspäev
+  const dowLong = n => new Date(2024, 0, n).toLocaleDateString(LOC, { weekday: "long" });
+  function daysText(days) {
+    const d = [...days].sort((a, b) => a - b);
+    if (d.length === 7) return t("iga päev");
+    if (d.join() === "1,2,3,4,5") return t("tööpäeviti");
+    if (d.join() === "6,7") return t("nädalavahetustel");
+    if (d.length === 1) return t("iga {p}", { p: dowLong(d[0]).toLowerCase() });
+    return d.map(dowShort).join(", ");
+  }
+  function ensureRoutines() {
+    const today = dateStr(), cutoff = dateStr(-40);
+    let created = 0;
+    const before = state.tasks.length;
+    state.tasks = state.tasks.filter(x => !(x.done && x.date < dateStr(-30)));   // vanad tehtud ülesanded ära
+    if (state.tasks.length !== before) created = -1;
+    state.routines.forEach(r => {
+      r.made = (r.made || []).filter(d => d >= cutoff);
+      if (!r.active || !r.days.length) return;
+      if (state.tasks.some(x => x.routine === r.id && !x.done && x.date >= today)) return;   // ootel kordus juba olemas
+      for (let i = 0; i < 7; i++) {
+        const date = dateStr(i);
+        if (!r.days.includes(isoDow(date)) || r.made.includes(date)) continue;
+        const order = Math.max(-1, ...state.tasks.filter(x => x.date === date).map(x => x.order)) + 1;
+        state.tasks.push({ id: uid(), text: r.text, date, time: r.time || "", done: false, order, routine: r.id });
+        r.made.push(date); created++;
+        break;
+      }
+    });
+    if (created) { save(); renderShort(); }
+    return Math.max(0, created);
+  }
+  let repDays = [];
+  function renderRepeat() {
+    document.getElementById("repeatDays").innerHTML = [1, 2, 3, 4, 5, 6, 7].map(n =>
+      `<button type="button" class="day-t ${repDays.includes(n) ? "on" : ""}" data-dow="${n}" aria-pressed="${repDays.includes(n)}" title="${esc(dowLong(n))}" data-no-tr>${esc(dowShort(n))}</button>`).join("");
+    const rep = repDays.length > 0;
+    document.getElementById("whenField").hidden = rep;
+    document.getElementById("dateField").style.display = !rep && when === "custom" ? "flex" : "none";
+    document.getElementById("repeatHint").textContent = rep ? t("Rutiin: {d}. Ülesanne ilmub ise igal valitud päeval.", { d: daysText(repDays) }) : "";
+    document.getElementById("shortSubmit").textContent = rep ? t("Lisa rutiin") : t("Lisa ülesanne");
+  }
+  document.getElementById("repeatDays").addEventListener("click", e => {
+    const b = e.target.closest("[data-dow]"); if (!b) return;
+    const n = +b.dataset.dow; repDays = repDays.includes(n) ? repDays.filter(x => x !== n) : [...repDays, n];
+    renderRepeat();
+  });
+  document.querySelector(".rep-quick").addEventListener("click", e => {
+    const b = e.target.closest("[data-rep]"); if (!b) return;
+    repDays = b.dataset.rep === "all" ? [1, 2, 3, 4, 5, 6, 7] : b.dataset.rep === "work" ? [1, 2, 3, 4, 5] : [];
+    renderRepeat();
+  });
+  function renderRoutines() {
+    const el = document.getElementById("routineList");
+    if (!state.routines.length) { el.innerHTML = `<div class="empty">${esc(t("Rutiine pole. Vali ülesannet lisades päevad (nt N), et see korduks iga nädal."))}</div>`; return; }
+    el.innerHTML = state.routines.map(r => `
+      <div class="item routine ${r.active ? "" : "paused"}" data-rid="${r.id}">
+        <span class="rt-icon" aria-hidden="true">↻</span>
+        <div class="t"><div data-no-tr>${esc(r.text)}</div><div class="s">${esc(daysText(r.days))}${r.time ? ` · ${ICON_BELL}${esc(r.time)}` : ""}${r.active ? "" : " · " + esc(t("peatatud"))}</div>
+          <div class="day-toggles sm">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button type="button" class="day-t ${r.days.includes(n) ? "on" : ""}" data-rdow="${n}" aria-pressed="${r.days.includes(n)}" title="${esc(dowLong(n))}" data-no-tr>${esc(dowShort(n))}</button>`).join("")}</div></div>
+        <label class="switch-mini" title="${esc(r.active ? t("Peata rutiin") : t("Jätka rutiini"))}"><input type="checkbox" class="switch" data-ract ${r.active ? "checked" : ""} aria-label="${esc(t("Rutiin aktiivne"))}"></label>
+        <button class="x" type="button" data-rdel title="${esc(t("Kustuta rutiin"))}" aria-label="${esc(t("Kustuta rutiin"))}">${ICON_X}</button>
+      </div>`).join("");
+  }
+  const routineList = document.getElementById("routineList");
+  routineList.addEventListener("click", e => {
+    const row = e.target.closest("[data-rid]"); if (!row) return;
+    const r = state.routines.find(x => x.id === row.dataset.rid); if (!r) return;
+    const d = e.target.closest("[data-rdow]");
+    if (d) {
+      const n = +d.dataset.rdow, next = r.days.includes(n) ? r.days.filter(x => x !== n) : [...r.days, n];
+      if (!next.length) { toast(t("Vali vähemalt üks päev.")); return; }
+      r.days = next.sort((a, b) => a - b);
+      // Kui ootel ülesanne langeb nüüd valimata päevale, eemalda see, et lähim õige päev saaks tekkida.
+      state.tasks = state.tasks.filter(x => !(x.routine === r.id && !x.done && x.date >= dateStr() && !r.days.includes(isoDow(x.date))));
+      r.made = r.made.filter(dd => dd < dateStr() || r.days.includes(isoDow(dd)));
+      save(); ensureRoutines(); renderShort(); return;
+    }
+    if (e.target.closest("[data-rdel]")) {
+      if (!confirm(t("Kustutada rutiin „{x}“? Tulevased tegemata korrad eemaldatakse.", { x: r.text }))) return;
+      state.routines = state.routines.filter(x => x !== r);
+      state.tasks = state.tasks.filter(x => !(x.routine === r.id && !x.done && x.date >= dateStr()));
+      save(); renderShort(); return;
+    }
+  });
+  routineList.addEventListener("change", e => {
+    if (!e.target.matches("[data-ract]")) return;
+    const r = state.routines.find(x => x.id === e.target.closest("[data-rid]").dataset.rid); if (!r) return;
+    r.active = e.target.checked;
+    if (!r.active) state.tasks = state.tasks.filter(x => !(x.routine === r.id && !x.done && x.date >= dateStr()));
+    else r.made = r.made.filter(d => d < dateStr());
+    save(); ensureRoutines(); renderShort();
+  });
   document.getElementById("shortForm").onsubmit = e => {
     e.preventDefault();
     const text = document.getElementById("shortText").value.trim();
     if (!text) return;
+    if (repDays.length) {                       // rutiin
+      const r = { id: uid(), text, days: [...repDays].sort((a, b) => a - b), time: document.getElementById("shortTime").value || "", active: true, made: [] };
+      state.routines.push(r); save();
+      ensureRoutines();
+      const next = state.tasks.find(x => x.routine === r.id);
+      toast(t("Rutiin lisatud: {d}.", { d: daysText(r.days) }) + (next ? " " + t("Järgmine kord: {p}.", { p: dayLabel(next.date) + " " + fmtDate(next.date) }) : ""));
+      document.getElementById("shortText").value = ""; document.getElementById("shortTime").value = "";
+      repDays = []; renderRepeat(); renderShort(); return;
+    }
     const date = when === "custom" ? document.getElementById("shortDate").value : dateStr(parseInt(when));
     if (!date) { document.getElementById("shortDate").focus(); return; }
     const time = document.getElementById("shortTime").value || "";
@@ -3288,7 +3439,7 @@
       notify(t("Meeldetuletus"), x.text, "task-" + x.id); x.notified = true; save();
     });
   }
-  setInterval(() => { autoRoll(); checkReminders(); }, 30 * 1000);
+  setInterval(() => { ensureRoutines(); autoRoll(); checkReminders(); }, 30 * 1000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { autoRoll(); checkReminders(); } });
 
   // ---------- Kontod (Supabase) ----------
@@ -3613,6 +3764,7 @@
   }
   window.__schedulePush = schedulePush;
   renderAll();
+  ensureRoutines();
   autoRoll();
   checkReminders();
   startupSync();
