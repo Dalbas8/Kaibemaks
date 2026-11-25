@@ -379,6 +379,11 @@
   .rep-quick .link-btn:hover { color: var(--accent); }
   .rt-icon { width: 22px; text-align: center; color: var(--accent); font-size: 16px; flex-shrink: 0; align-self: flex-start; margin-top: 1px; }
   .rt-badge { color: var(--accent); }
+  .est { color: #7DD3FC; }
+  .grp-est { color: #7DD3FC; letter-spacing: .04em; text-transform: none; }
+  .est-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .est-row input { max-width: 120px; }
+  .est-row span { font-size: 13px; color: var(--muted); }
   .routine { align-items: flex-start; }
   .routine.paused .t > div:first-child, .routine.paused .rt-icon { color: var(--muted); }
   .routine.paused .day-t.on { background: var(--line-strong); color: var(--ink-2); }
@@ -831,6 +836,16 @@
             <div class="field">
               <label for="shortTime">Meeldetuletus kell <span class="opt">(valikuline)</span></label>
               <input type="time" id="shortTime" style="max-width:160px">
+            </div>
+            <div class="field">
+              <label for="shortEst">Kui kaua võtab? <span class="opt">(valikuline)</span></label>
+              <div class="chips" id="estQuick">
+                <button type="button" class="chip" data-est="15">15 min</button>
+                <button type="button" class="chip" data-est="30">30 min</button>
+                <button type="button" class="chip" data-est="60">1 h</button>
+                <button type="button" class="chip" data-est="120">2 h</button>
+              </div>
+              <div class="est-row"><input type="number" id="shortEst" class="num" min="1" max="1440" step="1" placeholder="nt 45"><span>min</span></div>
             </div>
             <button class="btn block" type="submit" id="shortSubmit">Lisa ülesanne</button>
           </form>
@@ -1362,6 +1377,8 @@
     "{n} ülesanne → {d}": v => `${v.n} task → ${v.d}`, "{n} ülesannet → {d}": v => `${v.n} tasks → ${v.d}`,
     "{n} hilinenud ülesanne tõsteti tänasesse.": "{n} overdue task was moved to today.", "{n} hilinenud ülesannet tõsteti tänasesse.": "{n} overdue tasks were moved to today.",
     "Ülesanded ja meeldetuletused": "Tasks and reminders",
+    "Kui kaua võtab?": "How long will it take?", "nt 45": "e.g. 45", "Hinnanguline aeg": "Estimated time",
+    "Tegemata ülesannete hinnanguline aeg kokku": "Estimated total time of unfinished tasks",
     "Kordub": "Repeats", "(valikuline – rutiin)": "(optional – routine)", "Kordumise päevad": "Repeat days", "Iga päev": "Every day",
     "Tööpäeviti": "Weekdays", "Ei kordu": "Doesn't repeat", "Rutiinid": "Routines", "Rutiin": "Routine",
     "Korduvad ülesanded ilmuvad ise valitud päevadel": "Repeating tasks appear by themselves on the chosen days",
@@ -3044,12 +3061,14 @@
       const label = k === "late" ? t("Hilinenud") : dayLabel(k);
       const right = k === "late" ? "" : fmtDate(k);
       const openN = items.filter(x => !x.done).length;
+      const estSum = items.filter(x => !x.done).reduce((a, x) => a + (x.est || 0), 0);
+      const estTxt = estSum ? `<span class="grp-est num" title="${esc(t("Tegemata ülesannete hinnanguline aeg kokku"))}">≈ ${esc(fmtDur(estSum))}</span>` : "";
       // Kiirnupp päise juures: hilinenud → tänasesse, tänased tegemata → homsesse.
       const bulk = !openN ? "" : k === "late"
         ? `<button class="link-btn bulk" type="button" data-bulk="late">${esc(t("Tõsta kõik tänasesse"))}</button>`
         : k === today ? `<button class="link-btn bulk" type="button" data-bulk="today">${esc(t("Lükka tegemata homsesse"))}</button>` : "";
       return `<div class="task-group" data-date="${k}">
-        <div class="group ${k === "late" ? "late" : ""}"><span>${esc(label)}</span><span class="grp-right">${bulk}<span class="num">${right}</span></span></div>` +
+        <div class="group ${k === "late" ? "late" : ""}"><span>${esc(label)}</span><span class="grp-right">${estTxt}${bulk}<span class="num">${right}</span></span></div>` +
         items.map(x => `
           <div class="item ${x.done ? "done" : ""}" data-id="${x.id}">
             <button class="grip" type="button" data-grip aria-label="${esc(t("Lohista järjekorra muutmiseks"))}" title="${esc(t("Lohista järjekorra muutmiseks"))}">${ICON_GRIP}</button>
@@ -3058,6 +3077,7 @@
               const bits = [];
               if (k === "late") bits.push(fmtDate(x.date));
               if (x.time) bits.push(ICON_BELL + x.time);
+              if (x.est) bits.push(`<span class="est" title="${esc(t("Hinnanguline aeg"))}">⏱ ${esc(fmtDur(x.est))}</span>`);
               if (x.routine) { const r = state.routines.find(y => y.id === x.routine); if (r) bits.push(`<span class="rt-badge" title="${esc(t("Rutiin"))}">↻ ${esc(daysText(r.days))}</span>`); }
               if (x.moved) bits.push(`<span class="moved" title="${esc(t("Mitu korda edasi lükatud"))}">↷ ${x.moved}×</span>`);
               return bits.length ? `<div class="s num">${bits.join(" · ")}</div>` : "";
@@ -3100,7 +3120,7 @@
         const date = dateStr(i);
         if (!r.days.includes(isoDow(date)) || r.made.includes(date)) continue;
         const order = Math.max(-1, ...state.tasks.filter(x => x.date === date).map(x => x.order)) + 1;
-        state.tasks.push({ id: uid(), text: r.text, date, time: r.time || "", done: false, order, routine: r.id });
+        state.tasks.push({ id: uid(), text: r.text, date, time: r.time || "", est: r.est || 0, done: false, order, routine: r.id });
         r.made.push(date); created++;
         break;
       }
@@ -3134,7 +3154,7 @@
     el.innerHTML = state.routines.map(r => `
       <div class="item routine ${r.active ? "" : "paused"}" data-rid="${r.id}">
         <span class="rt-icon" aria-hidden="true">↻</span>
-        <div class="t"><div data-no-tr>${esc(r.text)}</div><div class="s">${esc(daysText(r.days))}${r.time ? ` · ${ICON_BELL}${esc(r.time)}` : ""}${r.active ? "" : " · " + esc(t("peatatud"))}</div>
+        <div class="t"><div data-no-tr>${esc(r.text)}</div><div class="s">${esc(daysText(r.days))}${r.time ? ` · ${ICON_BELL}${esc(r.time)}` : ""}${r.est ? ` · ⏱ ${esc(fmtDur(r.est))}` : ""}${r.active ? "" : " · " + esc(t("peatatud"))}</div>
           <div class="day-toggles sm">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button type="button" class="day-t ${r.days.includes(n) ? "on" : ""}" data-rdow="${n}" aria-pressed="${r.days.includes(n)}" title="${esc(dowLong(n))}" data-no-tr>${esc(dowShort(n))}</button>`).join("")}</div></div>
         <label class="switch-mini" title="${esc(r.active ? t("Peata rutiin") : t("Jätka rutiini"))}"><input type="checkbox" class="switch" data-ract ${r.active ? "checked" : ""} aria-label="${esc(t("Rutiin aktiivne"))}"></label>
         <button class="x" type="button" data-rdel title="${esc(t("Kustuta rutiin"))}" aria-label="${esc(t("Kustuta rutiin"))}">${ICON_X}</button>
@@ -3169,26 +3189,37 @@
     else r.made = r.made.filter(d => d < dateStr());
     save(); ensureRoutines(); renderShort();
   });
+  // ---- Hinnanguline kestus ----
+  const estInput = document.getElementById("shortEst");
+  const readEst = () => { const v = parseInt(estInput.value); return v > 0 && v <= 1440 ? v : 0; };
+  const syncEstChips = () => document.querySelectorAll("#estQuick [data-est]").forEach(b => b.classList.toggle("on", b.dataset.est === String(readEst())));
+  const clearEst = () => { estInput.value = ""; syncEstChips(); };
+  document.getElementById("estQuick").addEventListener("click", e => {
+    const b = e.target.closest("[data-est]"); if (!b) return;
+    estInput.value = estInput.value === b.dataset.est ? "" : b.dataset.est;   // uuesti vajutus eemaldab valiku
+    syncEstChips();
+  });
+  estInput.addEventListener("input", syncEstChips);
   document.getElementById("shortForm").onsubmit = e => {
     e.preventDefault();
     const text = document.getElementById("shortText").value.trim();
     if (!text) return;
     if (repDays.length) {                       // rutiin
-      const r = { id: uid(), text, days: [...repDays].sort((a, b) => a - b), time: document.getElementById("shortTime").value || "", active: true, made: [] };
+      const r = { id: uid(), text, days: [...repDays].sort((a, b) => a - b), time: document.getElementById("shortTime").value || "", est: readEst(), active: true, made: [] };
       state.routines.push(r); save();
       ensureRoutines();
       const next = state.tasks.find(x => x.routine === r.id);
       toast(t("Rutiin lisatud: {d}.", { d: daysText(r.days) }) + (next ? " " + t("Järgmine kord: {p}.", { p: dayLabel(next.date) + " " + fmtDate(next.date) }) : ""));
-      document.getElementById("shortText").value = ""; document.getElementById("shortTime").value = "";
+      document.getElementById("shortText").value = ""; document.getElementById("shortTime").value = ""; clearEst();
       repDays = []; renderRepeat(); renderShort(); return;
     }
     const date = when === "custom" ? document.getElementById("shortDate").value : dateStr(parseInt(when));
     if (!date) { document.getElementById("shortDate").focus(); return; }
     const time = document.getElementById("shortTime").value || "";
     const order = Math.max(-1, ...state.tasks.filter(x => x.date === date).map(x => x.order)) + 1;
-    state.tasks.push({ id: uid(), text, date, time, done: false, order });
+    state.tasks.push({ id: uid(), text, date, time, est: readEst(), done: false, order });
     save();
-    document.getElementById("shortText").value = ""; document.getElementById("shortTime").value = "";
+    document.getElementById("shortText").value = ""; document.getElementById("shortTime").value = ""; clearEst();
     renderShort();
     if (time && S.remind && window.Notification?.permission !== "granted") toast(t("Lülita seadetes meeldetuletused sisse, et saada teavitus."));
   };
